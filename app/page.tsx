@@ -532,7 +532,7 @@ export default function IGititPage() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
           <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); setComparison(null); window.history.replaceState(null, "", window.location.pathname) }} />
-          <div style={{ fontSize: "22px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", marginTop: "8px" }}>open source, open language.</div>
+          <div style={{ fontSize: "22px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           {history.length > 0 && (
