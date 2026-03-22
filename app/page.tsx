@@ -307,6 +307,8 @@ export default function IGititPage() {
   const [stepA, setStepA] = useState(0)
   const [analysisA, setAnalysisA] = useState<Analysis | null>(null)
   const [errorA, setErrorA] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+  const [expandedModuleSingle, setExpandedModuleSingle] = useState<string | null>(null)
 
   // Compare repo
   const [compareMode, setCompareMode] = useState(false)
@@ -342,6 +344,8 @@ export default function IGititPage() {
   const [expandedCommit, setExpandedCommit] = useState<string | null>(null)
 
   const animateBinary = useBinaryAnimation()
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -568,7 +572,7 @@ export default function IGititPage() {
               <input type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com/owner/repository" style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "18px", color: animatingA ? "#4A9EF0" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }} />
               {animatingA && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #4A9EF0, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
             </div>
-            <button className="analyze-btn" onClick={handleAnalyzeA} disabled={!urlA.trim() || analyzingA} style={{ padding: "16px 32px", background: urlA.trim() && !analyzingA ? "#4A9EF0" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", color: urlA.trim() && !analyzingA ? "#0b0b0c" : "rgba(255,255,255,0.3)", cursor: urlA.trim() && !analyzingA ? "pointer" : "default", whiteSpace: "nowrap", transition: "all 0.15s" }}>
+            <button className="analyze-btn" onClick={handleAnalyzeA} disabled={!mounted || !urlA.trim() || analyzingA} style={{ padding: "16px 32px", background: urlA.trim() && !analyzingA ? "#4A9EF0" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", color: urlA.trim() && !analyzingA ? "#0b0b0c" : "rgba(255,255,255,0.3)", cursor: urlA.trim() && !analyzingA ? "pointer" : "default", whiteSpace: "nowrap", transition: "all 0.15s" }}>
               {analyzingA ? "[ analyzing… ]" : "[ analyze ]"}
             </button>
           </div>
@@ -789,20 +793,19 @@ export default function IGititPage() {
             {!compareMode && activeTab === "modules" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {analysisA.modules.map((mod, i) => {
-                  const [exp, setExp] = useState<boolean>(false)
                   return (
                     <div key={i} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden" }}>
-                      <div style={{ padding: "24px 32px", cursor: "pointer" }} onClick={() => setExp(!exp)}>
+                      <div style={{ padding: "24px 32px", cursor: "pointer" }} onClick={() => setExpandedModuleSingle(expandedModuleSingle === mod.name ? null : mod.name)}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
                           <span style={{ fontSize: "16px", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>{mod.name}</span>
                           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                             {mod.path && <span style={{ fontSize: "11px", padding: "3px 8px", background: "rgba(255,255,255,0.05)", borderRadius: "4px", color: "rgba(255,255,255,0.35)" }}>{mod.path}</span>}
-                            {mod.sourceSnippet && <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.25)" }}>{exp ? "▲" : "▼"}</span>}
+                            {mod.sourceSnippet && <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.25)" }}>{expandedModuleSingle === mod.name ? "▲" : "▼"}</span>}
                           </div>
                         </div>
                         <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.55)", fontWeight: 300 }}>{mod.description}</div>
                       </div>
-                      {exp && mod.sourceSnippet && (
+                      {expandedModuleSingle === mod.name && mod.sourceSnippet && (
                         <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
                           <div style={{ padding: "10px 32px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "11px", color: "rgba(255,255,255,0.25)", display: "flex", justifyContent: "space-between" }}><span>[ source ]</span><span>{mod.path}</span></div>
                           <pre style={{ padding: "20px 32px", margin: 0, fontSize: "13px", lineHeight: 1.7, overflowX: "auto", fontFamily: "inherit", whiteSpace: "pre-wrap" }}>
