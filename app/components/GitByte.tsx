@@ -53,11 +53,15 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
     if (!canvas) return
     const ctx = canvas.getContext("2d")
     if (!ctx) return
-    const W = 640, H = 240
+    const W = 1280, H = 480
+    canvas.width = W
+    canvas.height = H
+    ctx.scale(2, 2)
+    const DW = 640, DH = 240
 
     const spawnFood = (filename: string) => {
       const s = stateRef.current
-      s.food = { x: W - 10, y: 120, text: filename, eaten: false }
+      s.food = { x: DW - 10, y: 120, text: filename, eaten: false }
       s.statusText = "eating " + filename + "…"
       setStatusText("eating " + filename + "…")
     }
@@ -86,8 +90,8 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
     const drawGrid = () => {
       ctx.strokeStyle = "rgba(255,255,255,0.025)"
       ctx.lineWidth = 0.5
-      for (let x = 0; x < W; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke() }
-      for (let y = 0; y < H; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke() }
+      for (let x = 0; x < DW; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, DH); ctx.stroke() }
+      for (let y = 0; y < DH; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(DW, y); ctx.stroke() }
     }
 
     const drawGitbyte = () => {
@@ -170,7 +174,7 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
       ctx.fill()
       ctx.strokeStyle = "rgba(74,158,240,0.35)"; ctx.lineWidth = 0.5; ctx.stroke()
       ctx.fillStyle = "#4A9EF0"
-      ctx.font = "12px 'IBM Plex Mono', monospace"
+      ctx.font = "14px 'IBM Plex Mono', monospace"
       ctx.fillText(s.food.text, px - tw + 6, py + 2)
     }
 
@@ -185,7 +189,7 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
       ctx.fill()
       ctx.strokeStyle = "rgba(76,175,125,0.4)"; ctx.lineWidth = 0.5; ctx.stroke()
       ctx.fillStyle = "#4CAF7D"
-      ctx.font = "11px 'IBM Plex Mono', monospace"
+      ctx.font = "13px 'IBM Plex Mono', monospace"
       ctx.fillText(s.poop.text, s.poop.x - tw + 6, s.poop.y + 2)
       // drip dots
       ctx.fillStyle = "rgba(76,175,125,0.35)"
@@ -210,14 +214,14 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
     // Label
     const drawLabel = () => {
       ctx.fillStyle = "rgba(255,255,255,0.08)"
-      ctx.font = "10px 'IBM Plex Mono', monospace"
+      ctx.font = "11px 'IBM Plex Mono', monospace"
       ctx.fillText("gitbyte", 10, 20)
       ctx.fillStyle = "#4A9EF0"
       ctx.beginPath(); ctx.arc(58, 15, 3, 0, Math.PI * 2); ctx.fill()
     }
 
     const loop = () => {
-      ctx.clearRect(0, 0, W, H)
+      ctx.clearRect(0, 0, DW, DH)
       drawGrid()
       const s = stateRef.current
       s.frameCount++
@@ -341,8 +345,8 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
       {/* Canvas */}
       <canvas
         ref={canvasRef}
-        width={640}
-        height={240}
+        width={1280}
+        height={480}
         style={{ display: "block", width: "100%", height: "240px", cursor: "pointer" }}
         onClick={handleFeed}
       />
