@@ -57,7 +57,7 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
 
     const spawnFood = (filename: string) => {
       const s = stateRef.current
-      s.food = { x: W - 10, y: 80, text: filename, eaten: false }
+      s.food = { x: W - 10, y: 120, text: filename, eaten: false }
       s.statusText = "eating " + filename + "…"
       setStatusText("eating " + filename + "…")
     }
@@ -309,7 +309,7 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
     if (s.food && !s.food.eaten) return
     const fn = s.fileList[s.fileIndex % s.fileList.length]
     s.fileIndex++
-    s.food = { x: 630, y: 80, text: fn, eaten: false }
+    s.food = { x: 630, y: 120, text: fn, eaten: false }
     s.statusText = "eating " + fn + "…"
     setStatusText("eating " + fn + "…")
   }
