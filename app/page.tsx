@@ -539,7 +539,7 @@ export default function IGititPage() {
 
   return (
     <div style={{ minHeight: "100dvh", background: "#0b0b0c", fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: "rgba(255,255,255,0.92)", padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto" }}>
-      <style>{`
+      <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
         ::selection { background: rgba(74,158,240,0.3); }
@@ -549,6 +549,7 @@ export default function IGititPage() {
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+        @keyframes pulse-btn { 0%,100%{box-shadow:0 0 0 0 rgba(74,158,240,0.4)} 50%{box-shadow:0 0 0 8px rgba(74,158,240,0)} }
         .tab-btn:hover { background: rgba(255,255,255,0.05) !important; }
         .analyze-btn:hover:not(:disabled) { background: rgba(74,158,240,0.9) !important; }
         .history-item:hover { background: rgba(255,255,255,0.05) !important; }
@@ -556,12 +557,6 @@ export default function IGititPage() {
         .commit-card:hover { border-color: rgba(255,255,255,0.14) !important; }
         .depth-btn:hover { background: rgba(255,255,255,0.08) !important; }
         .compare-btn:hover { background: rgba(74,158,240,0.15) !important; border-color: rgba(74,158,240,0.5) !important; }
-      `}</style>
-      <style suppressHydrationWarning>{`
-        @keyframes pulse-btn {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(74,158,240,0.4); }
-          50% { box-shadow: 0 0 0 8px rgba(74,158,240,0); }
-        }
       `}</style>
 
       {/* HEADER */}
