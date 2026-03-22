@@ -47,9 +47,10 @@ async function fetchFromIPFS(cid: string): Promise<VerificationDoc | null> {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ cid: string }> }): Promise<Metadata> {
-  const { cid } = await params
+  const resolved = await params
+  const cid = resolved?.cid ?? ""
   return {
-    title: `iGITit Verified Analysis · ${cid.slice(0, 16)}…`,
+    title: cid ? `iGITit Verified Analysis · ${cid.slice(0, 16)}…` : "iGITit Verified Analysis",
     description: "Cryptographically signed, IPFS-pinned repository analysis by iGITit · an OMARO PBC product",
   }
 }
@@ -91,7 +92,8 @@ function dataColor(type: "collect" | "store" | "send") {
 function scoreColor(pass: boolean) { return pass ? S.green : S.red }
 
 export default async function VerifyPage({ params }: { params: Promise<{ cid: string }> }) {
-  const { cid } = await params
+  const resolved = await params
+  const cid = resolved?.cid ?? ""
   const doc = await fetchFromIPFS(cid)
 
   const baseStyle: React.CSSProperties = {
