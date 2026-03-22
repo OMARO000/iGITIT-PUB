@@ -180,9 +180,10 @@ export default function IGititPage() {
       minHeight: "100dvh",
       background: "#0b0b0c",
       fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
+      fontSize: '14px',
       color: "rgba(255,255,255,0.92)",
-      padding: "32px 24px 80px",
-      maxWidth: "900px",
+      padding: "48px 40px 120px",
+      maxWidth: "1100px",
       margin: "0 auto",
     }}>
       <style>{`
@@ -211,20 +212,20 @@ export default function IGititPage() {
         borderBottom: "1px solid rgba(255,255,255,0.07)",
       }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
-          <div style={{ fontSize: "22px", letterSpacing: "-0.5px" }}>
+          <div style={{ fontSize: "36px", letterSpacing: "-0.5px" }}>
             <span style={{ fontWeight: 500 }}>iGIT</span>
             <span style={{ fontWeight: 300, opacity: 0.7 }}>it</span>
           </div>
-          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em" }}>
+          <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em" }}>
             open source, open language.
           </div>
         </div>
         <div style={{
-          fontSize: "10px",
+          fontSize: "14px",
           color: "rgba(255,255,255,0.4)",
           letterSpacing: "0.1em",
           border: "1px solid rgba(255,255,255,0.1)",
-          padding: "5px 10px",
+          padding: "6px 20px",
           borderRadius: "4px",
         }}>
           OMARO PBC
@@ -234,10 +235,10 @@ export default function IGititPage() {
       {/* INPUT */}
       <div style={{ marginBottom: "32px" }}>
         <div style={{
-          fontSize: "11px",
+          fontSize: "18px",
           color: "rgba(255,255,255,0.35)",
           letterSpacing: "0.06em",
-          marginBottom: "10px",
+          marginBottom: "12px",
         }}>
           paste a github or gitlab repository url
         </div>
@@ -247,7 +248,7 @@ export default function IGititPage() {
             background: "rgba(255,255,255,0.03)",
             border: `1px solid ${isAnimating ? "rgba(196,151,74,0.4)" : "rgba(255,255,255,0.1)"}`,
             borderRadius: "6px",
-            padding: "14px 16px",
+            padding: "16px 24px",
             position: "relative",
             overflow: "hidden",
             transition: "border-color 0.2s",
@@ -265,7 +266,7 @@ export default function IGititPage() {
                 border: "none",
                 outline: "none",
                 fontFamily: "inherit",
-                fontSize: "14px",
+                fontSize: "18px",
                 color: isAnimating ? "#C4974A" : "rgba(255,255,255,0.88)",
                 letterSpacing: isAnimating ? "0.02em" : "normal",
                 transition: "color 0.2s",
@@ -288,12 +289,12 @@ export default function IGititPage() {
             onClick={handleAnalyze}
             disabled={!url.trim() || isAnalyzing}
             style={{
-              padding: "14px 24px",
+              padding: "16px 32px",
               background: url.trim() && !isAnalyzing ? "#C4974A" : "rgba(255,255,255,0.06)",
               border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: "6px",
               fontFamily: "inherit",
-              fontSize: "13px",
+              fontSize: "18px",
               color: url.trim() && !isAnalyzing ? "#0b0b0c" : "rgba(255,255,255,0.3)",
               cursor: url.trim() && !isAnalyzing ? "pointer" : "default",
               letterSpacing: "0.08em",
@@ -314,7 +315,7 @@ export default function IGititPage() {
           background: "rgba(224,92,92,0.08)",
           border: "1px solid rgba(224,92,92,0.3)",
           borderRadius: "8px",
-          fontSize: "12px",
+          fontSize: "14px",
           color: "#E05C5C",
           marginBottom: "24px",
           animation: "fadeIn 0.3s ease",
@@ -334,7 +335,7 @@ export default function IGititPage() {
         }}>
           {STEPS.map((msg, i) => (
             <div key={i} style={{
-              fontSize: "12px",
+              fontSize: "14px",
               color: i < analyzeStep ? "rgba(255,255,255,0.25)" :
                      i === analyzeStep ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
               letterSpacing: "0.04em",
@@ -347,7 +348,7 @@ export default function IGititPage() {
               <span style={{
                 color: i < analyzeStep ? "#4CAF7D" :
                        i === analyzeStep ? "#C4974A" : "rgba(255,255,255,0.15)",
-                fontSize: "10px",
+                fontSize: "12px",
               }}>
                 {i < analyzeStep ? "✓" : i === analyzeStep ? "→" : "·"}
               </span>
@@ -374,25 +375,25 @@ export default function IGititPage() {
               flexWrap: "wrap",
               gap: "8px",
             }}>
-              <div style={{ fontSize: "15px", fontWeight: 500, letterSpacing: "0.02em" }}>
+              <div style={{ fontSize: "18px", fontWeight: 500, letterSpacing: "0.02em" }}>
                 {analysis.meta.owner}/{analysis.meta.repo}
               </div>
               <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                 {analysis.meta.language && (
-                  <span style={{ fontSize: "10px", padding: "3px 8px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
+                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
                     {analysis.meta.language}
                   </span>
                 )}
-                <span style={{ fontSize: "10px", padding: "3px 8px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
+                <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
                   ★ {analysis.meta.stars}
                 </span>
-                <span style={{ fontSize: "10px", padding: "3px 8px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
+                <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
                   {analysis.meta.fileCount} files
                 </span>
               </div>
             </div>
             {analysis.meta.description && (
-              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
+              <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
                 {analysis.meta.description}
               </div>
             )}
@@ -416,12 +417,12 @@ export default function IGititPage() {
                 className="tab-btn"
                 onClick={() => setActiveTab(tab.id)}
                 style={{
-                  padding: "14px 8px",
+                  padding: "16px 8px",
                   background: activeTab === tab.id ? "rgba(196,151,74,0.1)" : "rgba(255,255,255,0.03)",
                   border: `1px solid ${activeTab === tab.id ? "#C4974A" : "rgba(255,255,255,0.08)"}`,
                   borderRadius: "8px",
                   fontFamily: "inherit",
-                  fontSize: "11px",
+                  fontSize: "16px",
                   color: activeTab === tab.id ? "#C4974A" : "rgba(255,255,255,0.45)",
                   cursor: "pointer",
                   letterSpacing: "0.04em",
@@ -443,22 +444,22 @@ export default function IGititPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {analysis.overview.map((section, i) => (
                   <div key={i} style={{
-                    padding: "20px",
+                    padding: "36px 40px",
                     background: "rgba(255,255,255,0.02)",
                     border: "1px solid rgba(255,255,255,0.07)",
                     borderRadius: "8px",
                   }}>
                     <div style={{
-                      fontSize: "9px",
+                      fontSize: "12px",
                       letterSpacing: "0.12em",
                       color: "rgba(255,255,255,0.3)",
-                      marginBottom: "12px",
+                      marginBottom: "16px",
                     }}>
                       {section.title}
                     </div>
                     <div style={{
-                      fontSize: "13px",
-                      lineHeight: 1.8,
+                      fontSize: "18px",
+                      lineHeight: 1.75,
                       color: "rgba(255,255,255,0.82)",
                       fontWeight: 300,
                     }}>
@@ -473,41 +474,41 @@ export default function IGititPage() {
             {activeTab === "data" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{
-                  padding: "20px",
+                  padding: "36px 40px",
                   background: "rgba(255,255,255,0.02)",
                   border: "1px solid rgba(255,255,255,0.07)",
                   borderRadius: "8px",
                 }}>
                   <div style={{
-                    fontSize: "9px",
+                    fontSize: "12px",
                     letterSpacing: "0.12em",
                     color: "rgba(255,255,255,0.3)",
-                    marginBottom: "16px",
+                    marginBottom: "20px",
                   }}>
                     DATA THIS SOFTWARE TOUCHES
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                     {analysis.dataItems.map((item, i) => (
-                      <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                      <div key={i} style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
                         <div style={{
                           width: "8px",
                           height: "8px",
                           borderRadius: "50%",
                           background: dataColor(item.type),
                           flexShrink: 0,
-                          marginTop: "5px",
+                          marginTop: "7px",
                         }} />
                         <div>
-                          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.82)", fontWeight: 400 }}>
+                          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.82)", fontWeight: 400 }}>
                             {item.label}
                           </span>
-                          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>
+                          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>
                             {" "}— {item.description}
                           </span>
                           {item.sourceLine && (
                             <div style={{
                               marginTop: "4px",
-                              fontSize: "10px",
+                              fontSize: "12px",
                               color: "#C4974A",
                               opacity: 0.7,
                               fontFamily: "inherit",
@@ -522,8 +523,8 @@ export default function IGititPage() {
                   <div style={{
                     display: "flex",
                     gap: "16px",
-                    marginTop: "20px",
-                    paddingTop: "16px",
+                    marginTop: "24px",
+                    paddingTop: "20px",
                     borderTop: "1px solid rgba(255,255,255,0.06)",
                   }}>
                     {[
@@ -533,27 +534,27 @@ export default function IGititPage() {
                     ].map(({ color, label }) => (
                       <div key={label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: color }} />
-                        <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.04em" }}>{label}</span>
+                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.04em" }}>{label}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div style={{
-                  padding: "20px",
+                  padding: "36px 40px",
                   background: "rgba(255,255,255,0.02)",
                   border: "1px solid rgba(255,255,255,0.07)",
                   borderRadius: "8px",
                 }}>
                   <div style={{
-                    fontSize: "9px",
+                    fontSize: "12px",
                     letterSpacing: "0.12em",
                     color: "rgba(255,255,255,0.3)",
-                    marginBottom: "12px",
+                    marginBottom: "16px",
                   }}>
                     DATA FLOW SUMMARY
                   </div>
-                  <div style={{ fontSize: "13px", lineHeight: 1.8, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
+                  <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
                     {analysis.dataFlowSummary}
                   </div>
                 </div>
@@ -575,22 +576,22 @@ export default function IGititPage() {
                     }}
                   >
                     <div
-                      style={{ padding: "18px 20px", cursor: "pointer" }}
+                      style={{ padding: "24px 32px", cursor: "pointer" }}
                       onClick={() => setExpandedModule(expandedModule === mod.name ? null : mod.name)}
                     >
                       <div style={{
                         display: "flex",
                         alignItems: "flex-start",
                         justifyContent: "space-between",
-                        marginBottom: "8px",
+                        marginBottom: "10px",
                       }}>
-                        <div style={{ fontSize: "13px", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>
+                        <div style={{ fontSize: "16px", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>
                           {mod.name}
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                           {mod.path && (
                             <span style={{
-                              fontSize: "9px",
+                              fontSize: "11px",
                               padding: "3px 8px",
                               background: "rgba(255,255,255,0.05)",
                               borderRadius: "4px",
@@ -601,13 +602,13 @@ export default function IGititPage() {
                             </span>
                           )}
                           {mod.sourceSnippet && (
-                            <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)" }}>
+                            <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.25)" }}>
                               {expandedModule === mod.name ? "▲" : "▼"}
                             </span>
                           )}
                         </div>
                       </div>
-                      <div style={{ fontSize: "12px", lineHeight: 1.75, color: "rgba(255,255,255,0.55)", fontWeight: 300 }}>
+                      <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.55)", fontWeight: 300 }}>
                         {mod.description}
                       </div>
                     </div>
@@ -619,9 +620,9 @@ export default function IGititPage() {
                         animation: "fadeIn 0.2s ease",
                       }}>
                         <div style={{
-                          padding: "8px 20px",
+                          padding: "10px 32px",
                           borderBottom: "1px solid rgba(255,255,255,0.05)",
-                          fontSize: "9px",
+                          fontSize: "11px",
                           color: "rgba(255,255,255,0.25)",
                           letterSpacing: "0.1em",
                           display: "flex",
@@ -631,9 +632,9 @@ export default function IGititPage() {
                           <span>{mod.path}</span>
                         </div>
                         <pre style={{
-                          padding: "16px 20px",
+                          padding: "20px 32px",
                           margin: 0,
-                          fontSize: "11px",
+                          fontSize: "13px",
                           lineHeight: 1.7,
                           color: "rgba(255,255,255,0.55)",
                           overflowX: "auto",
@@ -662,41 +663,41 @@ export default function IGititPage() {
             {activeTab === "score" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{
-                  padding: "20px",
+                  padding: "36px 40px",
                   background: "rgba(255,255,255,0.02)",
                   border: "1px solid rgba(255,255,255,0.07)",
                   borderRadius: "8px",
                 }}>
                   <div style={{
-                    fontSize: "9px",
+                    fontSize: "12px",
                     letterSpacing: "0.12em",
                     color: "rgba(255,255,255,0.3)",
-                    marginBottom: "20px",
+                    marginBottom: "24px",
                   }}>
                     ACCOUNTABILITY SCORE · {analysis.meta.owner}/{analysis.meta.repo}
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                     {analysis.score.map((dim, i) => (
                       <div key={i}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                          <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                          <span style={{ fontSize: "16px", color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
                             {dim.label}
                           </span>
-                          <span style={{ fontSize: "11px", color: scoreColor(dim.pass), letterSpacing: "0.04em" }}>
+                          <span style={{ fontSize: "14px", color: scoreColor(dim.pass), letterSpacing: "0.04em" }}>
                             {dim.verdictLabel}
                           </span>
                         </div>
                         <div style={{
-                          height: "2px",
+                          height: "3px",
                           background: "rgba(255,255,255,0.06)",
-                          borderRadius: "1px",
+                          borderRadius: "2px",
                           overflow: "hidden",
                         }}>
                           <div style={{
                             height: "100%",
                             width: dim.pass ? "85%" : "20%",
                             background: scoreColor(dim.pass),
-                            borderRadius: "1px",
+                            borderRadius: "2px",
                             transition: "width 0.6s ease",
                           }} />
                         </div>
@@ -706,20 +707,20 @@ export default function IGititPage() {
                 </div>
 
                 <div style={{
-                  padding: "20px",
+                  padding: "36px 40px",
                   background: "rgba(255,255,255,0.02)",
                   border: "1px solid rgba(255,255,255,0.07)",
                   borderRadius: "8px",
                 }}>
                   <div style={{
-                    fontSize: "9px",
+                    fontSize: "12px",
                     letterSpacing: "0.12em",
                     color: "rgba(255,255,255,0.3)",
-                    marginBottom: "12px",
+                    marginBottom: "16px",
                   }}>
                     OVERALL VERDICT
                   </div>
-                  <div style={{ fontSize: "13px", lineHeight: 1.8, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
+                  <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
                     {analysis.overallVerdict}
                   </div>
                 </div>
@@ -739,7 +740,7 @@ export default function IGititPage() {
             gap: "16px",
           }}>
             <span style={{
-              fontSize: "11px",
+              fontSize: "14px",
               color: "rgba(255,255,255,0.3)",
               letterSpacing: "0.06em",
               whiteSpace: "nowrap",
@@ -753,7 +754,7 @@ export default function IGititPage() {
               borderRadius: "6px",
               padding: "8px 12px",
               fontFamily: "inherit",
-              fontSize: "12px",
+              fontSize: "14px",
               color: "rgba(255,255,255,0.6)",
               outline: "none",
               cursor: "pointer",
@@ -789,7 +790,7 @@ export default function IGititPage() {
         marginTop: "60px",
         paddingTop: "20px",
         borderTop: "1px solid rgba(255,255,255,0.05)",
-        fontSize: "10px",
+        fontSize: "14px",
         color: "rgba(255,255,255,0.2)",
         lineHeight: 1.7,
         letterSpacing: "0.04em",
