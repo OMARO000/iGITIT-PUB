@@ -40,7 +40,7 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
     fileList: files,
     outputList: DEMO_OUTPUTS,
   })
-  const [statusText, setStatusText] = useState("idle — feed me a file")
+  const [statusText, setStatusText] = useState("")
   const [score, setScore] = useState({ eaten: 0, produced: 0 })
   const rafRef = useRef<number>()
 

@@ -1027,7 +1027,7 @@ export default function IGititPage() {
       </div>
 
       {/* GITBYTE */}
-      <GitByte />
+      {!analyzingA && !analysisA && <GitByte />}
     </div>
   )
 }
