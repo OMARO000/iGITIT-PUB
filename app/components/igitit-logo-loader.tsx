@@ -113,7 +113,9 @@ export function CommitGraphLoader({ step }: { step: number }) {
           <text x="208" y="130" style={{ fontSize: "10px", fill: "rgba(76,175,125,0.4)", letterSpacing: "0.08em" }}>analysis</text>
           {EDGES.map((edge, i) => {
             if (!visibleEdges.has(i)) return null
-            const from = NODES[edge.from]; const to = NODES[edge.to]
+            const from = NODES.find(n => n.id === edge.from)
+            const to = NODES.find(n => n.id === edge.to)
+            if (!from || !to) return null
             const color = edgeColor(edge.branch)
             if (edge.branch === "feature" && edge.from === 1)
               return <path key={i} d={`M ${from.x} ${from.y} C ${from.x} ${(from.y+to.y)/2}, ${to.x} ${(from.y+to.y)/2}, ${to.x} ${to.y}`} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
