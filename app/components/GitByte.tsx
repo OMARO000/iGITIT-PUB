@@ -42,6 +42,9 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
   })
   const [statusText, setStatusText] = useState("")
   const [score, setScore] = useState({ eaten: 0, produced: 0 })
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return null
   const rafRef = useRef<number>()
 
   useEffect(() => {
