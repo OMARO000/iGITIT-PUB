@@ -214,10 +214,10 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
     // Label
     const drawLabel = () => {
       ctx.fillStyle = "rgba(255,255,255,0.08)"
-      ctx.font = "11px 'IBM Plex Mono', monospace"
-      ctx.fillText("gitbyte", 10, 20)
+      ctx.font = "15px 'IBM Plex Mono', monospace"
+      ctx.fillText("gitbyte", 10, 22)
       ctx.fillStyle = "#4A9EF0"
-      ctx.beginPath(); ctx.arc(58, 15, 3, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(88, 16, 4, 0, Math.PI * 2); ctx.fill()
     }
 
     const loop = () => {
