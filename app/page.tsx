@@ -549,6 +549,7 @@ export default function IGititPage() {
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+        @keyframes pulse-btn { 0%,100%{box-shadow:0 0 0 0 rgba(74,158,240,0.4)} 50%{box-shadow:0 0 0 8px rgba(74,158,240,0)} }
         .tab-btn:hover { background: rgba(255,255,255,0.05) !important; }
         .analyze-btn:hover:not(:disabled) { background: rgba(74,158,240,0.9) !important; }
         .history-item:hover { background: rgba(255,255,255,0.05) !important; }
@@ -598,7 +599,7 @@ export default function IGititPage() {
               <input type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com/owner/repository" style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "18px", color: animatingA ? "#4A9EF0" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }} />
               {animatingA && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #4A9EF0, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
             </div>
-            <button className="analyze-btn" onClick={handleAnalyzeA} disabled={!mounted || !urlA.trim() || analyzingA} style={{ padding: "16px 32px", background: urlA.trim() && !analyzingA ? "#4A9EF0" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", color: urlA.trim() && !analyzingA ? "#0b0b0c" : "rgba(255,255,255,0.3)", cursor: urlA.trim() && !analyzingA ? "pointer" : "default", whiteSpace: "nowrap", transition: "all 0.15s" }}>
+            <button className="analyze-btn" onClick={handleAnalyzeA} disabled={!mounted || !urlA.trim() || analyzingA} style={{ padding: "16px 32px", background: analyzingA ? "rgba(255,255,255,0.06)" : "#4A9EF0", border: "1px solid #4A9EF0", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", color: analyzingA ? "rgba(255,255,255,0.3)" : "#0b0b0c", cursor: urlA.trim() && !analyzingA ? "pointer" : "default", letterSpacing: "0.08em", whiteSpace: "nowrap", transition: "all 0.15s", animation: urlA.trim() && !analyzingA ? "pulse-btn 1.5s ease-in-out infinite" : "none" }}>
               {analyzingA ? "[ analyzing… ]" : "[ analyze ]"}
             </button>
           </div>
