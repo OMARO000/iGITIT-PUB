@@ -398,13 +398,12 @@ export default function IGititPage() {
       const full: Analysis = { ...data, meta: { ...meta, platform: platform === "github" ? "GitHub" : "GitLab" } }
       setAnalysis(full)
 
-      // Build outputs from module descriptions
-      const outputs = (repoData.filePaths ?? []).map((path: string) => {
-        const mod = full.modules?.find((m: { path?: string }) => path.includes(m.path?.replace(/\/$/, "") ?? "____"))
-        if (mod) {
-          return mod.description.split(".")[0].slice(0, 50)
-        }
-        return "processed"
+      // Build outputs from module descriptions — cycle through in order
+      const outputs = (repoData.filePaths ?? []).map((_: string, idx: number) => {
+        const modules = full.modules ?? []
+        if (modules.length === 0) return "processed"
+        const mod = modules[idx % modules.length]
+        return mod.description.split(".")[0].slice(0, 50)
       })
       setFetchedFileOutputs(outputs)
 
