@@ -23,7 +23,7 @@ const DEMO_OUTPUTS = [
 export default function GitByte({ files = DEMO_FILES, active = false }: GitByteProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef({
-    gitbyte: { x: 320, y: 80, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
+    gitbyte: { x: 320, y: 120, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
     food: null as { x: number; y: number; text: string; eaten: boolean } | null,
     poop: null as { x: number; y: number; text: string; alpha: number; vy: number; age: number } | null,
     particles: [] as { x: number; y: number; vx: number; vy: number; alpha: number; size: number; color: string }[],
@@ -53,7 +53,7 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
     if (!canvas) return
     const ctx = canvas.getContext("2d")
     if (!ctx) return
-    const W = 640, H = 160
+    const W = 640, H = 240
 
     const spawnFood = (filename: string) => {
       const s = stateRef.current
@@ -342,8 +342,8 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
       <canvas
         ref={canvasRef}
         width={640}
-        height={160}
-        style={{ display: "block", width: "100%", height: "160px", cursor: "pointer" }}
+        height={240}
+        style={{ display: "block", width: "100%", height: "240px", cursor: "pointer" }}
         onClick={handleFeed}
       />
 
