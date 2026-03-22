@@ -43,15 +43,16 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
   const [statusText, setStatusText] = useState("")
   const [score, setScore] = useState({ eaten: 0, produced: 0 })
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  if (!mounted) return null
   const rafRef = useRef<number>()
+
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
     stateRef.current.fileList = files.length > 0 ? files : DEMO_FILES
   }, [files])
 
   useEffect(() => {
+    if (!mounted) return
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext("2d")
@@ -309,7 +310,9 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
     setTimeout(() => spawnFood(stateRef.current.fileList[0] ?? "auth.ts"), 1000)
 
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
-  }, [active])
+  }, [active, mounted])
+
+  if (!mounted) return null
 
   const handleFeed = () => {
     const s = stateRef.current
