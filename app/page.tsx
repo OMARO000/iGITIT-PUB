@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
+import { IGititLogo, CommitGraphLoader } from "@/app/components/igitit-logo-loader"
 
 // ─────────────────────────────────────────────
 // TYPES
@@ -96,7 +97,7 @@ function buildTextReport(analysis: Analysis): string {
 
 const SIG = {
   routine: { color: "rgba(255,255,255,0.25)", dot: "rgba(255,255,255,0.2)" },
-  notable: { color: "#C4974A", dot: "#C4974A" },
+  notable: { color: "#4A9EF0", dot: "#4A9EF0" },
   flagged: { color: "#E05C5C", dot: "#E05C5C" },
 }
 
@@ -107,7 +108,7 @@ const SIG = {
 function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeTab: Tab; side: "left" | "right" }) {
   const [expandedModule, setExpandedModule] = useState<string | null>(null)
 
-  const dataColor = (t: "collect" | "store" | "send") => t === "collect" ? "#C4974A" : t === "store" ? "#4CAF7D" : "#E05C5C"
+  const dataColor = (t: "collect" | "store" | "send") => t === "collect" ? "#4A9EF0" : t === "store" ? "#4CAF7D" : "#E05C5C"
   const scoreColor = (p: boolean) => p ? "#4CAF7D" : "#E05C5C"
 
   const card = (children: React.ReactNode, key?: number) => (
@@ -141,13 +142,13 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
               <div>
                 <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.82)" }}>{item.label}</span>
                 <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}> — {item.description}</span>
-                {item.sourceLine && <div style={{ marginTop: "3px", fontSize: "11px", color: "#C4974A", opacity: 0.7 }}>→ {item.sourceLine}</div>}
+                {item.sourceLine && <div style={{ marginTop: "3px", fontSize: "11px", color: "#4A9EF0", opacity: 0.7 }}>→ {item.sourceLine}</div>}
               </div>
             </div>
           ))}
         </div>
         <div style={{ display: "flex", gap: "14px", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          {[{ color: "#C4974A", label: "collected" }, { color: "#4CAF7D", label: "stored" }, { color: "#E05C5C", label: "transmitted" }].map(({ color, label: l }) => (
+          {[{ color: "#4A9EF0", label: "collected" }, { color: "#4CAF7D", label: "stored" }, { color: "#E05C5C", label: "transmitted" }].map(({ color, label: l }) => (
             <div key={l} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
               <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: color }} />
               <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>{l}</span>
@@ -235,7 +236,7 @@ function RepoInputPanel({
       <div style={{ display: "flex", gap: "8px" }}>
         <div style={{
           flex: 1, background: "rgba(255,255,255,0.03)",
-          border: `1px solid ${isAnimating ? "rgba(196,151,74,0.4)" : "rgba(255,255,255,0.1)"}`,
+          border: `1px solid ${isAnimating ? "rgba(74,158,240,0.4)" : "rgba(255,255,255,0.1)"}`,
           borderRadius: "6px", padding: "12px 18px", position: "relative", overflow: "hidden", transition: "border-color 0.2s",
         }}>
           <input
@@ -243,14 +244,14 @@ function RepoInputPanel({
             onChange={e => onUrlChange(e.target.value)}
             onKeyDown={e => e.key === "Enter" && onAnalyze()}
             placeholder="https://github.com/owner/repo"
-            style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "15px", color: isAnimating ? "#C4974A" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }}
+            style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "15px", color: isAnimating ? "#4A9EF0" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }}
           />
-          {isAnimating && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #C4974A, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
+          {isAnimating && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #4A9EF0, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
         </div>
         <button
           onClick={onAnalyze} disabled={!url.trim() || isAnalyzing}
           style={{
-            padding: "12px 20px", background: url.trim() && !isAnalyzing ? "#C4974A" : "rgba(255,255,255,0.06)",
+            padding: "12px 20px", background: url.trim() && !isAnalyzing ? "#4A9EF0" : "rgba(255,255,255,0.06)",
             border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "14px",
             color: url.trim() && !isAnalyzing ? "#0b0b0c" : "rgba(255,255,255,0.3)",
             cursor: url.trim() && !isAnalyzing ? "pointer" : "default", whiteSpace: "nowrap", transition: "all 0.15s",
@@ -273,7 +274,7 @@ function RepoInputPanel({
         <div style={{ padding: "20px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
           {STEPS.map((msg, i) => (
             <div key={i} style={{ fontSize: "12px", color: i < analyzeStep ? "rgba(255,255,255,0.25)" : i === analyzeStep ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)", marginBottom: "8px", display: "flex", gap: "8px", alignItems: "center" }}>
-              <span style={{ color: i < analyzeStep ? "#4CAF7D" : i === analyzeStep ? "#C4974A" : "rgba(255,255,255,0.15)", fontSize: "11px" }}>
+              <span style={{ color: i < analyzeStep ? "#4CAF7D" : i === analyzeStep ? "#4A9EF0" : "rgba(255,255,255,0.15)", fontSize: "11px" }}>
                 {i < analyzeStep ? "✓" : i === analyzeStep ? "→" : "·"}
               </span>
               {msg}
@@ -287,7 +288,7 @@ function RepoInputPanel({
           {analysis.meta.platform && <span style={{ fontSize: "11px", padding: "2px 8px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "3px", color: "rgba(255,255,255,0.5)" }}>{analysis.meta.platform}</span>}
           {analysis.meta.language && <span style={{ fontSize: "11px", padding: "2px 8px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "3px", color: "rgba(255,255,255,0.5)" }}>{analysis.meta.language}</span>}
           <span style={{ fontSize: "11px", padding: "2px 8px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "3px", color: "rgba(255,255,255,0.5)" }}>★ {analysis.meta.stars}</span>
-          {analysis.meta.license && <span style={{ fontSize: "11px", padding: "2px 8px", border: "1px solid rgba(196,151,74,0.3)", borderRadius: "3px", color: "#C4974A" }}>{analysis.meta.license}</span>}
+          {analysis.meta.license && <span style={{ fontSize: "11px", padding: "2px 8px", border: "1px solid rgba(74,158,240,0.3)", borderRadius: "3px", color: "#4A9EF0" }}>{analysis.meta.license}</span>}
         </div>
       )}
     </div>
@@ -511,7 +512,7 @@ export default function IGititPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
-        ::selection { background: rgba(196,151,74,0.3); }
+        ::selection { background: rgba(74,158,240,0.3); }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
@@ -519,26 +520,23 @@ export default function IGititPage() {
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
         .tab-btn:hover { background: rgba(255,255,255,0.05) !important; }
-        .analyze-btn:hover:not(:disabled) { background: rgba(196,151,74,0.9) !important; }
+        .analyze-btn:hover:not(:disabled) { background: rgba(74,158,240,0.9) !important; }
         .history-item:hover { background: rgba(255,255,255,0.05) !important; }
         .export-btn:hover { background: rgba(255,255,255,0.08) !important; }
         .commit-card:hover { border-color: rgba(255,255,255,0.14) !important; }
         .depth-btn:hover { background: rgba(255,255,255,0.08) !important; }
-        .compare-btn:hover { background: rgba(196,151,74,0.15) !important; border-color: rgba(196,151,74,0.5) !important; }
+        .compare-btn:hover { background: rgba(74,158,240,0.15) !important; border-color: rgba(74,158,240,0.5) !important; }
       `}</style>
 
       {/* HEADER */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
-          <div style={{ fontSize: "36px", letterSpacing: "-0.5px", cursor: "pointer" }}
-            onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); setComparison(null); window.history.replaceState(null, "", window.location.pathname) }}>
-            <span style={{ fontWeight: 500 }}>iGIT</span><span style={{ fontWeight: 300, opacity: 0.7 }}>it</span>
-          </div>
+          <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); setComparison(null); window.history.replaceState(null, "", window.location.pathname) }} />
           <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em" }}>open source, open language.</div>
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           {history.length > 0 && (
-            <button onClick={() => setShowHistory(!showHistory)} style={{ fontSize: "13px", color: showHistory ? "#C4974A" : "rgba(255,255,255,0.4)", letterSpacing: "0.08em", border: `1px solid ${showHistory ? "rgba(196,151,74,0.4)" : "rgba(255,255,255,0.1)"}`, padding: "6px 14px", borderRadius: "4px", background: "transparent", fontFamily: "inherit", cursor: "pointer", transition: "all 0.15s" }}>
+            <button onClick={() => setShowHistory(!showHistory)} style={{ fontSize: "13px", color: showHistory ? "#4A9EF0" : "rgba(255,255,255,0.4)", letterSpacing: "0.08em", border: `1px solid ${showHistory ? "rgba(74,158,240,0.4)" : "rgba(255,255,255,0.1)"}`, padding: "6px 14px", borderRadius: "4px", background: "transparent", fontFamily: "inherit", cursor: "pointer", transition: "all 0.15s" }}>
               [ history · {history.length} ]
             </button>
           )}
@@ -566,11 +564,11 @@ export default function IGititPage() {
         <div style={{ marginBottom: "32px" }}>
           <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>paste a github or gitlab repository url</div>
           <div style={{ display: "flex", gap: "10px" }}>
-            <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: `1px solid ${animatingA ? "rgba(196,151,74,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s" }}>
-              <input type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com/owner/repository" style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "18px", color: animatingA ? "#C4974A" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }} />
-              {animatingA && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #C4974A, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
+            <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: `1px solid ${animatingA ? "rgba(74,158,240,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s" }}>
+              <input type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com/owner/repository" style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "18px", color: animatingA ? "#4A9EF0" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }} />
+              {animatingA && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #4A9EF0, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
             </div>
-            <button className="analyze-btn" onClick={handleAnalyzeA} disabled={!urlA.trim() || analyzingA} style={{ padding: "16px 32px", background: urlA.trim() && !analyzingA ? "#C4974A" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", color: urlA.trim() && !analyzingA ? "#0b0b0c" : "rgba(255,255,255,0.3)", cursor: urlA.trim() && !analyzingA ? "pointer" : "default", whiteSpace: "nowrap", transition: "all 0.15s" }}>
+            <button className="analyze-btn" onClick={handleAnalyzeA} disabled={!urlA.trim() || analyzingA} style={{ padding: "16px 32px", background: urlA.trim() && !analyzingA ? "#4A9EF0" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", color: urlA.trim() && !analyzingA ? "#0b0b0c" : "rgba(255,255,255,0.3)", cursor: urlA.trim() && !analyzingA ? "pointer" : "default", whiteSpace: "nowrap", transition: "all 0.15s" }}>
               {analyzingA ? "[ analyzing… ]" : "[ analyze ]"}
             </button>
           </div>
@@ -584,16 +582,7 @@ export default function IGititPage() {
           {errorA && !analyzingA && (
             <div style={{ marginTop: "10px", padding: "12px 16px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "6px", fontSize: "13px", color: "#E05C5C" }}>⚠ {errorA}</div>
           )}
-          {analyzingA && (
-            <div style={{ marginTop: "12px", padding: "24px 28px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
-              {["fetching repository tree…", "reading file structure…", "analyzing with Claude…", "generating plain-language output…"].map((msg, i) => (
-                <div key={i} style={{ fontSize: "14px", color: i < stepA ? "rgba(255,255,255,0.25)" : i === stepA ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)", marginBottom: "10px", display: "flex", gap: "10px", alignItems: "center", animation: `fadeIn 0.4s ease ${i * 0.2}s both` }}>
-                  <span style={{ color: i < stepA ? "#4CAF7D" : i === stepA ? "#C4974A" : "rgba(255,255,255,0.15)", fontSize: "12px" }}>{i < stepA ? "✓" : i === stepA ? "→" : "·"}</span>
-                  {msg}{i === stepA && <span style={{ animation: "blink 0.8s step-end infinite" }}>_</span>}
-                </div>
-              ))}
-            </div>
-          )}
+          {analyzingA && <CommitGraphLoader step={stepA} />}
         </div>
       ) : (
         /* COMPARE: TWO INPUTS SIDE BY SIDE */
@@ -617,7 +606,7 @@ export default function IGititPage() {
                   {analysisA.meta.language && <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysisA.meta.language}</span>}
                   <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>★ {analysisA.meta.stars}</span>
                   <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysisA.meta.fileCount} files</span>
-                  {analysisA.meta.license && <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(196,151,74,0.3)", borderRadius: "4px", color: "#C4974A" }}>{analysisA.meta.license}</span>}
+                  {analysisA.meta.license && <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(74,158,240,0.3)", borderRadius: "4px", color: "#4A9EF0" }}>{analysisA.meta.license}</span>}
                 </div>
               </div>
               {analysisA.meta.description && <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>{analysisA.meta.description}</div>}
@@ -647,7 +636,7 @@ export default function IGititPage() {
                 borderRadius: "6px",
                 fontFamily: "inherit",
                 fontSize: "13px",
-                color: verifyState === "done" ? "#4CAF7D" : verifyState === "error" ? "#E05C5C" : verifyState === "loading" ? "rgba(196,151,74,0.6)" : "rgba(255,255,255,0.4)",
+                color: verifyState === "done" ? "#4CAF7D" : verifyState === "error" ? "#E05C5C" : verifyState === "loading" ? "rgba(74,158,240,0.6)" : "rgba(255,255,255,0.4)",
                 cursor: verifyState === "loading" || verifyState === "done" ? "default" : "pointer",
                 letterSpacing: "0.06em",
                 transition: "all 0.15s",
@@ -663,7 +652,7 @@ export default function IGititPage() {
               <button
                 className="compare-btn"
                 onClick={() => { setCompareMode(!compareMode); if (compareMode) { setAnalysisB(null); setUrlB(""); setComparison(null); setActiveTab("overview") } }}
-                style={{ padding: "8px 18px", background: compareMode ? "rgba(196,151,74,0.15)" : "rgba(255,255,255,0.03)", border: `1px solid ${compareMode ? "#C4974A" : "rgba(255,255,255,0.15)"}`, borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: compareMode ? "#C4974A" : "rgba(255,255,255,0.5)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
+                style={{ padding: "8px 18px", background: compareMode ? "rgba(74,158,240,0.15)" : "rgba(255,255,255,0.03)", border: `1px solid ${compareMode ? "#4A9EF0" : "rgba(255,255,255,0.15)"}`, borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: compareMode ? "#4A9EF0" : "rgba(255,255,255,0.5)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
                 {compareMode ? "[ × exit compare ]" : "[ + compare ]"}
               </button>
             </div>
@@ -685,7 +674,7 @@ export default function IGititPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "14px" }}>
                 <div>
                   <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", marginBottom: "5px" }}>IPFS CID</div>
-                  <div style={{ fontSize: "12px", color: "#C4974A", wordBreak: "break-all", lineHeight: 1.5 }}>{verifyResult.cid}</div>
+                  <div style={{ fontSize: "12px", color: "#4A9EF0", wordBreak: "break-all", lineHeight: 1.5 }}>{verifyResult.cid}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", marginBottom: "5px" }}>SHA-256 HASH</div>
@@ -725,7 +714,7 @@ export default function IGititPage() {
           {/* TABS */}
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${tabs.length}, 1fr)`, gap: "8px", marginBottom: "20px" }}>
             {tabs.map(tab => (
-              <button key={tab.id} className="tab-btn" onClick={() => handleTabClick(tab.id)} style={{ padding: "14px 6px", background: activeTab === tab.id ? "rgba(196,151,74,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${activeTab === tab.id ? "#C4974A" : "rgba(255,255,255,0.08)"}`, borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: activeTab === tab.id ? "#C4974A" : "rgba(255,255,255,0.45)", cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s", textAlign: "center" }}>
+              <button key={tab.id} className="tab-btn" onClick={() => handleTabClick(tab.id)} style={{ padding: "14px 6px", background: activeTab === tab.id ? "rgba(74,158,240,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${activeTab === tab.id ? "#4A9EF0" : "rgba(255,255,255,0.08)"}`, borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: activeTab === tab.id ? "#4A9EF0" : "rgba(255,255,255,0.45)", cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s", textAlign: "center" }}>
                 {tab.label}
               </button>
             ))}
@@ -775,17 +764,17 @@ export default function IGititPage() {
                   <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                     {analysisA.dataItems.map((item, i) => (
                       <div key={i} style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: item.type === "collect" ? "#C4974A" : item.type === "store" ? "#4CAF7D" : "#E05C5C", flexShrink: 0, marginTop: "7px" }} />
+                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: item.type === "collect" ? "#4A9EF0" : item.type === "store" ? "#4CAF7D" : "#E05C5C", flexShrink: 0, marginTop: "7px" }} />
                         <div>
                           <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.82)" }}>{item.label}</span>
                           <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}> — {item.description}</span>
-                          {item.sourceLine && <div style={{ marginTop: "4px", fontSize: "12px", color: "#C4974A", opacity: 0.7 }}>→ {item.sourceLine}</div>}
+                          {item.sourceLine && <div style={{ marginTop: "4px", fontSize: "12px", color: "#4A9EF0", opacity: 0.7 }}>→ {item.sourceLine}</div>}
                         </div>
                       </div>
                     ))}
                   </div>
                   <div style={{ display: "flex", gap: "16px", marginTop: "24px", paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                    {[{ color: "#C4974A", label: "collected" }, { color: "#4CAF7D", label: "stored" }, { color: "#E05C5C", label: "transmitted" }].map(({ color, label }) => (
+                    {[{ color: "#4A9EF0", label: "collected" }, { color: "#4CAF7D", label: "stored" }, { color: "#E05C5C", label: "transmitted" }].map(({ color, label }) => (
                       <div key={label} style={{ display: "flex", alignItems: "center", gap: "6px" }}><div style={{ width: "7px", height: "7px", borderRadius: "50%", background: color }} /><span style={{ fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>{label}</span></div>
                     ))}
                   </div>
@@ -859,7 +848,7 @@ export default function IGititPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "16px 20px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
                   <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", marginRight: "4px" }}>commits to analyze:</span>
                   {([10, 25, 50] as const).map(n => (
-                    <button key={n} className="depth-btn" onClick={() => loadChangelog(n)} disabled={changelogLoading} style={{ padding: "6px 16px", background: changelogDepth === n && changelog ? "rgba(196,151,74,0.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${changelogDepth === n && changelog ? "#C4974A" : "rgba(255,255,255,0.1)"}`, borderRadius: "4px", fontFamily: "inherit", fontSize: "13px", color: changelogDepth === n && changelog ? "#C4974A" : "rgba(255,255,255,0.4)", cursor: changelogLoading ? "default" : "pointer", transition: "all 0.15s" }}>{n}</button>
+                    <button key={n} className="depth-btn" onClick={() => loadChangelog(n)} disabled={changelogLoading} style={{ padding: "6px 16px", background: changelogDepth === n && changelog ? "rgba(74,158,240,0.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${changelogDepth === n && changelog ? "#4A9EF0" : "rgba(255,255,255,0.1)"}`, borderRadius: "4px", fontFamily: "inherit", fontSize: "13px", color: changelogDepth === n && changelog ? "#4A9EF0" : "rgba(255,255,255,0.4)", cursor: changelogLoading ? "default" : "pointer", transition: "all 0.15s" }}>{n}</button>
                   ))}
                   {changelog && !changelogLoading && (
                     <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.2)", marginLeft: "auto" }}>
@@ -875,7 +864,7 @@ export default function IGititPage() {
                       const sig = SIG[commit.significance] ?? SIG.routine
                       const isExp = expandedCommit === commit.sha
                       return (
-                        <div key={i} className="commit-card" style={{ border: `1px solid ${commit.significance === "flagged" ? "rgba(224,92,92,0.25)" : commit.significance === "notable" ? "rgba(196,151,74,0.18)" : "rgba(255,255,255,0.07)"}`, borderRadius: "8px", overflow: "hidden", background: commit.significance === "flagged" ? "rgba(224,92,92,0.04)" : "rgba(255,255,255,0.015)", transition: "border-color 0.15s" }}>
+                        <div key={i} className="commit-card" style={{ border: `1px solid ${commit.significance === "flagged" ? "rgba(224,92,92,0.25)" : commit.significance === "notable" ? "rgba(74,158,240,0.18)" : "rgba(255,255,255,0.07)"}`, borderRadius: "8px", overflow: "hidden", background: commit.significance === "flagged" ? "rgba(224,92,92,0.04)" : "rgba(255,255,255,0.015)", transition: "border-color 0.15s" }}>
                           <div style={{ padding: "20px 28px", cursor: "pointer" }} onClick={() => setExpandedCommit(isExp ? null : commit.sha)}>
                             <div style={{ display: "flex", gap: "14px" }}>
                               <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: sig.dot, flexShrink: 0, marginTop: "6px" }} />
@@ -929,8 +918,8 @@ export default function IGititPage() {
                 {comparison && !comparisonLoading && (
                   <>
                     {/* HEADLINE */}
-                    <div style={{ padding: "28px 36px", background: "rgba(196,151,74,0.06)", border: "1px solid rgba(196,151,74,0.2)", borderRadius: "8px" }}>
-                      <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(196,151,74,0.6)", marginBottom: "12px" }}>COMPARISON HEADLINE</div>
+                    <div style={{ padding: "28px 36px", background: "rgba(74,158,240,0.06)", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "8px" }}>
+                      <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.6)", marginBottom: "12px" }}>COMPARISON HEADLINE</div>
                       <div style={{ fontSize: "20px", lineHeight: 1.65, color: "rgba(255,255,255,0.88)", fontWeight: 400 }}>{comparison.headline}</div>
                     </div>
 
@@ -958,8 +947,8 @@ export default function IGititPage() {
                             <div style={{ fontSize: "15px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{section.rightSummary}</div>
                           </div>
                         </div>
-                        <div style={{ padding: "16px 28px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(196,151,74,0.04)" }}>
-                          <span style={{ fontSize: "11px", color: "rgba(196,151,74,0.5)", letterSpacing: "0.08em", marginRight: "10px" }}>VERDICT</span>
+                        <div style={{ padding: "16px 28px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(74,158,240,0.04)" }}>
+                          <span style={{ fontSize: "11px", color: "rgba(74,158,240,0.5)", letterSpacing: "0.08em", marginRight: "10px" }}>VERDICT</span>
                           <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)", fontWeight: 300 }}>{section.verdict}</span>
                         </div>
                       </div>
@@ -971,7 +960,7 @@ export default function IGititPage() {
                       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                         {comparison.keyDifferences.map((diff, i) => (
                           <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-                            <span style={{ color: "#C4974A", fontSize: "12px", marginTop: "2px", flexShrink: 0 }}>→</span>
+                            <span style={{ color: "#4A9EF0", fontSize: "12px", marginTop: "2px", flexShrink: 0 }}>→</span>
                             <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.6, fontWeight: 300 }}>{diff}</span>
                           </div>
                         ))}
@@ -979,9 +968,9 @@ export default function IGititPage() {
                     </div>
 
                     {/* OVERALL WINNER */}
-                    <div style={{ padding: "28px 36px", background: "rgba(255,255,255,0.02)", border: `1px solid ${comparison.overallWinner.repoName === "tied" ? "rgba(255,255,255,0.1)" : "rgba(196,151,74,0.25)"}`, borderRadius: "8px" }}>
+                    <div style={{ padding: "28px 36px", background: "rgba(255,255,255,0.02)", border: `1px solid ${comparison.overallWinner.repoName === "tied" ? "rgba(255,255,255,0.1)" : "rgba(74,158,240,0.25)"}`, borderRadius: "8px" }}>
                       <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "12px" }}>OVERALL VERDICT</div>
-                      <div style={{ fontSize: "18px", color: "#C4974A", marginBottom: "12px", fontWeight: 500 }}>{comparison.overallWinner.label}</div>
+                      <div style={{ fontSize: "18px", color: "#4A9EF0", marginBottom: "12px", fontWeight: 500 }}>{comparison.overallWinner.label}</div>
                       <div style={{ fontSize: "16px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{comparison.overallWinner.reasoning}</div>
                     </div>
 
@@ -1006,7 +995,7 @@ export default function IGititPage() {
                 <option value="modules">module breakdown</option>
                 <option value="score">accountability score</option>
               </select>
-              <button style={{ width: "52px", height: "44px", borderRadius: "8px", background: "#C4974A", border: "none", fontFamily: "inherit", fontSize: "13px", color: "#0b0b0c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>▶</button>
+              <button style={{ width: "52px", height: "44px", borderRadius: "8px", background: "#4A9EF0", border: "none", fontFamily: "inherit", fontSize: "13px", color: "#0b0b0c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>▶</button>
             </div>
           )}
         </div>
