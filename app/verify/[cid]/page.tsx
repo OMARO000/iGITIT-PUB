@@ -47,11 +47,19 @@ async function fetchFromIPFS(cid: string): Promise<VerificationDoc | null> {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ cid: string }> }): Promise<Metadata> {
-  const resolved = await params
-  const cid = resolved?.cid ?? ""
-  return {
-    title: cid ? `iGITit Verified Analysis · ${cid.slice(0, 16)}…` : "iGITit Verified Analysis",
-    description: "Cryptographically signed, IPFS-pinned repository analysis by iGITit · an OMARO PBC product",
+  try {
+    const resolved = await params
+    const cid = resolved && resolved.cid ? resolved.cid : ""
+    const title = cid.length > 0 ? "iGITit Verified Analysis · " + cid.slice(0, 16) + "…" : "iGITit Verified Analysis"
+    return {
+      title,
+      description: "Cryptographically signed, IPFS-pinned repository analysis by iGITit · an OMARO PBC product",
+    }
+  } catch {
+    return {
+      title: "iGITit Verified Analysis",
+      description: "Cryptographically signed, IPFS-pinned repository analysis by iGITit · an OMARO PBC product",
+    }
   }
 }
 
