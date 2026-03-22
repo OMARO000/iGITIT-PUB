@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react"
 import { IGititLogo, CommitGraphLoader } from "@/app/components/igitit-logo-loader"
+import GitByte from "@/app/components/GitByte"
 
 // ─────────────────────────────────────────────
 // TYPES
@@ -1010,6 +1011,9 @@ export default function IGititPage() {
         <div>analysis reflects repository state at time of request · not legal or compliance advice</div>
         <a href="/docs" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>api docs</a>
       </div>
+
+      {/* GITBYTE */}
+      <GitByte />
     </div>
   )
 }
