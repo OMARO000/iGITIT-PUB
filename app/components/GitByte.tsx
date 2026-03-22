@@ -72,7 +72,14 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
 
     const spawnPoop = (text: string) => {
       const s = stateRef.current
-      s.poop = { x: s.gitbyte.x - 40, y: s.gitbyte.y + 8, text, alpha: 1, vy: -0.3, age: 0 }
+      s.poop = {
+        x: s.gitbyte.x - 10,
+        y: s.gitbyte.y + s.gitbyte.h / 2 + 5,
+        text,
+        alpha: 1,
+        vy: 1.5,
+        age: 0,
+      }
       s.outputProduced++
       setScore({ eaten: s.filesEaten, produced: s.outputProduced })
     }
