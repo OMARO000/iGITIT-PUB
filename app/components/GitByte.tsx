@@ -25,7 +25,7 @@ const DEMO_OUTPUTS = [
 export default function GitByte({ files = DEMO_FILES, outputs, active = false, speed = 1 }: GitByteProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef({
-    gitbyte: { x: 320, y: 120, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
+    gitbyte: { x: 320, y: 168, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
     food: null as { x: number; y: number; text: string; eaten: boolean } | null,
     poop: null as { x: number; y: number; text: string; alpha: number; vy: number; age: number } | null,
     particles: [] as { x: number; y: number; vx: number; vy: number; alpha: number; size: number; color: string }[],
@@ -62,7 +62,7 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
     if (!canvas) return
     const ctx = canvas.getContext("2d")
     if (!ctx) return
-    const W = 1280, H = 480
+    const W = 1280, H = 672
     canvas.width = W
     canvas.height = H
     ctx.scale(2, 2)
@@ -70,7 +70,7 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
 
     const spawnFood = (filename: string) => {
       const s = stateRef.current
-      s.food = { x: DW - 10, y: 120, text: filename, eaten: false }
+      s.food = { x: DW - 10, y: 168, text: filename, eaten: false }
       s.statusText = "eating " + filename + "…"
       setStatusText("eating " + filename + "…")
     }
@@ -331,7 +331,7 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
     if (s.food && !s.food.eaten) return
     const fn = s.fileList[s.fileIndex % s.fileList.length]
     s.fileIndex++
-    s.food = { x: 630, y: 120, text: fn, eaten: false }
+    s.food = { x: 630, y: 168, text: fn, eaten: false }
     s.statusText = "eating " + fn + "…"
     setStatusText("eating " + fn + "…")
   }
@@ -364,8 +364,8 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
       <canvas
         ref={canvasRef}
         width={1280}
-        height={480}
-        style={{ display: "block", width: "100%", height: "240px", cursor: "pointer" }}
+        height={672}
+        style={{ display: "block", width: "100%", height: "336px", cursor: "pointer" }}
         onClick={handleFeed}
       />
 
