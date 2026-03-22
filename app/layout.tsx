@@ -11,6 +11,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "iGITit — open source, open language.",
   description: "Plain-language explanations of any public GitHub or GitLab repository. Built for journalists, regulators, and the public. An OMARO PBC product.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

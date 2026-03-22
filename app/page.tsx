@@ -530,9 +530,9 @@ export default function IGititPage() {
 
       {/* HEADER */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
           <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); setComparison(null); window.history.replaceState(null, "", window.location.pathname) }} />
-          <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em" }}>open source, open language.</div>
+          <div style={{ fontSize: "22px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", marginTop: "8px" }}>open source, open language.</div>
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           {history.length > 0 && (
@@ -540,7 +540,7 @@ export default function IGititPage() {
               [ history · {history.length} ]
             </button>
           )}
-          <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 20px", borderRadius: "4px" }}>OMARO PBC</div>
+          <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 20px", borderRadius: "4px", whiteSpace: "nowrap" }}>OMARO PBC</div>
         </div>
       </div>
 
