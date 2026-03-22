@@ -549,7 +549,6 @@ export default function IGititPage() {
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
-        @keyframes pulse-btn { 0%,100%{box-shadow:0 0 0 0 rgba(74,158,240,0.4)} 50%{box-shadow:0 0 0 8px rgba(74,158,240,0)} }
         .tab-btn:hover { background: rgba(255,255,255,0.05) !important; }
         .analyze-btn:hover:not(:disabled) { background: rgba(74,158,240,0.9) !important; }
         .history-item:hover { background: rgba(255,255,255,0.05) !important; }
@@ -557,6 +556,12 @@ export default function IGititPage() {
         .commit-card:hover { border-color: rgba(255,255,255,0.14) !important; }
         .depth-btn:hover { background: rgba(255,255,255,0.08) !important; }
         .compare-btn:hover { background: rgba(74,158,240,0.15) !important; border-color: rgba(74,158,240,0.5) !important; }
+      `}</style>
+      <style suppressHydrationWarning>{`
+        @keyframes pulse-btn {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(74,158,240,0.4); }
+          50% { box-shadow: 0 0 0 8px rgba(74,158,240,0); }
+        }
       `}</style>
 
       {/* HEADER */}
