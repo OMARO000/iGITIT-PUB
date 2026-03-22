@@ -6,6 +6,7 @@ interface GitByteProps {
   files?: string[]    // real filenames (or snippets) from the repo being analyzed
   outputs?: string[]  // plain-language descriptions paired with files
   active?: boolean    // true during loading screens
+  speed?: number      // feed rate multiplier, default 1
 }
 
 const DEMO_FILES = [
@@ -21,7 +22,7 @@ const DEMO_OUTPUTS = [
   "explains the project", "defines data shapes", "navigation bar", "login hook", "example secrets",
 ]
 
-export default function GitByte({ files = DEMO_FILES, outputs, active = false }: GitByteProps) {
+export default function GitByte({ files = DEMO_FILES, outputs, active = false, speed = 1 }: GitByteProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef({
     gitbyte: { x: 320, y: 120, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
@@ -40,6 +41,7 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false }:
     autoFeedTimer: 0,
     fileList: files,
     outputList: outputs ?? DEMO_OUTPUTS,
+    speed: speed,
   })
   const [statusText, setStatusText] = useState("")
   const [score, setScore] = useState({ eaten: 0, produced: 0 })
@@ -51,7 +53,8 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false }:
   useEffect(() => {
     stateRef.current.fileList = files && files.length > 0 ? files : DEMO_FILES
     stateRef.current.outputList = outputs && outputs.length > 0 ? outputs : DEMO_OUTPUTS
-  }, [files, outputs])
+    stateRef.current.speed = speed
+  }, [files, outputs, speed])
 
   useEffect(() => {
     if (!mounted) return
@@ -75,7 +78,7 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false }:
     const spawnPoop = (text: string) => {
       const s = stateRef.current
       s.poop = {
-        x: s.gitbyte.x - 10,
+        x: 320,
         y: s.gitbyte.y + s.gitbyte.h / 2 + 5,
         text,
         alpha: 1,
@@ -282,7 +285,7 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false }:
       // Auto-feed during active loading
       if (active) {
         s.autoFeedTimer++
-        if (s.autoFeedTimer > 90 && !s.food) {
+        if (s.autoFeedTimer > Math.floor(90 / s.speed) && !s.food) {
           s.autoFeedTimer = 0
           const fn = s.fileList[s.fileIndex % s.fileList.length]
           s.fileIndex++

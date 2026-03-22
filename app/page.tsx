@@ -313,6 +313,8 @@ export default function IGititPage() {
   const [fetchedFilePaths, setFetchedFilePaths] = useState<string[]>([])
   const [fetchedFileSnippets, setFetchedFileSnippets] = useState<string[]>([])
   const [fetchedFileOutputs, setFetchedFileOutputs] = useState<string[]>([])
+  const [fetchedFilePathsB, setFetchedFilePathsB] = useState<string[]>([])
+  const [fetchedFileOutputsB, setFetchedFileOutputsB] = useState<string[]>([])
 
   // Compare repo
   const [compareMode, setCompareMode] = useState(false)
@@ -370,7 +372,9 @@ export default function IGititPage() {
   const runAnalysis = async (
     url: string, platform: "github" | "gitlab",
     setAnalyzing: (v: boolean) => void, setStep: (v: number) => void,
-    setAnalysis: (v: Analysis) => void, setError: (v: string | null) => void
+    setAnalysis: (v: Analysis) => void, setError: (v: string | null) => void,
+    setFilePaths?: (v: string[]) => void,
+    setFileOutputs?: (v: string[]) => void,
   ) => {
     setAnalyzing(true); setError(null); setStep(0)
     try {
@@ -378,7 +382,7 @@ export default function IGititPage() {
       const repoRes = await fetch("/api/repo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) })
       if (!repoRes.ok) { const e = await repoRes.json(); throw new Error(e.error ?? "Failed to fetch repository") }
       const repoData = await repoRes.json()
-      setFetchedFilePaths(repoData.filePaths ?? [])
+      ;(setFilePaths ?? setFetchedFilePaths)(repoData.filePaths ?? [])
 
       // Build snippets — first non-empty line of each file
       const snippets = (repoData.filePaths ?? []).map((path: string) => {
@@ -386,7 +390,7 @@ export default function IGititPage() {
         const firstLine = content.split("\n").find((l: string) => l.trim().length > 2) ?? path
         return firstLine.trim().slice(0, 60)
       })
-      setFetchedFileSnippets(snippets)
+      if (!setFilePaths) setFetchedFileSnippets(snippets)
 
       setStep(2)
       const analyzeRes = await fetch("/api/analyze", {
@@ -405,7 +409,7 @@ export default function IGititPage() {
         const mod = modules[idx % modules.length]
         return mod.description.split(".")[0].slice(0, 50)
       })
-      setFetchedFileOutputs(outputs)
+      ;(setFileOutputs ?? setFetchedFileOutputs)(outputs)
 
       const entry: HistoryEntry = { id: crypto.randomUUID(), url, label: repoLabelFromUrl(url), platform, analyzedAt: new Date(), analysis: full }
       setHistory(prev => [entry, ...prev.filter(h => h.label !== entry.label)].slice(0, 10))
@@ -437,7 +441,7 @@ export default function IGititPage() {
     if (urlA.trim()) params.set("repo", encodeURIComponent(urlA.trim()))
     params.set("compare", encodeURIComponent(urlB.trim()))
     window.history.replaceState(null, "", `?${params.toString()}`)
-    await runAnalysis(urlB.trim(), platform, setAnalyzingB, setStepB, setAnalysisB, setErrorB)
+    await runAnalysis(urlB.trim(), platform, setAnalyzingB, setStepB, setAnalysisB, setErrorB, setFetchedFilePathsB, setFetchedFileOutputsB)
   }
 
   const loadComparison = async () => {
@@ -621,9 +625,21 @@ export default function IGititPage() {
         </div>
       ) : (
         /* COMPARE: TWO INPUTS SIDE BY SIDE */
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "32px" }}>
-          <RepoInputPanel label="REPO A" url={urlA} onUrlChange={handleUrlChange(setUrlA, setAnimatingA)} onAnalyze={handleAnalyzeA} isAnalyzing={analyzingA} analyzeStep={stepA} error={errorA} isAnimating={animatingA} analysis={analysisA} />
-          <RepoInputPanel label="REPO B" url={urlB} onUrlChange={handleUrlChange(setUrlB, setAnimatingB)} onAnalyze={handleAnalyzeB} isAnalyzing={analyzingB} analyzeStep={stepB} error={errorB} isAnimating={animatingB} analysis={analysisB} />
+        <div style={{ marginBottom: "32px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            <RepoInputPanel label="REPO A" url={urlA} onUrlChange={handleUrlChange(setUrlA, setAnimatingA)} onAnalyze={handleAnalyzeA} isAnalyzing={analyzingA} analyzeStep={stepA} error={errorA} isAnimating={animatingA} analysis={analysisA} />
+            <RepoInputPanel label="REPO B" url={urlB} onUrlChange={handleUrlChange(setUrlB, setAnimatingB)} onAnalyze={handleAnalyzeB} isAnalyzing={analyzingB} analyzeStep={stepB} error={errorB} isAnimating={animatingB} analysis={analysisB} />
+          </div>
+          {(analyzingA || analyzingB) && (
+            <div style={{ marginTop: "16px" }}>
+              <GitByte
+                files={[...fetchedFilePaths, ...(fetchedFilePathsB ?? [])]}
+                outputs={[...fetchedFileOutputs, ...(fetchedFileOutputsB ?? [])]}
+                active={true}
+                speed={2}
+              />
+            </div>
+          )}
         </div>
       )}
 
