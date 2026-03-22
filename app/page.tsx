@@ -250,12 +250,14 @@ function RepoInputPanel({
           {isAnimating && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #4A9EF0, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
         </div>
         <button
-          onClick={onAnalyze} disabled={!url.trim() || isAnalyzing}
+          onClick={onAnalyze}
           style={{
-            padding: "12px 20px", background: url.trim() && !isAnalyzing ? "#4A9EF0" : "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "14px",
-            color: url.trim() && !isAnalyzing ? "#0b0b0c" : "rgba(255,255,255,0.3)",
-            cursor: url.trim() && !isAnalyzing ? "pointer" : "default", whiteSpace: "nowrap", transition: "all 0.15s",
+            padding: "12px 20px",
+            background: isAnalyzing ? "rgba(255,255,255,0.06)" : "#4A9EF0",
+            border: "1px solid #4A9EF0",
+            borderRadius: "6px", fontFamily: "inherit", fontSize: "14px",
+            color: isAnalyzing ? "rgba(255,255,255,0.3)" : "#0b0b0c",
+            cursor: isAnalyzing ? "default" : "pointer", whiteSpace: "nowrap", transition: "all 0.15s",
           }}
         >
           {isAnalyzing ? "[ analyzing… ]" : analysis ? "[ re-analyze ]" : "[ analyze ]"}
