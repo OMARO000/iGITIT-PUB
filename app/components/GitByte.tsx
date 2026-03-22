@@ -359,7 +359,10 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
         alignItems: "center",
         justifyContent: "space-between",
       }}>
-        <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic" }}>
+        <div
+          suppressHydrationWarning
+          style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic" }}
+        >
           {statusText}
         </div>
         <button
