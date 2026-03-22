@@ -217,7 +217,7 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
       ctx.font = "15px 'IBM Plex Mono', monospace"
       ctx.fillText("gitbyte", 10, 22)
       ctx.fillStyle = "#4A9EF0"
-      ctx.beginPath(); ctx.arc(88, 16, 4, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(76, 16, 4, 0, Math.PI * 2); ctx.fill()
     }
 
     const loop = () => {
