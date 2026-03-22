@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 export function IGititLogo({ onClick }: { onClick?: () => void }) {
   return (
     <div onClick={onClick} style={{ cursor: onClick ? "pointer" : "default", userSelect: "none", display: "inline-block" }}>
-      <svg width="252" height="64" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+      <svg width="630" height="160" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
         <text x="0" y="72" dominantBaseline="auto" style={{ fontFamily: "'IBM Plex Mono','Courier New',monospace", fontSize: "56px", letterSpacing: "-2px" }}>
           <tspan style={{ fontWeight: 500, fill: "rgba(255,255,255,0.92)" }}>ıGIT</tspan>
           <tspan style={{ fontWeight: 300, fill: "rgba(255,255,255,0.45)" }}>ıt</tspan>
