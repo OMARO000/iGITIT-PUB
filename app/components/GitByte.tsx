@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from "react"
 
 interface GitByteProps {
-  files?: string[]    // real filenames (or snippets) from the repo being analyzed
-  outputs?: string[]  // plain-language descriptions paired with files
-  active?: boolean    // true during loading screens
-  speed?: number      // feed rate multiplier, default 1
+  files?: string[]
+  outputs?: string[]
+  active?: boolean
+  speed?: number
 }
 
 const DEMO_FILES = [
@@ -22,16 +22,18 @@ const DEMO_OUTPUTS = [
   "explains the project", "defines data shapes", "navigation bar", "login hook", "example secrets",
 ]
 
+const W = 640
+const H = 336
+
 export default function GitByte({ files = DEMO_FILES, outputs, active = false, speed = 1 }: GitByteProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef({
-    gitbyte: { x: 320, y: 168, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
+    gitbyte: { x: 320, y: H / 2, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
     food: null as { x: number; y: number; text: string; eaten: boolean } | null,
     poop: null as { x: number; y: number; text: string; alpha: number; vy: number; age: number } | null,
     particles: [] as { x: number; y: number; vx: number; vy: number; alpha: number; size: number; color: string }[],
     filesEaten: 0,
     outputProduced: 0,
-    statusText: "idle — feed me a file",
     frameCount: 0,
     bobOffset: 0,
     bobDir: 1,
@@ -41,7 +43,7 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
     autoFeedTimer: 0,
     fileList: files,
     outputList: outputs ?? DEMO_OUTPUTS,
-    speed: speed,
+    speed,
   })
   const [statusText, setStatusText] = useState("")
   const [score, setScore] = useState({ eaten: 0, produced: 0 })
@@ -62,159 +64,143 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
     if (!canvas) return
     const ctx = canvas.getContext("2d")
     if (!ctx) return
-    const W = 1280, H = 672
-    canvas.width = W
-    canvas.height = H
-    ctx.scale(2, 2)
-    const DW = 640, DH = 240
 
-    const spawnFood = (filename: string) => {
+    const spawnFood = (text: string) => {
       const s = stateRef.current
-      s.food = { x: DW - 10, y: 168, text: filename, eaten: false }
-      s.statusText = "eating " + filename + "…"
-      setStatusText("eating " + filename + "…")
+      s.food = { x: W + 20, y: H / 2, text, eaten: false }
+      setStatusText("eating " + text + "…")
     }
 
     const spawnPoop = (text: string) => {
       const s = stateRef.current
-      s.poop = {
-        x: 320,
-        y: s.gitbyte.y + 30,
-        text,
-        alpha: 1,
-        vy: 1.2,
-        age: 0,
-      }
+      s.poop = { x: s.gitbyte.x, y: s.gitbyte.y + s.gitbyte.h / 2 + 4, text, alpha: 1, vy: 1.4, age: 0 }
       s.outputProduced++
       setScore({ eaten: s.filesEaten, produced: s.outputProduced })
     }
 
     const spawnParticles = (x: number, y: number) => {
       const s = stateRef.current
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 8; i++) {
         s.particles.push({
           x, y,
-          vx: (Math.random() - 0.5) * 5,
-          vy: (Math.random() - 0.5) * 5,
-          alpha: 1,
-          size: Math.random() * 3 + 1,
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.5) * 4,
+          alpha: 1, size: Math.random() * 2.5 + 1,
           color: Math.random() > 0.5 ? "#4A9EF0" : "#4CAF7D",
         })
       }
     }
 
     const drawGrid = () => {
-      ctx.strokeStyle = "rgba(255,255,255,0.025)"
+      ctx.strokeStyle = "rgba(255,255,255,0.03)"
       ctx.lineWidth = 0.5
-      for (let x = 0; x < DW; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, DH); ctx.stroke() }
-      for (let y = 0; y < DH; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(DW, y); ctx.stroke() }
+      for (let x = 0; x <= W; x += 32) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke() }
+      for (let y = 0; y <= H; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke() }
     }
 
     const drawGitbyte = () => {
       const s = stateRef.current
       const gx = s.gitbyte.x
       const gy = s.gitbyte.y + s.bobOffset
-      const gw = s.gitbyte.w, gh = s.gitbyte.h
+      const gw = s.gitbyte.w
+      const gh = s.gitbyte.h
+
+      // Tail
+      const wagX = gx - gw / 2 - 8 + Math.sin(s.tailWag) * 4
+      const wagY = gy + Math.cos(s.tailWag) * 2
+      ctx.fillStyle = "#378ADD"
+      ctx.beginPath()
+      ctx.moveTo(gx - gw / 2, gy - 3)
+      ctx.lineTo(wagX, wagY - 4)
+      ctx.lineTo(wagX - 4, wagY + 2)
+      ctx.lineTo(gx - gw / 2, gy + 3)
+      ctx.closePath()
+      ctx.fill()
 
       // Body
       ctx.fillStyle = "#4A9EF0"
-      ctx.beginPath();
-      (ctx as CanvasRenderingContext2D & { roundRect: (x: number, y: number, w: number, h: number, r: number) => void }).roundRect(gx - gw/2, gy - gh/2, gw, gh, 6)
+      ctx.beginPath()
+      ctx.roundRect(gx - gw / 2, gy - gh / 2, gw, gh, 6)
       ctx.fill()
 
       // Belly
       ctx.fillStyle = "rgba(255,255,255,0.12)"
-      ctx.beginPath();
-      (ctx as CanvasRenderingContext2D & { roundRect: (x: number, y: number, w: number, h: number, r: number) => void }).roundRect(gx - gw/2 + 4, gy + 2, gw - 8, gh/2 - 6, 3)
-      ctx.fill()
-
-      // Tail
-      const wagX = gx - gw/2 - 10 + Math.sin(s.tailWag) * 5
-      const wagY = gy + Math.cos(s.tailWag) * 3
-      ctx.fillStyle = "#378ADD"
       ctx.beginPath()
-      ctx.moveTo(gx - gw/2, gy - 4)
-      ctx.lineTo(wagX, wagY - 5)
-      ctx.lineTo(wagX - 4, wagY + 2)
-      ctx.lineTo(gx - gw/2, gy + 4)
+      ctx.roundRect(gx - gw / 2 + 4, gy + 2, gw - 8, gh / 2 - 6, 3)
       ctx.fill()
 
       // Legs
-      const legBob = s.gitbyte.eating ? Math.sin(Date.now() / 80) * 3 : 0
+      const legBob = s.gitbyte.eating ? Math.sin(Date.now() / 80) * 2 : 0
       ctx.fillStyle = "#378ADD"
-      ctx.fillRect(gx - 10, gy + gh/2 - 2, 7, 7 + legBob)
-      ctx.fillRect(gx + 4, gy + gh/2 - 2, 7, 7 - legBob)
+      ctx.fillRect(gx - 10, gy + gh / 2 - 2, 6, 6 + legBob)
+      ctx.fillRect(gx + 4, gy + gh / 2 - 2, 6, 6 - legBob)
 
       // Eye
       ctx.fillStyle = "#0b0b0c"
-      ctx.beginPath(); ctx.arc(gx + gw/2 - 8, gy - 4, 4.5, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(gx + gw / 2 - 8, gy - 4, 4, 0, Math.PI * 2); ctx.fill()
       ctx.fillStyle = "white"
-      ctx.beginPath(); ctx.arc(gx + gw/2 - 7, gy - 5, 1.5, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(gx + gw / 2 - 7, gy - 5, 1.5, 0, Math.PI * 2); ctx.fill()
 
       // Blink
       if (s.blinkTimer > 0 && s.blinkTimer < 5) {
         ctx.fillStyle = "#4A9EF0"
-        ctx.fillRect(gx + gw/2 - 13, gy - 9, 10, 6)
+        ctx.fillRect(gx + gw / 2 - 12, gy - 8, 9, 5)
       }
 
       // Digesting glow
       if (s.gitbyte.digesting > 0) {
-        ctx.fillStyle = "rgba(76,175,125," + (s.gitbyte.digesting / 40 * 0.25) + ")"
-        ctx.beginPath();
-        (ctx as CanvasRenderingContext2D & { roundRect: (x: number, y: number, w: number, h: number, r: number) => void }).roundRect(gx - gw/2 - 4, gy - gh/2 - 4, gw + 8, gh + 8, 10)
+        ctx.fillStyle = `rgba(76,175,125,${(s.gitbyte.digesting / 50) * 0.2})`
+        ctx.beginPath()
+        ctx.roundRect(gx - gw / 2 - 4, gy - gh / 2 - 4, gw + 8, gh + 8, 10)
         ctx.fill()
       }
 
       // Mouth
-      const mouthSize = s.gitbyte.mouthOpen * 10
-      if (mouthSize > 1) {
+      const ms = s.gitbyte.mouthOpen * 9
+      if (ms > 1) {
         ctx.fillStyle = "#0b0b0c"
-        ctx.beginPath(); ctx.arc(gx + gw/2, gy + 4, mouthSize, 0, Math.PI); ctx.fill()
+        ctx.beginPath(); ctx.arc(gx + gw / 2, gy + 3, ms, 0, Math.PI); ctx.fill()
         ctx.fillStyle = "white"
-        ctx.fillRect(gx + gw/2 - 6, gy + 4, 4, mouthSize * 0.5)
-        ctx.fillRect(gx + gw/2 + 1, gy + 4, 4, mouthSize * 0.5)
+        ctx.fillRect(gx + gw / 2 - 5, gy + 3, 3, ms * 0.5)
+        ctx.fillRect(gx + gw / 2 + 1, gy + 3, 3, ms * 0.5)
       } else {
         ctx.strokeStyle = "#0b0b0c"; ctx.lineWidth = 1.5
-        ctx.beginPath(); ctx.arc(gx + gw/2, gy + 3, 3.5, 0, Math.PI); ctx.stroke()
+        ctx.beginPath(); ctx.arc(gx + gw / 2, gy + 2, 3, 0, Math.PI); ctx.stroke()
       }
     }
 
     const drawFood = () => {
       const s = stateRef.current
       if (!s.food || s.food.eaten) return
-      const px = s.food.x, py = s.food.y
-      ctx.font = "14px 'IBM Plex Mono', monospace"
-      const tw = ctx.measureText(s.food.text).width + 24
+      ctx.font = "12px 'IBM Plex Mono', monospace"
+      const tw = ctx.measureText(s.food.text).width + 20
+      const bx = s.food.x - tw
+      const by = s.food.y - 13
       ctx.fillStyle = "rgba(255,255,255,0.06)"
-      ctx.beginPath()
-      ctx.roundRect(px - tw, py - 16, tw, 26, 4)
-      ctx.fill()
-      ctx.strokeStyle = "rgba(74,158,240,0.35)"; ctx.lineWidth = 0.5; ctx.stroke()
+      ctx.beginPath(); ctx.roundRect(bx, by, tw, 22, 4); ctx.fill()
+      ctx.strokeStyle = "rgba(74,158,240,0.4)"; ctx.lineWidth = 0.5; ctx.stroke()
       ctx.fillStyle = "#4A9EF0"
-      ctx.fillText(s.food.text, px - tw + 10, py + 3)
+      ctx.fillText(s.food.text, bx + 8, s.food.y + 2)
     }
 
     const drawPoop = () => {
       const s = stateRef.current
       if (!s.poop) return
       ctx.globalAlpha = s.poop.alpha
-      ctx.font = "13px 'IBM Plex Mono', monospace"
-      const tw = ctx.measureText(s.poop.text).width + 24
-      // Always draw bubble to the RIGHT of a fixed left edge
-      const bx = 40
-      const by = s.poop.y - 16
+      ctx.font = "12px 'IBM Plex Mono', monospace"
+      const tw = ctx.measureText(s.poop.text).width + 20
+      // Clamp so bubble always stays within canvas bounds
+      const bx = Math.max(8, Math.min(W - tw - 8, s.poop.x - tw / 2))
+      const by = s.poop.y - 13
       ctx.fillStyle = "rgba(255,255,255,0.06)"
-      ctx.beginPath()
-      ctx.roundRect(bx, by, tw, 26, 4)
-      ctx.fill()
-      ctx.strokeStyle = "rgba(76,175,125,0.4)"; ctx.lineWidth = 0.5; ctx.stroke()
+      ctx.beginPath(); ctx.roundRect(bx, by, tw, 22, 4); ctx.fill()
+      ctx.strokeStyle = "rgba(76,175,125,0.45)"; ctx.lineWidth = 0.5; ctx.stroke()
       ctx.fillStyle = "#4CAF7D"
-      ctx.fillText(s.poop.text, bx + 10, s.poop.y + 3)
-      // drip dots
-      ctx.fillStyle = "rgba(76,175,125,0.35)"
+      ctx.fillText(s.poop.text, bx + 8, s.poop.y + 2)
+      ctx.fillStyle = "rgba(76,175,125,0.4)"
       for (let i = 0; i < 3; i++) {
         ctx.beginPath()
-        ctx.arc(bx + tw / 2 - 6 + i * 8, s.poop.y + 16 + Math.sin(s.poop.age / 10 + i) * 2, 2, 0, Math.PI * 2)
+        ctx.arc(bx + tw / 2 - 8 + i * 8, s.poop.y + 14 + Math.sin(s.poop.age / 8 + i) * 2, 2, 0, Math.PI * 2)
         ctx.fill()
       }
       ctx.globalAlpha = 1
@@ -230,32 +216,25 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
       ctx.globalAlpha = 1
     }
 
-    // Label
     const drawLabel = () => {
-      ctx.fillStyle = "rgba(255,255,255,0.08)"
       ctx.font = "15px 'IBM Plex Mono', monospace"
-      ctx.fillText("gitbyte", 10, 22)
+      ctx.fillStyle = "rgba(255,255,255,0.08)"
+      ctx.fillText("gitbyte", 10, 24)
       ctx.fillStyle = "#4A9EF0"
-      ctx.beginPath(); ctx.arc(79, 16, 4, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(79, 17, 4, 0, Math.PI * 2); ctx.fill()
     }
 
     const loop = () => {
-      ctx.clearRect(0, 0, DW, DH)
+      ctx.clearRect(0, 0, W, H)
       drawGrid()
+
       const s = stateRef.current
       s.frameCount++
-
-      // Bob
-      s.bobOffset += s.bobDir * 0.12
+      s.bobOffset += s.bobDir * 0.1
       if (Math.abs(s.bobOffset) > 2) s.bobDir *= -1
-
-      // Tail wag
       s.tailWag += 0.07
-
-      // Blink
       s.blinkTimer = (s.blinkTimer + 1) % 200
 
-      // Mouth
       if (s.food && !s.food.eaten) {
         s.gitbyte.mouthOpen = Math.min(1, s.gitbyte.mouthOpen + 0.1)
         s.gitbyte.eating = true
@@ -264,51 +243,49 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
         s.gitbyte.eating = false
       }
 
-      // Move food
       if (s.food && !s.food.eaten) {
-        s.food.x -= 2.2
+        s.food.x -= 2.5 * s.speed
+        ctx.font = "12px 'IBM Plex Mono', monospace"
         const eatX = s.gitbyte.x + s.gitbyte.w / 2
-        if (s.food.x < eatX) {
+        const foodLeft = s.food.x - (ctx.measureText(s.food.text).width + 20)
+        if (foodLeft < eatX) {
           const fn = s.food.text
           s.food.eaten = true
           s.filesEaten++
           s.gitbyte.digesting = 50
           spawnParticles(eatX, s.gitbyte.y)
           const idx = s.fileList.indexOf(fn)
-          const outText = idx >= 0 && s.outputList[idx] ? s.outputList[idx] : "processes data"
+          const outText = idx >= 0 && s.outputList[idx]
+            ? s.outputList[idx]
+            : s.outputList[s.filesEaten % s.outputList.length] ?? "processes data"
+          s.food = null
           setTimeout(() => {
             spawnPoop(outText)
-            s.statusText = "→ \"" + outText + "\""
             setStatusText("→ \"" + outText + "\"")
-          }, 500)
-          s.food = null
+          }, 400)
         }
       }
 
-      // Auto-feed during active loading
       if (active) {
         s.autoFeedTimer++
-        if (s.autoFeedTimer > Math.floor(90 / s.speed) && !s.food) {
+        if (s.autoFeedTimer > Math.floor(80 / s.speed) && !s.food) {
           s.autoFeedTimer = 0
-          const fn = s.fileList[s.fileIndex % s.fileList.length]
+          spawnFood(s.fileList[s.fileIndex % s.fileList.length])
           s.fileIndex++
-          spawnFood(fn)
         }
       }
 
-      // Digesting
       if (s.gitbyte.digesting > 0) s.gitbyte.digesting--
 
-      // Poop
       if (s.poop) {
-        s.poop.y += s.poop.vy; s.poop.age++
-        if (s.poop.age > 80) s.poop.alpha -= 0.018
+        s.poop.y += s.poop.vy
+        s.poop.age++
+        if (s.poop.age > 70) s.poop.alpha -= 0.02
         if (s.poop.alpha <= 0) s.poop = null
       }
 
-      // Particles
       s.particles = s.particles.filter(p => p.alpha > 0)
-      s.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.alpha -= 0.035; p.vx *= 0.92; p.vy *= 0.92 })
+      s.particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.alpha -= 0.04; p.vx *= 0.9; p.vy *= 0.9 })
 
       drawParticles()
       drawFood()
@@ -320,10 +297,7 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
     }
 
     rafRef.current = requestAnimationFrame(loop)
-
-    // Initial demo feed
-    setTimeout(() => spawnFood(stateRef.current.fileList[0] ?? "auth.ts"), 1000)
-
+    setTimeout(() => spawnFood(stateRef.current.fileList[0] ?? "auth.ts"), 800)
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
   }, [active, mounted])
 
@@ -334,27 +308,13 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
     if (s.food && !s.food.eaten) return
     const fn = s.fileList[s.fileIndex % s.fileList.length]
     s.fileIndex++
-    s.food = { x: 630, y: 168, text: fn, eaten: false }
-    s.statusText = "eating " + fn + "…"
+    s.food = { x: W + 20, y: H / 2, text: fn, eaten: false }
     setStatusText("eating " + fn + "…")
   }
 
   return (
-    <div style={{
-      marginTop: "32px",
-      border: "1px solid rgba(255,255,255,0.07)",
-      borderRadius: "8px",
-      overflow: "hidden",
-      background: "rgba(255,255,255,0.01)",
-    }}>
-      {/* Header */}
-      <div style={{
-        padding: "10px 20px",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}>
+    <div style={{ marginTop: "32px", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", overflow: "hidden", background: "rgba(255,255,255,0.01)" }}>
+      <div style={{ padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace" }}>
           GITBYTE · open source, open language
         </div>
@@ -362,44 +322,18 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
           files eaten: {score.eaten} · plain language produced: {score.produced}
         </div>
       </div>
-
-      {/* Canvas */}
       <canvas
         ref={canvasRef}
-        width={1280}
-        height={672}
-        style={{ display: "block", width: "100%", height: "336px", cursor: "pointer" }}
+        width={W}
+        height={H}
+        style={{ display: "block", width: "100%", height: `${H}px`, cursor: "pointer" }}
         onClick={handleFeed}
       />
-
-      {/* Footer */}
-      <div style={{
-        padding: "10px 20px",
-        borderTop: "1px solid rgba(255,255,255,0.05)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}>
-        <div
-          suppressHydrationWarning
-          style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic" }}
-        >
+      <div style={{ padding: "10px 20px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div suppressHydrationWarning style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic" }}>
           {statusText}
         </div>
-        <button
-          onClick={handleFeed}
-          style={{
-            background: "rgba(74,158,240,0.12)",
-            border: "1px solid #4A9EF0",
-            borderRadius: "4px",
-            padding: "7px 18px",
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: "16px",
-            color: "#4A9EF0",
-            cursor: "pointer",
-            letterSpacing: "0.06em",
-          }}
-        >
+        <button onClick={handleFeed} style={{ background: "rgba(74,158,240,0.12)", border: "1px solid #4A9EF0", borderRadius: "4px", padding: "7px 18px", fontFamily: "'IBM Plex Mono', monospace", fontSize: "16px", color: "#4A9EF0", cursor: "pointer", letterSpacing: "0.06em" }}>
           [ feed gitbyte ]
         </button>
       </div>
