@@ -6,7 +6,7 @@ import { useState, useRef, useCallback, useEffect } from "react"
 // TYPES
 // ─────────────────────────────────────────────
 
-type Tab = "overview" | "data" | "modules" | "score"
+type Tab = "overview" | "data" | "modules" | "score" | "changelog"
 
 interface RepoMeta {
   owner: string
@@ -66,6 +66,18 @@ interface HistoryEntry {
   analysis: Analysis
 }
 
+interface ChangelogEntry {
+  sha: string
+  date: string
+  author: string
+  originalMessage: string
+  plainTitle: string
+  plainSummary: string
+  significance: "routine" | "notable" | "flagged"
+  significanceReason: string
+  affectedAreas: string[]
+}
+
 // ─────────────────────────────────────────────
 // BINARY ANIMATION HOOK
 // ─────────────────────────────────────────────
@@ -106,7 +118,7 @@ function useBinaryAnimation() {
 }
 
 // ─────────────────────────────────────────────
-// DETECT PLATFORM FROM URL
+// HELPERS
 // ─────────────────────────────────────────────
 
 function detectPlatform(url: string): "github" | "gitlab" | null {
@@ -121,9 +133,11 @@ function repoLabelFromUrl(url: string): string {
   return url
 }
 
-// ─────────────────────────────────────────────
-// EXPORT HELPERS
-// ─────────────────────────────────────────────
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+  } catch { return iso }
+}
 
 function buildTextReport(analysis: Analysis): string {
   const { meta, overview, dataItems, dataFlowSummary, modules, score, overallVerdict } = analysis
@@ -139,9 +153,7 @@ function buildTextReport(analysis: Analysis): string {
   lines.push("OVERVIEW")
   lines.push("═══════════════════════════════")
   for (const s of overview) {
-    lines.push("")
-    lines.push(s.title)
-    lines.push(s.content)
+    lines.push(""); lines.push(s.title); lines.push(s.content)
   }
   lines.push("")
   lines.push("═══════════════════════════════")
@@ -153,16 +165,13 @@ function buildTextReport(analysis: Analysis): string {
     lines.push(`  ${item.description}`)
     if (item.sourceLine) lines.push(`  Source: ${item.sourceLine}`)
   }
-  lines.push("")
-  lines.push("DATA FLOW SUMMARY")
-  lines.push(dataFlowSummary)
+  lines.push(""); lines.push("DATA FLOW SUMMARY"); lines.push(dataFlowSummary)
   lines.push("")
   lines.push("═══════════════════════════════")
   lines.push("MODULE BREAKDOWN")
   lines.push("═══════════════════════════════")
   for (const mod of modules) {
-    lines.push(`\n${mod.name}${mod.path ? ` (${mod.path})` : ""}`)
-    lines.push(mod.description)
+    lines.push(`\n${mod.name}${mod.path ? ` (${mod.path})` : ""}`); lines.push(mod.description)
   }
   lines.push("")
   lines.push("═══════════════════════════════")
@@ -172,14 +181,22 @@ function buildTextReport(analysis: Analysis): string {
     lines.push(`\n${dim.label}: ${dim.verdictLabel}`)
     if (dim.reasoning) lines.push(`  ${dim.reasoning}`)
   }
-  lines.push("")
-  lines.push("OVERALL VERDICT")
-  lines.push(overallVerdict)
+  lines.push(""); lines.push("OVERALL VERDICT"); lines.push(overallVerdict)
   lines.push("")
   lines.push("─────────────────────────────────────────────────────")
   lines.push("analysis reflects repository state at time of request · not legal or compliance advice")
   lines.push("igitit.xyz · omaro-pbc.org")
   return lines.join("\n")
+}
+
+// ─────────────────────────────────────────────
+// SIGNIFICANCE CONFIG
+// ─────────────────────────────────────────────
+
+const SIG = {
+  routine: { color: "rgba(255,255,255,0.25)", label: "routine", dot: "rgba(255,255,255,0.2)" },
+  notable: { color: "#C4974A", label: "notable", dot: "#C4974A" },
+  flagged: { color: "#E05C5C", label: "flagged", dot: "#E05C5C" },
 }
 
 // ─────────────────────────────────────────────
@@ -198,17 +215,21 @@ export default function IGititPage() {
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [showHistory, setShowHistory] = useState(false)
   const [copyState, setCopyState] = useState<"idle" | "link" | "report">("idle")
+
+  // Changelog state
+  const [changelog, setChangelog] = useState<ChangelogEntry[] | null>(null)
+  const [changelogLoading, setChangelogLoading] = useState(false)
+  const [changelogError, setChangelogError] = useState<string | null>(null)
+  const [changelogDepth, setChangelogDepth] = useState<10 | 25 | 50>(10)
+  const [expandedCommit, setExpandedCommit] = useState<string | null>(null)
+
   const inputRef = useRef<HTMLInputElement>(null)
   const animateBinary = useBinaryAnimation()
 
-  // Load URL param on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const repoParam = params.get("repo")
-    if (repoParam) {
-      const decoded = decodeURIComponent(repoParam)
-      setUrl(decoded)
-    }
+    if (repoParam) setUrl(decodeURIComponent(repoParam))
   }, [])
 
   const handleUrlChange = (val: string) => {
@@ -231,8 +252,9 @@ export default function IGititPage() {
     setError(null)
     setActiveTab("overview")
     setAnalyzeStep(0)
+    setChangelog(null)
+    setChangelogError(null)
 
-    // Update URL param
     const params = new URLSearchParams()
     params.set("repo", encodeURIComponent(url.trim()))
     window.history.replaceState(null, "", `?${params.toString()}`)
@@ -264,8 +286,6 @@ export default function IGititPage() {
       const fullAnalysis: Analysis = { ...analysisData, meta: { ...meta, platform: platform === "github" ? "GitHub" : "GitLab" } }
 
       setAnalysis(fullAnalysis)
-
-      // Save to session history
       const entry: HistoryEntry = {
         id: crypto.randomUUID(),
         url: url.trim(),
@@ -275,12 +295,48 @@ export default function IGititPage() {
         analysis: fullAnalysis,
       }
       setHistory(prev => [entry, ...prev.filter(h => h.label !== entry.label)].slice(0, 10))
-
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
       setIsAnalyzing(false)
       setAnalyzeStep(0)
+    }
+  }
+
+  const loadChangelog = async (depth: 10 | 25 | 50) => {
+    if (!analysis) return
+    setChangelogLoading(true)
+    setChangelogError(null)
+    setChangelog(null)
+    setChangelogDepth(depth)
+    try {
+      const res = await fetch("/api/changelog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          owner: analysis.meta.owner,
+          repo: analysis.meta.repo,
+          platform: analysis.meta.platform ?? "GitHub",
+          depth,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? "Failed to fetch changelog")
+      }
+      const data = await res.json()
+      setChangelog(data.changelog)
+    } catch (err) {
+      setChangelogError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setChangelogLoading(false)
+    }
+  }
+
+  const handleTabClick = (tab: Tab) => {
+    setActiveTab(tab)
+    if (tab === "changelog" && !changelog && !changelogLoading) {
+      loadChangelog(changelogDepth)
     }
   }
 
@@ -292,8 +348,7 @@ export default function IGititPage() {
 
   const handleCopyReport = async () => {
     if (!analysis) return
-    const text = buildTextReport(analysis)
-    await navigator.clipboard.writeText(text)
+    await navigator.clipboard.writeText(buildTextReport(analysis))
     setCopyState("report")
     setTimeout(() => setCopyState("idle"), 2000)
   }
@@ -324,8 +379,6 @@ export default function IGititPage() {
     "generating plain-language output…",
   ]
 
-  const platformIcon = (p: "github" | "gitlab") => p === "github" ? "⌥" : "◈"
-
   return (
     <div style={{
       minHeight: "100dvh",
@@ -352,7 +405,8 @@ export default function IGititPage() {
         .analyze-btn:hover:not(:disabled) { background: rgba(196,151,74,0.9) !important; }
         .history-item:hover { background: rgba(255,255,255,0.05) !important; }
         .export-btn:hover { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.2) !important; }
-        .score-row:hover .score-reasoning { max-height: 40px !important; opacity: 1 !important; }
+        .commit-card:hover { border-color: rgba(255,255,255,0.14) !important; }
+        .depth-btn:hover { background: rgba(255,255,255,0.08) !important; }
       `}</style>
 
       {/* HEADER */}
@@ -368,9 +422,7 @@ export default function IGititPage() {
           <div
             style={{ fontSize: "36px", letterSpacing: "-0.5px", cursor: "pointer" }}
             onClick={() => {
-              setAnalysis(null)
-              setError(null)
-              setUrl("")
+              setAnalysis(null); setError(null); setUrl(""); setChangelog(null)
               window.history.replaceState(null, "", window.location.pathname)
             }}
           >
@@ -424,13 +476,7 @@ export default function IGititPage() {
           overflow: "hidden",
           animation: "fadeIn 0.2s ease",
         }}>
-          <div style={{
-            padding: "12px 20px",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-            fontSize: "11px",
-            letterSpacing: "0.1em",
-            color: "rgba(255,255,255,0.3)",
-          }}>
+          <div style={{ padding: "12px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: "11px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>
             SESSION HISTORY
           </div>
           {history.map((entry) => (
@@ -442,6 +488,8 @@ export default function IGititPage() {
                 setUrl(entry.url)
                 setShowHistory(false)
                 setActiveTab("overview")
+                setChangelog(null)
+                setChangelogError(null)
                 const params = new URLSearchParams()
                 params.set("repo", encodeURIComponent(entry.url))
                 window.history.replaceState(null, "", `?${params.toString()}`)
@@ -456,7 +504,7 @@ export default function IGititPage() {
                 transition: "background 0.1s",
               }}
             >
-              <span style={{ fontSize: "14px", opacity: 0.5 }}>{platformIcon(entry.platform)}</span>
+              <span style={{ fontSize: "14px", opacity: 0.5 }}>{entry.platform === "github" ? "⌥" : "◈"}</span>
               <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.75)", flex: 1 }}>{entry.label}</span>
               <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)" }}>
                 {entry.analyzedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -468,12 +516,7 @@ export default function IGititPage() {
 
       {/* INPUT */}
       <div style={{ marginBottom: "32px" }}>
-        <div style={{
-          fontSize: "18px",
-          color: "rgba(255,255,255,0.35)",
-          letterSpacing: "0.06em",
-          marginBottom: "12px",
-        }}>
+        <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>
           paste a github or gitlab repository url
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
@@ -508,11 +551,7 @@ export default function IGititPage() {
             />
             {isAnimating && (
               <div style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: "1px",
+                position: "absolute", bottom: 0, left: 0, right: 0, height: "1px",
                 background: "linear-gradient(90deg, transparent, #C4974A, transparent)",
                 animation: "pulse 0.4s ease-in-out infinite",
               }} />
@@ -532,7 +571,6 @@ export default function IGititPage() {
               color: url.trim() && !isAnalyzing ? "#0b0b0c" : "rgba(255,255,255,0.3)",
               cursor: url.trim() && !isAnalyzing ? "pointer" : "default",
               letterSpacing: "0.08em",
-              fontWeight: 400,
               whiteSpace: "nowrap",
               transition: "all 0.15s",
             }}
@@ -540,15 +578,8 @@ export default function IGititPage() {
             {isAnalyzing ? "[ analyzing… ]" : "[ analyze ]"}
           </button>
         </div>
-        {/* Platform indicator */}
         {url.trim() && !isAnalyzing && (
-          <div style={{
-            marginTop: "8px",
-            fontSize: "12px",
-            color: detectPlatform(url.trim()) ? "#4CAF7D" : "#E05C5C",
-            letterSpacing: "0.06em",
-            opacity: 0.7,
-          }}>
+          <div style={{ marginTop: "8px", fontSize: "12px", color: detectPlatform(url.trim()) ? "#4CAF7D" : "#E05C5C", letterSpacing: "0.06em", opacity: 0.7 }}>
             {detectPlatform(url.trim()) === "github" && "✓ github.com detected"}
             {detectPlatform(url.trim()) === "gitlab" && "✓ gitlab.com detected"}
             {!detectPlatform(url.trim()) && "⚠ only github.com and gitlab.com are supported"}
@@ -559,14 +590,8 @@ export default function IGititPage() {
       {/* ERROR */}
       {error && !isAnalyzing && (
         <div style={{
-          padding: "16px 20px",
-          background: "rgba(224,92,92,0.08)",
-          border: "1px solid rgba(224,92,92,0.3)",
-          borderRadius: "8px",
-          fontSize: "14px",
-          color: "#E05C5C",
-          marginBottom: "24px",
-          animation: "fadeIn 0.3s ease",
+          padding: "16px 20px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)",
+          borderRadius: "8px", fontSize: "14px", color: "#E05C5C", marginBottom: "24px", animation: "fadeIn 0.3s ease",
         }}>
           <span style={{ marginRight: "8px" }}>⚠</span>{error}
         </div>
@@ -574,36 +599,19 @@ export default function IGititPage() {
 
       {/* ANALYZING STATE */}
       {isAnalyzing && (
-        <div style={{
-          padding: "32px",
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.07)",
-          borderRadius: "8px",
-          animation: "fadeIn 0.3s ease",
-        }}>
+        <div style={{ padding: "32px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", animation: "fadeIn 0.3s ease" }}>
           {STEPS.map((msg, i) => (
             <div key={i} style={{
               fontSize: "14px",
-              color: i < analyzeStep ? "rgba(255,255,255,0.25)" :
-                     i === analyzeStep ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
-              letterSpacing: "0.04em",
-              marginBottom: "10px",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
+              color: i < analyzeStep ? "rgba(255,255,255,0.25)" : i === analyzeStep ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
+              letterSpacing: "0.04em", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px",
               animation: `fadeIn 0.4s ease ${i * 0.2}s both`,
             }}>
-              <span style={{
-                color: i < analyzeStep ? "#4CAF7D" :
-                       i === analyzeStep ? "#C4974A" : "rgba(255,255,255,0.15)",
-                fontSize: "12px",
-              }}>
+              <span style={{ color: i < analyzeStep ? "#4CAF7D" : i === analyzeStep ? "#C4974A" : "rgba(255,255,255,0.15)", fontSize: "12px" }}>
                 {i < analyzeStep ? "✓" : i === analyzeStep ? "→" : "·"}
               </span>
               {msg}
-              {i === analyzeStep && (
-                <span style={{ animation: "blink 0.8s step-end infinite" }}>_</span>
-              )}
+              {i === analyzeStep && <span style={{ animation: "blink 0.8s step-end infinite" }}>_</span>}
             </div>
           ))}
         </div>
@@ -615,111 +623,76 @@ export default function IGititPage() {
 
           {/* REPO META */}
           <div style={{ marginBottom: "24px" }}>
-            <div style={{
-              display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "space-between",
-              marginBottom: "6px",
-              flexWrap: "wrap",
-              gap: "8px",
-            }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "6px", flexWrap: "wrap", gap: "8px" }}>
               <div style={{ fontSize: "18px", fontWeight: 500, letterSpacing: "0.02em" }}>
                 {analysis.meta.owner}/{analysis.meta.repo}
               </div>
               <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                 {analysis.meta.platform && (
-                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
-                    {analysis.meta.platform}
-                  </span>
+                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysis.meta.platform}</span>
                 )}
                 {analysis.meta.language && (
-                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
-                    {analysis.meta.language}
-                  </span>
+                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysis.meta.language}</span>
                 )}
-                <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
-                  ★ {analysis.meta.stars}
-                </span>
-                <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
-                  {analysis.meta.fileCount} files
-                </span>
+                <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>★ {analysis.meta.stars}</span>
+                <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysis.meta.fileCount} files</span>
                 {analysis.meta.license && (
-                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(196,151,74,0.3)", borderRadius: "4px", color: "#C4974A" }}>
-                    {analysis.meta.license}
-                  </span>
+                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(196,151,74,0.3)", borderRadius: "4px", color: "#C4974A" }}>{analysis.meta.license}</span>
                 )}
               </div>
             </div>
             {analysis.meta.description && (
-              <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
-                {analysis.meta.description}
-              </div>
+              <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>{analysis.meta.description}</div>
             )}
           </div>
 
           {/* EXPORT BAR */}
-          <div style={{
-            display: "flex",
-            gap: "8px",
-            marginBottom: "20px",
-            flexWrap: "wrap",
-          }}>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
             {[
               { id: "link", label: copyState === "link" ? "✓ link copied" : "[ copy link ]", action: handleCopyLink },
               { id: "report", label: copyState === "report" ? "✓ copied" : "[ copy report ]", action: handleCopyReport },
               { id: "download", label: "[ download .txt ]", action: handleDownloadReport },
             ].map((btn) => (
-              <button
-                key={btn.id}
-                className="export-btn"
-                onClick={btn.action}
-                style={{
-                  padding: "8px 16px",
-                  background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "6px",
-                  fontFamily: "inherit",
-                  fontSize: "13px",
-                  color: (btn.id === "link" && copyState === "link") || (btn.id === "report" && copyState === "report")
-                    ? "#4CAF7D"
-                    : "rgba(255,255,255,0.4)",
-                  cursor: "pointer",
-                  letterSpacing: "0.06em",
-                  transition: "all 0.15s",
-                }}
-              >
+              <button key={btn.id} className="export-btn" onClick={btn.action} style={{
+                padding: "8px 16px",
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: "6px",
+                fontFamily: "inherit",
+                fontSize: "13px",
+                color: (btn.id === "link" && copyState === "link") || (btn.id === "report" && copyState === "report") ? "#4CAF7D" : "rgba(255,255,255,0.4)",
+                cursor: "pointer",
+                letterSpacing: "0.06em",
+                transition: "all 0.15s",
+              }}>
                 {btn.label}
               </button>
             ))}
           </div>
 
-          {/* TABS */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "8px",
-            marginBottom: "20px",
-          }}>
+          {/* TABS — 5 columns */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px", marginBottom: "20px" }}>
             {([
               { id: "overview", label: "[ overview ]" },
               { id: "data", label: "[ data narrative ]" },
               { id: "modules", label: "[ module breakdown ]" },
               { id: "score", label: "[ score ]" },
+              { id: "changelog", label: "[ change log ]" },
             ] as { id: Tab; label: string }[]).map((tab) => (
               <button
                 key={tab.id}
                 className="tab-btn"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabClick(tab.id)}
                 style={{
-                  padding: "16px 8px",
+                  padding: "14px 6px",
                   background: activeTab === tab.id ? "rgba(196,151,74,0.1)" : "rgba(255,255,255,0.03)",
                   border: `1px solid ${activeTab === tab.id ? "#C4974A" : "rgba(255,255,255,0.08)"}`,
                   borderRadius: "8px",
                   fontFamily: "inherit",
-                  fontSize: "16px",
+                  fontSize: "14px",
                   color: activeTab === tab.id ? "#C4974A" : "rgba(255,255,255,0.45)",
                   cursor: "pointer",
-                  letterSpacing: "0.04em",
+                  letterSpacing: "0.03em",
                   lineHeight: 1.4,
                   transition: "all 0.15s",
                   textAlign: "center",
@@ -737,28 +710,9 @@ export default function IGititPage() {
             {activeTab === "overview" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {analysis.overview.map((section, i) => (
-                  <div key={i} style={{
-                    padding: "36px 40px",
-                    background: "rgba(255,255,255,0.02)",
-                    border: "1px solid rgba(255,255,255,0.07)",
-                    borderRadius: "8px",
-                  }}>
-                    <div style={{
-                      fontSize: "12px",
-                      letterSpacing: "0.12em",
-                      color: "rgba(255,255,255,0.3)",
-                      marginBottom: "16px",
-                    }}>
-                      {section.title}
-                    </div>
-                    <div style={{
-                      fontSize: "18px",
-                      lineHeight: 1.75,
-                      color: "rgba(255,255,255,0.82)",
-                      fontWeight: 300,
-                    }}>
-                      {section.content}
-                    </div>
+                  <div key={i} style={{ padding: "36px 40px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
+                    <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>{section.title}</div>
+                    <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.82)", fontWeight: 300 }}>{section.content}</div>
                   </div>
                 ))}
               </div>
@@ -767,64 +721,24 @@ export default function IGititPage() {
             {/* DATA NARRATIVE */}
             {activeTab === "data" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div style={{
-                  padding: "36px 40px",
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  borderRadius: "8px",
-                }}>
-                  <div style={{
-                    fontSize: "12px",
-                    letterSpacing: "0.12em",
-                    color: "rgba(255,255,255,0.3)",
-                    marginBottom: "20px",
-                  }}>
-                    DATA THIS SOFTWARE TOUCHES
-                  </div>
+                <div style={{ padding: "36px 40px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
+                  <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "20px" }}>DATA THIS SOFTWARE TOUCHES</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                     {analysis.dataItems.map((item, i) => (
                       <div key={i} style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                        <div style={{
-                          width: "8px",
-                          height: "8px",
-                          borderRadius: "50%",
-                          background: dataColor(item.type),
-                          flexShrink: 0,
-                          marginTop: "7px",
-                        }} />
+                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: dataColor(item.type), flexShrink: 0, marginTop: "7px" }} />
                         <div>
-                          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.82)", fontWeight: 400 }}>
-                            {item.label}
-                          </span>
-                          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>
-                            {" "}— {item.description}
-                          </span>
+                          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.82)", fontWeight: 400 }}>{item.label}</span>
+                          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>{" "}— {item.description}</span>
                           {item.sourceLine && (
-                            <div style={{
-                              marginTop: "4px",
-                              fontSize: "12px",
-                              color: "#C4974A",
-                              opacity: 0.7,
-                            }}>
-                              → {item.sourceLine}
-                            </div>
+                            <div style={{ marginTop: "4px", fontSize: "12px", color: "#C4974A", opacity: 0.7 }}>→ {item.sourceLine}</div>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div style={{
-                    display: "flex",
-                    gap: "16px",
-                    marginTop: "24px",
-                    paddingTop: "20px",
-                    borderTop: "1px solid rgba(255,255,255,0.06)",
-                  }}>
-                    {[
-                      { color: "#C4974A", label: "collected" },
-                      { color: "#4CAF7D", label: "stored" },
-                      { color: "#E05C5C", label: "transmitted" },
-                    ].map(({ color, label }) => (
+                  <div style={{ display: "flex", gap: "16px", marginTop: "24px", paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                    {[{ color: "#C4974A", label: "collected" }, { color: "#4CAF7D", label: "stored" }, { color: "#E05C5C", label: "transmitted" }].map(({ color, label }) => (
                       <div key={label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: color }} />
                         <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.04em" }}>{label}</span>
@@ -832,24 +746,9 @@ export default function IGititPage() {
                     ))}
                   </div>
                 </div>
-
-                <div style={{
-                  padding: "36px 40px",
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  borderRadius: "8px",
-                }}>
-                  <div style={{
-                    fontSize: "12px",
-                    letterSpacing: "0.12em",
-                    color: "rgba(255,255,255,0.3)",
-                    marginBottom: "16px",
-                  }}>
-                    DATA FLOW SUMMARY
-                  </div>
-                  <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
-                    {analysis.dataFlowSummary}
-                  </div>
+                <div style={{ padding: "36px 40px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
+                  <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>DATA FLOW SUMMARY</div>
+                  <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{analysis.dataFlowSummary}</div>
                 </div>
               </div>
             )}
@@ -858,91 +757,29 @@ export default function IGititPage() {
             {activeTab === "modules" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {analysis.modules.map((mod, i) => (
-                  <div
-                    key={i}
-                    className="module-card"
-                    style={{
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: "8px",
-                      overflow: "hidden",
-                      transition: "border-color 0.15s",
-                    }}
-                  >
-                    <div
-                      style={{ padding: "24px 32px", cursor: "pointer" }}
-                      onClick={() => setExpandedModule(expandedModule === mod.name ? null : mod.name)}
-                    >
-                      <div style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        justifyContent: "space-between",
-                        marginBottom: "10px",
-                      }}>
-                        <div style={{ fontSize: "16px", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>
-                          {mod.name}
-                        </div>
+                  <div key={i} className="module-card" style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden", transition: "border-color 0.15s" }}>
+                    <div style={{ padding: "24px 32px", cursor: "pointer" }} onClick={() => setExpandedModule(expandedModule === mod.name ? null : mod.name)}>
+                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "10px" }}>
+                        <div style={{ fontSize: "16px", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>{mod.name}</div>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                           {mod.path && (
-                            <span style={{
-                              fontSize: "11px",
-                              padding: "3px 8px",
-                              background: "rgba(255,255,255,0.05)",
-                              borderRadius: "4px",
-                              color: "rgba(255,255,255,0.35)",
-                              letterSpacing: "0.06em",
-                            }}>
-                              {mod.path}
-                            </span>
+                            <span style={{ fontSize: "11px", padding: "3px 8px", background: "rgba(255,255,255,0.05)", borderRadius: "4px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em" }}>{mod.path}</span>
                           )}
                           {mod.sourceSnippet && (
-                            <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.25)" }}>
-                              {expandedModule === mod.name ? "▲" : "▼"}
-                            </span>
+                            <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.25)" }}>{expandedModule === mod.name ? "▲" : "▼"}</span>
                           )}
                         </div>
                       </div>
-                      <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.55)", fontWeight: 300 }}>
-                        {mod.description}
-                      </div>
+                      <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.55)", fontWeight: 300 }}>{mod.description}</div>
                     </div>
-
                     {expandedModule === mod.name && mod.sourceSnippet && (
-                      <div style={{
-                        borderTop: "1px solid rgba(255,255,255,0.06)",
-                        background: "rgba(0,0,0,0.3)",
-                        animation: "fadeIn 0.2s ease",
-                      }}>
-                        <div style={{
-                          padding: "10px 32px",
-                          borderBottom: "1px solid rgba(255,255,255,0.05)",
-                          fontSize: "11px",
-                          color: "rgba(255,255,255,0.25)",
-                          letterSpacing: "0.1em",
-                          display: "flex",
-                          justifyContent: "space-between",
-                        }}>
-                          <span>[ source ]</span>
-                          <span>{mod.path}</span>
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)", animation: "fadeIn 0.2s ease" }}>
+                        <div style={{ padding: "10px 32px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "11px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", display: "flex", justifyContent: "space-between" }}>
+                          <span>[ source ]</span><span>{mod.path}</span>
                         </div>
-                        <pre style={{
-                          padding: "20px 32px",
-                          margin: 0,
-                          fontSize: "13px",
-                          lineHeight: 1.7,
-                          color: "rgba(255,255,255,0.55)",
-                          overflowX: "auto",
-                          fontFamily: "inherit",
-                          whiteSpace: "pre-wrap",
-                        }}>
+                        <pre style={{ padding: "20px 32px", margin: 0, fontSize: "13px", lineHeight: 1.7, overflowX: "auto", fontFamily: "inherit", whiteSpace: "pre-wrap" }}>
                           {mod.sourceSnippet.split("\n").map((line, li) => (
-                            <span key={li} style={{
-                              display: "block",
-                              color: line.trim().startsWith("//")
-                                ? "rgba(255,255,255,0.25)"
-                                : "rgba(255,255,255,0.65)",
-                            }}>
-                              {line}
-                            </span>
+                            <span key={li} style={{ display: "block", color: line.trim().startsWith("//") ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.65)" }}>{line}</span>
                           ))}
                         </pre>
                       </div>
@@ -955,165 +792,190 @@ export default function IGititPage() {
             {/* SCORE */}
             {activeTab === "score" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div style={{
-                  padding: "36px 40px",
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  borderRadius: "8px",
-                }}>
-                  <div style={{
-                    fontSize: "12px",
-                    letterSpacing: "0.12em",
-                    color: "rgba(255,255,255,0.3)",
-                    marginBottom: "24px",
-                  }}>
+                <div style={{ padding: "36px 40px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
+                  <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "24px" }}>
                     ACCOUNTABILITY SCORE · {analysis.meta.owner}/{analysis.meta.repo}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                     {analysis.score.map((dim, i) => (
-                      <div key={i} className="score-row">
+                      <div key={i}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                          <span style={{ fontSize: "16px", color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
-                            {dim.label}
-                          </span>
-                          <span style={{ fontSize: "14px", color: scoreColor(dim.pass), letterSpacing: "0.04em" }}>
-                            {dim.verdictLabel}
-                          </span>
+                          <span style={{ fontSize: "16px", color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{dim.label}</span>
+                          <span style={{ fontSize: "14px", color: scoreColor(dim.pass), letterSpacing: "0.04em" }}>{dim.verdictLabel}</span>
                         </div>
-                        <div style={{
-                          height: "3px",
-                          background: "rgba(255,255,255,0.06)",
-                          borderRadius: "2px",
-                          overflow: "hidden",
-                          marginBottom: dim.reasoning ? "8px" : "0",
-                        }}>
-                          <div style={{
-                            height: "100%",
-                            width: dim.pass ? "85%" : "20%",
-                            background: scoreColor(dim.pass),
-                            borderRadius: "2px",
-                            transition: "width 0.6s ease",
-                          }} />
+                        <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden", marginBottom: dim.reasoning ? "8px" : "0" }}>
+                          <div style={{ height: "100%", width: dim.pass ? "85%" : "20%", background: scoreColor(dim.pass), borderRadius: "2px", transition: "width 0.6s ease" }} />
                         </div>
                         {dim.reasoning && (
-                          <div className="score-reasoning" style={{
-                            fontSize: "13px",
-                            color: "rgba(255,255,255,0.3)",
-                            lineHeight: 1.6,
-                            fontStyle: "italic",
-                            maxHeight: "0px",
-                            overflow: "hidden",
-                            opacity: 0,
-                            transition: "max-height 0.2s ease, opacity 0.2s ease",
-                          }}>
-                            {dim.reasoning}
-                          </div>
+                          <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", lineHeight: 1.6, fontStyle: "italic" }}>{dim.reasoning}</div>
                         )}
                       </div>
                     ))}
                   </div>
                 </div>
+                <div style={{ padding: "36px 40px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
+                  <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>OVERALL VERDICT</div>
+                  <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{analysis.overallVerdict}</div>
+                </div>
+              </div>
+            )}
 
+            {/* CHANGE LOG */}
+            {activeTab === "changelog" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+
+                {/* DEPTH SELECTOR */}
                 <div style={{
-                  padding: "36px 40px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "16px 20px",
                   background: "rgba(255,255,255,0.02)",
                   border: "1px solid rgba(255,255,255,0.07)",
                   borderRadius: "8px",
                 }}>
-                  <div style={{
-                    fontSize: "12px",
-                    letterSpacing: "0.12em",
-                    color: "rgba(255,255,255,0.3)",
-                    marginBottom: "16px",
-                  }}>
-                    OVERALL VERDICT
-                  </div>
-                  <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>
-                    {analysis.overallVerdict}
-                  </div>
+                  <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", marginRight: "4px" }}>commits to analyze:</span>
+                  {([10, 25, 50] as const).map((n) => (
+                    <button
+                      key={n}
+                      className="depth-btn"
+                      onClick={() => loadChangelog(n)}
+                      disabled={changelogLoading}
+                      style={{
+                        padding: "6px 16px",
+                        background: changelogDepth === n && changelog ? "rgba(196,151,74,0.15)" : "rgba(255,255,255,0.04)",
+                        border: `1px solid ${changelogDepth === n && changelog ? "#C4974A" : "rgba(255,255,255,0.1)"}`,
+                        borderRadius: "4px",
+                        fontFamily: "inherit",
+                        fontSize: "13px",
+                        color: changelogDepth === n && changelog ? "#C4974A" : "rgba(255,255,255,0.4)",
+                        cursor: changelogLoading ? "default" : "pointer",
+                        letterSpacing: "0.06em",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                  {changelog && !changelogLoading && (
+                    <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.2)", marginLeft: "auto" }}>
+                      {changelog.filter(c => c.significance === "flagged").length} flagged · {changelog.filter(c => c.significance === "notable").length} notable · {changelog.filter(c => c.significance === "routine").length} routine
+                    </span>
+                  )}
                 </div>
 
-                <div style={{
-                  padding: "14px 20px",
-                  background: "transparent",
-                  border: "1px solid rgba(255,255,255,0.05)",
-                  borderRadius: "6px",
-                  fontSize: "12px",
-                  color: "rgba(255,255,255,0.2)",
-                  letterSpacing: "0.04em",
-                }}>
-                  hover each dimension to see the reasoning · scores are based on code analysis only, not external policies
-                </div>
+                {/* LOADING */}
+                {changelogLoading && (
+                  <div style={{ padding: "40px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "14px", letterSpacing: "0.06em" }}>
+                    <span style={{ animation: "blink 0.8s step-end infinite" }}>scanning commit history…_</span>
+                  </div>
+                )}
+
+                {/* ERROR */}
+                {changelogError && !changelogLoading && (
+                  <div style={{ padding: "16px 20px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "8px", fontSize: "14px", color: "#E05C5C" }}>
+                    <span style={{ marginRight: "8px" }}>⚠</span>{changelogError}
+                  </div>
+                )}
+
+                {/* COMMIT TIMELINE */}
+                {changelog && !changelogLoading && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {changelog.map((commit, i) => {
+                      const sig = SIG[commit.significance] ?? SIG.routine
+                      const isExpanded = expandedCommit === commit.sha
+                      return (
+                        <div
+                          key={i}
+                          className="commit-card"
+                          style={{
+                            border: `1px solid ${commit.significance === "flagged" ? "rgba(224,92,92,0.25)" : commit.significance === "notable" ? "rgba(196,151,74,0.18)" : "rgba(255,255,255,0.07)"}`,
+                            borderRadius: "8px",
+                            overflow: "hidden",
+                            background: commit.significance === "flagged" ? "rgba(224,92,92,0.04)" : "rgba(255,255,255,0.015)",
+                            transition: "border-color 0.15s",
+                          }}
+                        >
+                          <div
+                            style={{ padding: "20px 28px", cursor: "pointer" }}
+                            onClick={() => setExpandedCommit(isExpanded ? null : commit.sha)}
+                          >
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
+                              <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: sig.dot, flexShrink: 0, marginTop: "6px" }} />
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "6px" }}>
+                                  <div style={{ fontSize: "15px", fontWeight: 500, color: "rgba(255,255,255,0.88)", lineHeight: 1.4 }}>
+                                    {commit.plainTitle}
+                                  </div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                                    <span style={{ fontSize: "11px", color: sig.color, letterSpacing: "0.08em", border: `1px solid ${sig.dot}`, padding: "2px 8px", borderRadius: "4px", opacity: 0.8 }}>
+                                      {commit.significance}
+                                    </span>
+                                    <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>{isExpanded ? "▲" : "▼"}</span>
+                                  </div>
+                                </div>
+                                <div style={{ fontSize: "15px", lineHeight: 1.65, color: "rgba(255,255,255,0.45)", fontWeight: 300 }}>
+                                  {commit.plainSummary}
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "10px", flexWrap: "wrap" }}>
+                                  <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)", fontFamily: "inherit" }}>{commit.sha}</span>
+                                  <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>{formatDate(commit.date)}</span>
+                                  <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>{commit.author}</span>
+                                  {commit.affectedAreas?.map((area, ai) => (
+                                    <span key={ai} style={{ fontSize: "11px", padding: "2px 8px", background: "rgba(255,255,255,0.05)", borderRadius: "3px", color: "rgba(255,255,255,0.3)" }}>
+                                      {area}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* EXPANDED */}
+                          {isExpanded && (
+                            <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.2)", padding: "16px 28px 20px", animation: "fadeIn 0.2s ease" }}>
+                              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", marginBottom: "8px" }}>ORIGINAL COMMIT MESSAGE</div>
+                              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", fontFamily: "inherit", marginBottom: "16px", lineHeight: 1.6 }}>
+                                {commit.originalMessage}
+                              </div>
+                              {commit.significanceReason && (
+                                <>
+                                  <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", marginBottom: "8px" }}>WHY {commit.significance.toUpperCase()}</div>
+                                  <div style={{ fontSize: "13px", color: sig.color, opacity: 0.8, lineHeight: 1.6 }}>{commit.significanceReason}</div>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           {/* LISTEN BAR */}
           <div style={{
-            marginTop: "24px",
-            padding: "16px 20px",
-            background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: "8px",
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
+            marginTop: "24px", padding: "16px 20px", background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", display: "flex", alignItems: "center", gap: "16px",
           }}>
-            <span style={{
-              fontSize: "14px",
-              color: "rgba(255,255,255,0.3)",
-              letterSpacing: "0.06em",
-              whiteSpace: "nowrap",
-            }}>
-              [ listen to analysis ]
-            </span>
-            <select style={{
-              flex: 1,
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "6px",
-              padding: "8px 12px",
-              fontFamily: "inherit",
-              fontSize: "14px",
-              color: "rgba(255,255,255,0.6)",
-              outline: "none",
-              cursor: "pointer",
-            }}>
+            <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>[ listen to analysis ]</span>
+            <select style={{ flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", padding: "8px 12px", fontFamily: "inherit", fontSize: "14px", color: "rgba(255,255,255,0.6)", outline: "none", cursor: "pointer" }}>
               <option value="overview">overview</option>
               <option value="data">data narrative</option>
               <option value="modules">module breakdown</option>
               <option value="score">accountability score</option>
             </select>
-            <button style={{
-              width: "52px",
-              height: "44px",
-              borderRadius: "8px",
-              background: "#C4974A",
-              border: "none",
-              fontFamily: "inherit",
-              fontSize: "13px",
-              color: "#0b0b0c",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}>
-              ▶
-            </button>
+            <button style={{ width: "52px", height: "44px", borderRadius: "8px", background: "#C4974A", border: "none", fontFamily: "inherit", fontSize: "13px", color: "#0b0b0c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>▶</button>
           </div>
         </div>
       )}
 
       {/* FOOTER */}
       <div style={{
-        marginTop: "60px",
-        paddingTop: "20px",
-        borderTop: "1px solid rgba(255,255,255,0.05)",
-        fontSize: "14px",
-        color: "rgba(255,255,255,0.2)",
-        lineHeight: 1.7,
-        letterSpacing: "0.04em",
+        marginTop: "60px", paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.05)",
+        fontSize: "14px", color: "rgba(255,255,255,0.2)", lineHeight: 1.7, letterSpacing: "0.04em",
       }}>
         <div>generated by iGITit · powered by Claude · an OMARO PBC product · igitit.xyz (coming soon)</div>
         <div>analysis reflects repository state at time of request · not legal or compliance advice</div>
