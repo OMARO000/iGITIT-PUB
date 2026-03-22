@@ -167,35 +167,35 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
       const s = stateRef.current
       if (!s.food || s.food.eaten) return
       const px = s.food.x, py = s.food.y
-      const tw = s.food.text.length * 7 + 16
+      ctx.font = "14px 'IBM Plex Mono', monospace"
+      const tw = ctx.measureText(s.food.text).width + 24
       ctx.fillStyle = "rgba(255,255,255,0.06)"
-      ctx.beginPath();
-      (ctx as CanvasRenderingContext2D & { roundRect: (x: number, y: number, w: number, h: number, r: number) => void }).roundRect(px - tw, py - 14, tw, 22, 4)
+      ctx.beginPath()
+      ctx.roundRect(px - tw, py - 16, tw, 26, 4)
       ctx.fill()
       ctx.strokeStyle = "rgba(74,158,240,0.35)"; ctx.lineWidth = 0.5; ctx.stroke()
       ctx.fillStyle = "#4A9EF0"
-      ctx.font = "14px 'IBM Plex Mono', monospace"
-      ctx.fillText(s.food.text, px - tw + 6, py + 2)
+      ctx.fillText(s.food.text, px - tw + 10, py + 3)
     }
 
     const drawPoop = () => {
       const s = stateRef.current
       if (!s.poop) return
       ctx.globalAlpha = s.poop.alpha
-      const tw = s.poop.text.length * 6.5 + 16
+      ctx.font = "13px 'IBM Plex Mono', monospace"
+      const tw = ctx.measureText(s.poop.text).width + 24
       ctx.fillStyle = "rgba(255,255,255,0.06)"
-      ctx.beginPath();
-      (ctx as CanvasRenderingContext2D & { roundRect: (x: number, y: number, w: number, h: number, r: number) => void }).roundRect(s.poop.x - tw, s.poop.y - 14, tw, 22, 4)
+      ctx.beginPath()
+      ctx.roundRect(s.poop.x - tw, s.poop.y - 16, tw, 26, 4)
       ctx.fill()
       ctx.strokeStyle = "rgba(76,175,125,0.4)"; ctx.lineWidth = 0.5; ctx.stroke()
       ctx.fillStyle = "#4CAF7D"
-      ctx.font = "13px 'IBM Plex Mono', monospace"
-      ctx.fillText(s.poop.text, s.poop.x - tw + 6, s.poop.y + 2)
+      ctx.fillText(s.poop.text, s.poop.x - tw + 10, s.poop.y + 3)
       // drip dots
       ctx.fillStyle = "rgba(76,175,125,0.35)"
       for (let i = 0; i < 3; i++) {
         ctx.beginPath()
-        ctx.arc(s.poop.x - tw/2 - 6 + i * 8, s.poop.y + 14 + Math.sin(s.poop.age / 10 + i) * 2, 2, 0, Math.PI * 2)
+        ctx.arc(s.poop.x - tw/2 - 6 + i * 8, s.poop.y + 16 + Math.sin(s.poop.age / 10 + i) * 2, 2, 0, Math.PI * 2)
         ctx.fill()
       }
       ctx.globalAlpha = 1
