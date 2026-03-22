@@ -327,6 +327,12 @@ export default function IGititPage() {
   const [showHistory, setShowHistory] = useState(false)
   const [copyState, setCopyState] = useState<"idle" | "link" | "report">("idle")
 
+  const [verifyState, setVerifyState] = useState<"idle" | "loading" | "done" | "error">("idle")
+  const [verifyResult, setVerifyResult] = useState<{
+    cid: string; hash: string; timestamp: string; gatewayUrl: string; verifyUrl: string
+  } | null>(null)
+  const [verifyError, setVerifyError] = useState<string | null>(null)
+
   // Changelog (primary only)
   const [changelog, setChangelog] = useState<ChangelogEntry[] | null>(null)
   const [changelogLoading, setChangelogLoading] = useState(false)
@@ -463,6 +469,33 @@ export default function IGititPage() {
     a.click(); URL.revokeObjectURL(a.href)
   }
 
+  const handleVerify = async () => {
+    if (!analysisA || verifyState === "loading") return
+    setVerifyState("loading")
+    setVerifyError(null)
+    try {
+      const res = await fetch("/api/v1/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          analysis: analysisA,
+          meta: analysisA.meta,
+          url: urlA,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? "Verification failed")
+      }
+      const data = await res.json()
+      setVerifyResult(data)
+      setVerifyState("done")
+    } catch (err) {
+      setVerifyError(err instanceof Error ? err.message : "Something went wrong")
+      setVerifyState("error")
+    }
+  }
+
   const bothLoaded = !!analysisA && !!analysisB && compareMode
   const tabs: { id: Tab; label: string }[] = [
     { id: "overview", label: "[ overview ]" },
@@ -591,7 +624,7 @@ export default function IGititPage() {
             </div>
           )}
 
-          {/* EXPORT + COMPARE BAR */}
+          {/* EXPORT + VERIFY + COMPARE BAR */}
           <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap", alignItems: "center" }}>
             {[
               { id: "link", label: copyState === "link" ? "✓ link copied" : "[ copy link ]", action: handleCopyLink },
@@ -602,6 +635,30 @@ export default function IGititPage() {
                 {btn.label}
               </button>
             ))}
+
+            {/* VERIFY BUTTON */}
+            <button
+              onClick={handleVerify}
+              disabled={verifyState === "loading" || verifyState === "done"}
+              style={{
+                padding: "8px 16px",
+                background: verifyState === "done" ? "rgba(76,175,125,0.1)" : "rgba(255,255,255,0.03)",
+                border: `1px solid ${verifyState === "done" ? "rgba(76,175,125,0.4)" : verifyState === "error" ? "rgba(224,92,92,0.4)" : "rgba(255,255,255,0.1)"}`,
+                borderRadius: "6px",
+                fontFamily: "inherit",
+                fontSize: "13px",
+                color: verifyState === "done" ? "#4CAF7D" : verifyState === "error" ? "#E05C5C" : verifyState === "loading" ? "rgba(196,151,74,0.6)" : "rgba(255,255,255,0.4)",
+                cursor: verifyState === "loading" || verifyState === "done" ? "default" : "pointer",
+                letterSpacing: "0.06em",
+                transition: "all 0.15s",
+              }}
+            >
+              {verifyState === "idle" && "[ verify & pin ]"}
+              {verifyState === "loading" && "[ pinning… ]"}
+              {verifyState === "done" && "✓ verified"}
+              {verifyState === "error" && "⚠ failed"}
+            </button>
+
             <div style={{ marginLeft: "auto" }}>
               <button
                 className="compare-btn"
@@ -611,6 +668,59 @@ export default function IGititPage() {
               </button>
             </div>
           </div>
+
+          {/* VERIFY RESULT CARD — shows below export bar when pinned */}
+          {verifyState === "done" && verifyResult && (
+            <div style={{
+              marginBottom: "20px",
+              padding: "20px 24px",
+              background: "rgba(76,175,125,0.05)",
+              border: "1px solid rgba(76,175,125,0.2)",
+              borderRadius: "8px",
+              animation: "fadeIn 0.3s ease",
+            }}>
+              <div style={{ fontSize: "11px", letterSpacing: "0.1em", color: "rgba(76,175,125,0.6)", marginBottom: "14px" }}>
+                ✓ PINNED TO IPFS · CRYPTOGRAPHICALLY VERIFIED
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "14px" }}>
+                <div>
+                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", marginBottom: "5px" }}>IPFS CID</div>
+                  <div style={{ fontSize: "12px", color: "#C4974A", wordBreak: "break-all", lineHeight: 1.5 }}>{verifyResult.cid}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", marginBottom: "5px" }}>SHA-256 HASH</div>
+                  <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", wordBreak: "break-all", lineHeight: 1.5 }}>{verifyResult.hash.slice(0, 32)}…</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+                <a
+                  href={verifyResult.verifyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: "13px", color: "#4CAF7D", textDecoration: "none", letterSpacing: "0.04em" }}
+                >
+                  [ view permanent record ↗ ]
+                </a>
+                <a
+                  href={verifyResult.gatewayUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", textDecoration: "none", letterSpacing: "0.04em" }}
+                >
+                  [ raw ipfs ↗ ]
+                </a>
+                <button
+                  onClick={() => navigator.clipboard.writeText(verifyResult.verifyUrl)}
+                  style={{ background: "none", border: "none", fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.3)", cursor: "pointer", letterSpacing: "0.04em", padding: 0 }}
+                >
+                  [ copy verify link ]
+                </button>
+              </div>
+              {verifyError && (
+                <div style={{ marginTop: "10px", fontSize: "12px", color: "#E05C5C" }}>⚠ {verifyError}</div>
+              )}
+            </div>
+          )}
 
           {/* TABS */}
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${tabs.length}, 1fr)`, gap: "8px", marginBottom: "20px" }}>
