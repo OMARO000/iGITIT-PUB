@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 
 interface GitByteProps {
-  files?: string[]  // real filenames from the repo being analyzed
-  active?: boolean  // true during loading screens
+  files?: string[]    // real filenames (or snippets) from the repo being analyzed
+  outputs?: string[]  // plain-language descriptions paired with files
+  active?: boolean    // true during loading screens
 }
 
 const DEMO_FILES = [
@@ -20,7 +21,7 @@ const DEMO_OUTPUTS = [
   "explains the project", "defines data shapes", "navigation bar", "login hook", "example secrets",
 ]
 
-export default function GitByte({ files = DEMO_FILES, active = false }: GitByteProps) {
+export default function GitByte({ files = DEMO_FILES, outputs, active = false }: GitByteProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef({
     gitbyte: { x: 320, y: 120, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
@@ -38,7 +39,7 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
     fileIndex: 0,
     autoFeedTimer: 0,
     fileList: files,
-    outputList: DEMO_OUTPUTS,
+    outputList: outputs ?? DEMO_OUTPUTS,
   })
   const [statusText, setStatusText] = useState("")
   const [score, setScore] = useState({ eaten: 0, produced: 0 })
@@ -48,8 +49,9 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
   useEffect(() => setMounted(true), [])
 
   useEffect(() => {
-    stateRef.current.fileList = files.length > 0 ? files : DEMO_FILES
-  }, [files])
+    stateRef.current.fileList = files && files.length > 0 ? files : DEMO_FILES
+    stateRef.current.outputList = outputs && outputs.length > 0 ? outputs : DEMO_OUTPUTS
+  }, [files, outputs])
 
   useEffect(() => {
     if (!mounted) return
