@@ -31,29 +31,22 @@ const NODES = [
   { id: 0, x: 80,  y: 60,  label: "HEAD",       branch: "main" },
   { id: 1, x: 80,  y: 120, label: "init",        branch: "main" },
   { id: 2, x: 80,  y: 180, label: "fetch tree",  branch: "main" },
-  { id: 3, x: 80,  y: 240, label: "read files",  branch: "main" },
-  { id: 4, x: 80,  y: 300, label: "analyze",     branch: "main" },
   { id: 5, x: 200, y: 150, label: "parse meta",  branch: "feature" },
   { id: 6, x: 200, y: 210, label: "score",       branch: "feature" },
-  { id: 7, x: 80,  y: 360, label: "output",      branch: "main" },
 ]
 
 const EDGES = [
   { from: 0, to: 1, branch: "main" },
   { from: 1, to: 2, branch: "main" },
-  { from: 2, to: 3, branch: "main" },
-  { from: 3, to: 4, branch: "main" },
-  { from: 4, to: 7, branch: "main" },
   { from: 1, to: 5, branch: "feature" },
   { from: 5, to: 6, branch: "feature" },
-  { from: 6, to: 4, branch: "merge" },
 ]
 
 const STEP_REVEALS: { nodes: number[]; edges: number[] }[] = [
   { nodes: [0, 1],    edges: [0] },
-  { nodes: [2, 3, 5], edges: [1, 2, 4] },
-  { nodes: [4, 6],    edges: [3, 5, 6] },
-  { nodes: [7],       edges: [7] },
+  { nodes: [2, 5],    edges: [1, 2] },
+  { nodes: [6],       edges: [3] },
+  { nodes: [],        edges: [] },
 ]
 
 const STEP_LABELS = [
@@ -113,9 +106,9 @@ export function CommitGraphLoader({ step }: { step: number }) {
     <div style={{ padding: "32px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", display: "grid", gridTemplateColumns: "280px 1fr", gap: "32px", alignItems: "start", animation: "fadeIn 0.3s ease" }}>
       <div>
         <div style={{ fontSize: "10px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.2)", marginBottom: "12px", fontFamily: "'IBM Plex Mono', monospace" }}>COMMIT GRAPH</div>
-        <svg width={280} height={400} viewBox="0 0 280 400" style={{ fontFamily: "'IBM Plex Mono', monospace", overflow: "visible" }}>
-          <line x1="80" y1="40" x2="80" y2="380" stroke="rgba(74,158,240,0.07)" strokeWidth="1.5" strokeDasharray="2 4" />
-          <line x1="200" y1="130" x2="200" y2="230" stroke="rgba(76,175,125,0.07)" strokeWidth="1.5" strokeDasharray="2 4" />
+        <svg width={280} height={200} viewBox="0 0 280 200" style={{ fontFamily: "'IBM Plex Mono', monospace", overflow: "visible" }}>
+          <line x1="80" y1="40" x2="80" y2="220" stroke="rgba(74,158,240,0.07)" strokeWidth="1.5" strokeDasharray="2 4" />
+          <line x1="200" y1="130" x2="200" y2="220" stroke="rgba(76,175,125,0.07)" strokeWidth="1.5" strokeDasharray="2 4" />
           <text x="88" y="30" style={{ fontSize: "10px", fill: "rgba(74,158,240,0.4)", letterSpacing: "0.08em" }}>main</text>
           <text x="208" y="130" style={{ fontSize: "10px", fill: "rgba(76,175,125,0.4)", letterSpacing: "0.08em" }}>analysis</text>
           {EDGES.map((edge, i) => {
