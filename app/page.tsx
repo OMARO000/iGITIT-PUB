@@ -6,120 +6,55 @@ import { useState, useRef, useCallback, useEffect } from "react"
 // TYPES
 // ─────────────────────────────────────────────
 
-type Tab = "overview" | "data" | "modules" | "score" | "changelog"
+type Tab = "overview" | "data" | "modules" | "score" | "changelog" | "comparison"
 
 interface RepoMeta {
-  owner: string
-  repo: string
-  description: string
-  language: string
-  stars: number
-  fileCount: number
-  license?: string | null
-  topics?: string[]
-  updatedAt?: string | null
-  platform?: string
+  owner: string; repo: string; description: string; language: string
+  stars: number; fileCount: number; license?: string | null
+  topics?: string[]; updatedAt?: string | null; platform?: string
 }
-
-interface OverviewSection {
-  title: string
-  content: string
-}
-
-interface DataItem {
-  type: "collect" | "store" | "send"
-  label: string
-  description: string
-  sourceLine?: string
-}
-
-interface Module {
-  name: string
-  path: string
-  description: string
-  sourceSnippet?: string
-}
-
-interface ScoreDimension {
-  label: string
-  verdictLabel: string
-  pass: boolean
-  reasoning?: string
-}
-
+interface OverviewSection { title: string; content: string }
+interface DataItem { type: "collect" | "store" | "send"; label: string; description: string; sourceLine?: string }
+interface Module { name: string; path: string; description: string; sourceSnippet?: string }
+interface ScoreDimension { label: string; verdictLabel: string; pass: boolean; reasoning?: string }
 interface Analysis {
-  meta: RepoMeta
-  overview: OverviewSection[]
-  dataItems: DataItem[]
-  dataFlowSummary: string
-  modules: Module[]
-  score: ScoreDimension[]
-  overallVerdict: string
+  meta: RepoMeta; overview: OverviewSection[]; dataItems: DataItem[]
+  dataFlowSummary: string; modules: Module[]; score: ScoreDimension[]; overallVerdict: string
 }
-
 interface HistoryEntry {
-  id: string
-  url: string
-  label: string
-  platform: "github" | "gitlab"
-  analyzedAt: Date
-  analysis: Analysis
+  id: string; url: string; label: string; platform: "github" | "gitlab"; analyzedAt: Date; analysis: Analysis
 }
-
 interface ChangelogEntry {
-  sha: string
-  date: string
-  author: string
-  originalMessage: string
-  plainTitle: string
-  plainSummary: string
-  significance: "routine" | "notable" | "flagged"
-  significanceReason: string
-  affectedAreas: string[]
+  sha: string; date: string; author: string; originalMessage: string; plainTitle: string
+  plainSummary: string; significance: "routine" | "notable" | "flagged"
+  significanceReason: string; affectedAreas: string[]
+}
+interface CompareSection {
+  title: string; leftSummary: string; rightSummary: string; verdict: string
+}
+interface Comparison {
+  headline: string
+  sections: CompareSection[]
+  overallWinner: { label: string; repoName: string; reasoning: string }
+  keyDifferences: string[]
+  forJournalists: string
 }
 
 // ─────────────────────────────────────────────
-// BINARY ANIMATION HOOK
+// HOOKS & HELPERS
 // ─────────────────────────────────────────────
 
 function useBinaryAnimation() {
-  const animate = useCallback((
-    target: string,
-    onUpdate: (val: string) => void,
-    onDone: () => void
-  ) => {
-    const chars = "01"
-    const duration = 800
-    const steps = 12
-    const interval = duration / steps
-    let step = 0
+  return useCallback((target: string, onUpdate: (v: string) => void, onDone: () => void) => {
+    const chars = "01"; const steps = 12; const interval = 800 / steps; let step = 0
     const tick = setInterval(() => {
       step++
-      if (step >= steps) {
-        clearInterval(tick)
-        onUpdate(target)
-        onDone()
-        return
-      }
-      const progress = step / steps
-      const resolved = Math.floor(progress * target.length)
-      const animated = target
-        .split("")
-        .map((char, i) => {
-          if (i < resolved) return char
-          if (char === " ") return " "
-          return chars[Math.floor(Math.random() * chars.length)]
-        })
-        .join("")
-      onUpdate(animated)
+      if (step >= steps) { clearInterval(tick); onUpdate(target); onDone(); return }
+      const resolved = Math.floor((step / steps) * target.length)
+      onUpdate(target.split("").map((c, i) => i < resolved ? c : c === " " ? " " : chars[Math.floor(Math.random() * 2)]).join(""))
     }, interval)
   }, [])
-  return animate
 }
-
-// ─────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────
 
 function detectPlatform(url: string): "github" | "gitlab" | null {
   if (url.includes("github.com")) return "github"
@@ -128,75 +63,235 @@ function detectPlatform(url: string): "github" | "gitlab" | null {
 }
 
 function repoLabelFromUrl(url: string): string {
-  const match = url.match(/(?:github|gitlab)\.com\/([^/]+)\/([^/?\s#]+)/)
-  if (match) return `${match[1]}/${match[2].replace(/\.git$/, "")}`
-  return url
+  const m = url.match(/(?:github|gitlab)\.com\/([^/]+)\/([^/?\s#]+)/)
+  return m ? `${m[1]}/${m[2].replace(/\.git$/, "")}` : url
 }
 
 function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
-  } catch { return iso }
+  try { return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) } catch { return iso }
 }
 
 function buildTextReport(analysis: Analysis): string {
   const { meta, overview, dataItems, dataFlowSummary, modules, score, overallVerdict } = analysis
-  const lines: string[] = []
-  lines.push(`iGITit ANALYSIS REPORT`)
-  lines.push(`Generated by iGITit · powered by Claude · an OMARO PBC product`)
-  lines.push(`Repository: ${meta.owner}/${meta.repo}`)
-  lines.push(`Platform: ${meta.platform ?? "GitHub"} · Language: ${meta.language} · Stars: ${meta.stars} · Files: ${meta.fileCount}`)
-  if (meta.license) lines.push(`License: ${meta.license}`)
-  lines.push(`Analyzed: ${new Date().toUTCString()}`)
-  lines.push("")
-  lines.push("═══════════════════════════════")
-  lines.push("OVERVIEW")
-  lines.push("═══════════════════════════════")
-  for (const s of overview) {
-    lines.push(""); lines.push(s.title); lines.push(s.content)
-  }
-  lines.push("")
-  lines.push("═══════════════════════════════")
-  lines.push("DATA NARRATIVE")
-  lines.push("═══════════════════════════════")
+  const L: string[] = []
+  L.push("iGITit ANALYSIS REPORT", "Generated by iGITit · powered by Claude · an OMARO PBC product")
+  L.push(`Repository: ${meta.owner}/${meta.repo}`, `Platform: ${meta.platform ?? "GitHub"} · Language: ${meta.language} · Stars: ${meta.stars} · Files: ${meta.fileCount}`)
+  if (meta.license) L.push(`License: ${meta.license}`)
+  L.push(`Analyzed: ${new Date().toUTCString()}`, "", "═══════════════════════════════", "OVERVIEW", "═══════════════════════════════")
+  for (const s of overview) { L.push("", s.title, s.content) }
+  L.push("", "═══════════════════════════════", "DATA NARRATIVE", "═══════════════════════════════")
   for (const item of dataItems) {
-    const typeLabel = item.type === "collect" ? "[COLLECTED]" : item.type === "store" ? "[STORED]" : "[TRANSMITTED]"
-    lines.push(`\n${typeLabel} ${item.label}`)
-    lines.push(`  ${item.description}`)
-    if (item.sourceLine) lines.push(`  Source: ${item.sourceLine}`)
+    const t = item.type === "collect" ? "[COLLECTED]" : item.type === "store" ? "[STORED]" : "[TRANSMITTED]"
+    L.push(`\n${t} ${item.label}`, `  ${item.description}`)
+    if (item.sourceLine) L.push(`  Source: ${item.sourceLine}`)
   }
-  lines.push(""); lines.push("DATA FLOW SUMMARY"); lines.push(dataFlowSummary)
-  lines.push("")
-  lines.push("═══════════════════════════════")
-  lines.push("MODULE BREAKDOWN")
-  lines.push("═══════════════════════════════")
-  for (const mod of modules) {
-    lines.push(`\n${mod.name}${mod.path ? ` (${mod.path})` : ""}`); lines.push(mod.description)
-  }
-  lines.push("")
-  lines.push("═══════════════════════════════")
-  lines.push("ACCOUNTABILITY SCORE")
-  lines.push("═══════════════════════════════")
-  for (const dim of score) {
-    lines.push(`\n${dim.label}: ${dim.verdictLabel}`)
-    if (dim.reasoning) lines.push(`  ${dim.reasoning}`)
-  }
-  lines.push(""); lines.push("OVERALL VERDICT"); lines.push(overallVerdict)
-  lines.push("")
-  lines.push("─────────────────────────────────────────────────────")
-  lines.push("analysis reflects repository state at time of request · not legal or compliance advice")
-  lines.push("igitit.xyz · omaro-pbc.org")
-  return lines.join("\n")
+  L.push("", "DATA FLOW SUMMARY", dataFlowSummary, "", "═══════════════════════════════", "MODULE BREAKDOWN", "═══════════════════════════════")
+  for (const mod of modules) { L.push(`\n${mod.name}${mod.path ? ` (${mod.path})` : ""}`, mod.description) }
+  L.push("", "═══════════════════════════════", "ACCOUNTABILITY SCORE", "═══════════════════════════════")
+  for (const dim of score) { L.push(`\n${dim.label}: ${dim.verdictLabel}`); if (dim.reasoning) L.push(`  ${dim.reasoning}`) }
+  L.push("", "OVERALL VERDICT", overallVerdict, "", "─────────────────────────────────────────────────────")
+  L.push("analysis reflects repository state at time of request · not legal or compliance advice", "igitit.xyz · omaro-pbc.org")
+  return L.join("\n")
+}
+
+const SIG = {
+  routine: { color: "rgba(255,255,255,0.25)", dot: "rgba(255,255,255,0.2)" },
+  notable: { color: "#C4974A", dot: "#C4974A" },
+  flagged: { color: "#E05C5C", dot: "#E05C5C" },
 }
 
 // ─────────────────────────────────────────────
-// SIGNIFICANCE CONFIG
+// SINGLE REPO COLUMN
 // ─────────────────────────────────────────────
 
-const SIG = {
-  routine: { color: "rgba(255,255,255,0.25)", label: "routine", dot: "rgba(255,255,255,0.2)" },
-  notable: { color: "#C4974A", label: "notable", dot: "#C4974A" },
-  flagged: { color: "#E05C5C", label: "flagged", dot: "#E05C5C" },
+function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeTab: Tab; side: "left" | "right" }) {
+  const [expandedModule, setExpandedModule] = useState<string | null>(null)
+
+  const dataColor = (t: "collect" | "store" | "send") => t === "collect" ? "#C4974A" : t === "store" ? "#4CAF7D" : "#E05C5C"
+  const scoreColor = (p: boolean) => p ? "#4CAF7D" : "#E05C5C"
+
+  const card = (children: React.ReactNode, key?: number) => (
+    <div key={key} style={{ padding: "28px 32px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", marginBottom: "10px" }}>
+      {children}
+    </div>
+  )
+
+  const label = (text: string) => (
+    <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "14px" }}>{text}</div>
+  )
+
+  const body = (text: string) => (
+    <div style={{ fontSize: "15px", lineHeight: 1.75, color: "rgba(255,255,255,0.78)", fontWeight: 300 }}>{text}</div>
+  )
+
+  if (activeTab === "overview") return (
+    <div>
+      {analysis.overview.map((s, i) => card(<>{label(s.title)}{body(s.content)}</>, i))}
+    </div>
+  )
+
+  if (activeTab === "data") return (
+    <div>
+      {card(<>
+        {label("DATA THIS SOFTWARE TOUCHES")}
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {analysis.dataItems.map((item, i) => (
+            <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+              <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: dataColor(item.type), flexShrink: 0, marginTop: "6px" }} />
+              <div>
+                <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.82)" }}>{item.label}</span>
+                <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}> — {item.description}</span>
+                {item.sourceLine && <div style={{ marginTop: "3px", fontSize: "11px", color: "#C4974A", opacity: 0.7 }}>→ {item.sourceLine}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: "14px", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          {[{ color: "#C4974A", label: "collected" }, { color: "#4CAF7D", label: "stored" }, { color: "#E05C5C", label: "transmitted" }].map(({ color, label: l }) => (
+            <div key={l} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: color }} />
+              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)" }}>{l}</span>
+            </div>
+          ))}
+        </div>
+      </>)}
+      {card(<>{label("DATA FLOW SUMMARY")}{body(analysis.dataFlowSummary)}</>)}
+    </div>
+  )
+
+  if (activeTab === "modules") return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      {analysis.modules.map((mod, i) => (
+        <div key={i} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden" }}>
+          <div style={{ padding: "18px 24px", cursor: "pointer" }} onClick={() => setExpandedModule(expandedModule === mod.name ? null : mod.name)}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+              <span style={{ fontSize: "14px", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>{mod.name}</span>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                {mod.path && <span style={{ fontSize: "10px", padding: "2px 7px", background: "rgba(255,255,255,0.05)", borderRadius: "3px", color: "rgba(255,255,255,0.3)" }}>{mod.path}</span>}
+                {mod.sourceSnippet && <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>{expandedModule === mod.name ? "▲" : "▼"}</span>}
+              </div>
+            </div>
+            <div style={{ fontSize: "14px", lineHeight: 1.7, color: "rgba(255,255,255,0.5)", fontWeight: 300 }}>{mod.description}</div>
+          </div>
+          {expandedModule === mod.name && mod.sourceSnippet && (
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
+              <pre style={{ padding: "16px 24px", margin: 0, fontSize: "12px", lineHeight: 1.7, overflowX: "auto", fontFamily: "inherit", whiteSpace: "pre-wrap" }}>
+                {mod.sourceSnippet.split("\n").map((line, li) => (
+                  <span key={li} style={{ display: "block", color: line.trim().startsWith("//") ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.6)" }}>{line}</span>
+                ))}
+              </pre>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+
+  if (activeTab === "score") return (
+    <div>
+      {card(<>
+        <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "20px" }}>
+          ACCOUNTABILITY SCORE · {analysis.meta.owner}/{analysis.meta.repo}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          {analysis.score.map((dim, i) => (
+            <div key={i}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "7px" }}>
+                <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{dim.label}</span>
+                <span style={{ fontSize: "12px", color: scoreColor(dim.pass), letterSpacing: "0.04em" }}>{dim.verdictLabel}</span>
+              </div>
+              <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden", marginBottom: dim.reasoning ? "6px" : 0 }}>
+                <div style={{ height: "100%", width: dim.pass ? "85%" : "20%", background: scoreColor(dim.pass), borderRadius: "2px", transition: "width 0.6s ease" }} />
+              </div>
+              {dim.reasoning && <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", lineHeight: 1.6, fontStyle: "italic" }}>{dim.reasoning}</div>}
+            </div>
+          ))}
+        </div>
+      </>)}
+      {card(<>{label("OVERALL VERDICT")}{body(analysis.overallVerdict)}</>)}
+    </div>
+  )
+
+  return null
+}
+
+// ─────────────────────────────────────────────
+// REPO INPUT PANEL
+// ─────────────────────────────────────────────
+
+function RepoInputPanel({
+  label, url, onUrlChange, onAnalyze, isAnalyzing, analyzeStep, error, isAnimating, analysis
+}: {
+  label: string; url: string; onUrlChange: (v: string) => void; onAnalyze: () => void
+  isAnalyzing: boolean; analyzeStep: number; error: string | null; isAnimating: boolean
+  analysis: Analysis | null
+}) {
+  const STEPS = ["fetching repository tree…", "reading file structure…", "analyzing with Claude…", "generating plain-language output…"]
+  const platform = detectPlatform(url)
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+      <div style={{ fontSize: "12px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)", marginBottom: "2px" }}>{label}</div>
+      <div style={{ display: "flex", gap: "8px" }}>
+        <div style={{
+          flex: 1, background: "rgba(255,255,255,0.03)",
+          border: `1px solid ${isAnimating ? "rgba(196,151,74,0.4)" : "rgba(255,255,255,0.1)"}`,
+          borderRadius: "6px", padding: "12px 18px", position: "relative", overflow: "hidden", transition: "border-color 0.2s",
+        }}>
+          <input
+            type="text" value={url}
+            onChange={e => onUrlChange(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && onAnalyze()}
+            placeholder="https://github.com/owner/repo"
+            style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "15px", color: isAnimating ? "#C4974A" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }}
+          />
+          {isAnimating && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #C4974A, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
+        </div>
+        <button
+          onClick={onAnalyze} disabled={!url.trim() || isAnalyzing}
+          style={{
+            padding: "12px 20px", background: url.trim() && !isAnalyzing ? "#C4974A" : "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "14px",
+            color: url.trim() && !isAnalyzing ? "#0b0b0c" : "rgba(255,255,255,0.3)",
+            cursor: url.trim() && !isAnalyzing ? "pointer" : "default", whiteSpace: "nowrap", transition: "all 0.15s",
+          }}
+        >
+          {isAnalyzing ? "[ analyzing… ]" : analysis ? "[ re-analyze ]" : "[ analyze ]"}
+        </button>
+      </div>
+      {url.trim() && !isAnalyzing && (
+        <div style={{ fontSize: "11px", color: platform ? "#4CAF7D" : "#E05C5C", opacity: 0.7 }}>
+          {platform === "github" && "✓ github.com"}{platform === "gitlab" && "✓ gitlab.com"}{!platform && "⚠ unsupported"}
+        </div>
+      )}
+      {error && !isAnalyzing && (
+        <div style={{ padding: "10px 14px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "6px", fontSize: "12px", color: "#E05C5C" }}>
+          ⚠ {error}
+        </div>
+      )}
+      {isAnalyzing && (
+        <div style={{ padding: "20px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
+          {STEPS.map((msg, i) => (
+            <div key={i} style={{ fontSize: "12px", color: i < analyzeStep ? "rgba(255,255,255,0.25)" : i === analyzeStep ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)", marginBottom: "8px", display: "flex", gap: "8px", alignItems: "center" }}>
+              <span style={{ color: i < analyzeStep ? "#4CAF7D" : i === analyzeStep ? "#C4974A" : "rgba(255,255,255,0.15)", fontSize: "11px" }}>
+                {i < analyzeStep ? "✓" : i === analyzeStep ? "→" : "·"}
+              </span>
+              {msg}
+              {i === analyzeStep && <span style={{ animation: "blink 0.8s step-end infinite" }}>_</span>}
+            </div>
+          ))}
+        </div>
+      )}
+      {analysis && !isAnalyzing && (
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {analysis.meta.platform && <span style={{ fontSize: "11px", padding: "2px 8px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "3px", color: "rgba(255,255,255,0.5)" }}>{analysis.meta.platform}</span>}
+          {analysis.meta.language && <span style={{ fontSize: "11px", padding: "2px 8px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "3px", color: "rgba(255,255,255,0.5)" }}>{analysis.meta.language}</span>}
+          <span style={{ fontSize: "11px", padding: "2px 8px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "3px", color: "rgba(255,255,255,0.5)" }}>★ {analysis.meta.stars}</span>
+          {analysis.meta.license && <span style={{ fontSize: "11px", padding: "2px 8px", border: "1px solid rgba(196,151,74,0.3)", borderRadius: "3px", color: "#C4974A" }}>{analysis.meta.license}</span>}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ─────────────────────────────────────────────
@@ -204,126 +299,141 @@ const SIG = {
 // ─────────────────────────────────────────────
 
 export default function IGititPage() {
-  const [url, setUrl] = useState("")
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analyzeStep, setAnalyzeStep] = useState(0)
-  const [analysis, setAnalysis] = useState<Analysis | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  // Primary repo
+  const [urlA, setUrlA] = useState("")
+  const [animatingA, setAnimatingA] = useState(false)
+  const [analyzingA, setAnalyzingA] = useState(false)
+  const [stepA, setStepA] = useState(0)
+  const [analysisA, setAnalysisA] = useState<Analysis | null>(null)
+  const [errorA, setErrorA] = useState<string | null>(null)
+
+  // Compare repo
+  const [compareMode, setCompareMode] = useState(false)
+  const [urlB, setUrlB] = useState("")
+  const [animatingB, setAnimatingB] = useState(false)
+  const [analyzingB, setAnalyzingB] = useState(false)
+  const [stepB, setStepB] = useState(0)
+  const [analysisB, setAnalysisB] = useState<Analysis | null>(null)
+  const [errorB, setErrorB] = useState<string | null>(null)
+
+  // Comparison verdict
+  const [comparison, setComparison] = useState<Comparison | null>(null)
+  const [comparisonLoading, setComparisonLoading] = useState(false)
+  const [comparisonError, setComparisonError] = useState<string | null>(null)
+
+  // Shared state
   const [activeTab, setActiveTab] = useState<Tab>("overview")
-  const [expandedModule, setExpandedModule] = useState<string | null>(null)
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [showHistory, setShowHistory] = useState(false)
   const [copyState, setCopyState] = useState<"idle" | "link" | "report">("idle")
 
-  // Changelog state
+  // Changelog (primary only)
   const [changelog, setChangelog] = useState<ChangelogEntry[] | null>(null)
   const [changelogLoading, setChangelogLoading] = useState(false)
   const [changelogError, setChangelogError] = useState<string | null>(null)
   const [changelogDepth, setChangelogDepth] = useState<10 | 25 | 50>(10)
   const [expandedCommit, setExpandedCommit] = useState<string | null>(null)
 
-  const inputRef = useRef<HTMLInputElement>(null)
   const animateBinary = useBinaryAnimation()
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const repoParam = params.get("repo")
-    if (repoParam) setUrl(decodeURIComponent(repoParam))
+    const r = params.get("repo"); if (r) setUrlA(decodeURIComponent(r))
+    const r2 = params.get("compare"); if (r2) { setUrlB(decodeURIComponent(r2)); setCompareMode(true) }
   }, [])
 
-  const handleUrlChange = (val: string) => {
-    setUrl(val)
+  // Reset comparison when either analysis changes
+  useEffect(() => { setComparison(null); setComparisonError(null) }, [analysisA, analysisB])
+
+  const handleUrlChange = (setter: (v: string) => void, setAnim: (v: boolean) => void) => (val: string) => {
+    setter(val)
     if (!val) return
-    setIsAnimating(true)
-    animateBinary(val, () => {}, () => setIsAnimating(false))
+    setAnim(true)
+    animateBinary(val, () => {}, () => setAnim(false))
   }
 
-  const handleAnalyze = async () => {
-    if (!url.trim() || isAnalyzing) return
-    const platform = detectPlatform(url.trim())
-    if (!platform) {
-      setError("Only GitHub (github.com) and GitLab (gitlab.com) URLs are supported.")
-      return
-    }
-
-    setIsAnalyzing(true)
-    setAnalysis(null)
-    setError(null)
-    setActiveTab("overview")
-    setAnalyzeStep(0)
-    setChangelog(null)
-    setChangelogError(null)
-
-    const params = new URLSearchParams()
-    params.set("repo", encodeURIComponent(url.trim()))
-    window.history.replaceState(null, "", `?${params.toString()}`)
-
+  const runAnalysis = async (
+    url: string, platform: "github" | "gitlab",
+    setAnalyzing: (v: boolean) => void, setStep: (v: number) => void,
+    setAnalysis: (v: Analysis) => void, setError: (v: string | null) => void
+  ) => {
+    setAnalyzing(true); setError(null); setStep(0)
     try {
-      setAnalyzeStep(1)
-      const repoRes = await fetch("/api/repo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim() }),
-      })
-      if (!repoRes.ok) {
-        const err = await repoRes.json()
-        throw new Error(err.error ?? "Failed to fetch repository")
-      }
+      setStep(1)
+      const repoRes = await fetch("/api/repo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) })
+      if (!repoRes.ok) { const e = await repoRes.json(); throw new Error(e.error ?? "Failed to fetch repository") }
       const repoData = await repoRes.json()
 
-      setAnalyzeStep(2)
+      setStep(2)
       const analyzeRes = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...repoData, meta: { ...repoData.meta, platform: platform === "github" ? "GitHub" : "GitLab" } }),
       })
-      if (!analyzeRes.ok) {
-        const err = await analyzeRes.json()
-        throw new Error(err.error ?? "Failed to analyze repository")
-      }
-      const { analysis: analysisData, meta } = await analyzeRes.json()
-      const fullAnalysis: Analysis = { ...analysisData, meta: { ...meta, platform: platform === "github" ? "GitHub" : "GitLab" } }
+      if (!analyzeRes.ok) { const e = await analyzeRes.json(); throw new Error(e.error ?? "Failed to analyze") }
+      const { analysis: data, meta } = await analyzeRes.json()
+      const full: Analysis = { ...data, meta: { ...meta, platform: platform === "github" ? "GitHub" : "GitLab" } }
+      setAnalysis(full)
 
-      setAnalysis(fullAnalysis)
-      const entry: HistoryEntry = {
-        id: crypto.randomUUID(),
-        url: url.trim(),
-        label: repoLabelFromUrl(url.trim()),
-        platform,
-        analyzedAt: new Date(),
-        analysis: fullAnalysis,
-      }
+      const entry: HistoryEntry = { id: crypto.randomUUID(), url, label: repoLabelFromUrl(url), platform, analyzedAt: new Date(), analysis: full }
       setHistory(prev => [entry, ...prev.filter(h => h.label !== entry.label)].slice(0, 10))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
-      setIsAnalyzing(false)
-      setAnalyzeStep(0)
+      setAnalyzing(false); setStep(0)
     }
   }
 
-  const loadChangelog = async (depth: 10 | 25 | 50) => {
-    if (!analysis) return
-    setChangelogLoading(true)
-    setChangelogError(null)
-    setChangelog(null)
-    setChangelogDepth(depth)
+  const handleAnalyzeA = async () => {
+    const platform = detectPlatform(urlA.trim())
+    if (!urlA.trim() || analyzingA) return
+    if (!platform) { setErrorA("Only GitHub and GitLab URLs are supported."); return }
+    setAnalysisA(null); setChangelog(null); setChangelogError(null); setActiveTab("overview")
+    const params = new URLSearchParams()
+    params.set("repo", encodeURIComponent(urlA.trim()))
+    if (urlB.trim()) params.set("compare", encodeURIComponent(urlB.trim()))
+    window.history.replaceState(null, "", `?${params.toString()}`)
+    await runAnalysis(urlA.trim(), platform, setAnalyzingA, setStepA, setAnalysisA, setErrorA)
+  }
+
+  const handleAnalyzeB = async () => {
+    const platform = detectPlatform(urlB.trim())
+    if (!urlB.trim() || analyzingB) return
+    if (!platform) { setErrorB("Only GitHub and GitLab URLs are supported."); return }
+    setAnalysisB(null)
+    const params = new URLSearchParams()
+    if (urlA.trim()) params.set("repo", encodeURIComponent(urlA.trim()))
+    params.set("compare", encodeURIComponent(urlB.trim()))
+    window.history.replaceState(null, "", `?${params.toString()}`)
+    await runAnalysis(urlB.trim(), platform, setAnalyzingB, setStepB, setAnalysisB, setErrorB)
+  }
+
+  const loadComparison = async () => {
+    if (!analysisA || !analysisB) return
+    setComparisonLoading(true); setComparisonError(null)
     try {
-      const res = await fetch("/api/changelog", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          owner: analysis.meta.owner,
-          repo: analysis.meta.repo,
-          platform: analysis.meta.platform ?? "GitHub",
-          depth,
-        }),
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error ?? "Failed to fetch changelog")
-      }
+      const res = await fetch("/api/compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisA, analysisB }) })
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Failed to compare") }
+      const { comparison: data } = await res.json()
+      setComparison(data)
+    } catch (err) {
+      setComparisonError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setComparisonLoading(false)
+    }
+  }
+
+  const handleTabClick = (tab: Tab) => {
+    setActiveTab(tab)
+    if (tab === "changelog" && !changelog && !changelogLoading) loadChangelog(changelogDepth)
+    if (tab === "comparison" && !comparison && !comparisonLoading) loadComparison()
+  }
+
+  const loadChangelog = async (depth: 10 | 25 | 50) => {
+    if (!analysisA) return
+    setChangelogLoading(true); setChangelogError(null); setChangelog(null); setChangelogDepth(depth)
+    try {
+      const res = await fetch("/api/changelog", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ owner: analysisA.meta.owner, repo: analysisA.meta.repo, platform: analysisA.meta.platform ?? "GitHub", depth }) })
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Failed to fetch changelog") }
       const data = await res.json()
       setChangelog(data.changelog)
     } catch (err) {
@@ -333,63 +443,38 @@ export default function IGititPage() {
     }
   }
 
-  const handleTabClick = (tab: Tab) => {
-    setActiveTab(tab)
-    if (tab === "changelog" && !changelog && !changelogLoading) {
-      loadChangelog(changelogDepth)
-    }
-  }
-
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(window.location.href)
-    setCopyState("link")
-    setTimeout(() => setCopyState("idle"), 2000)
+    setCopyState("link"); setTimeout(() => setCopyState("idle"), 2000)
   }
 
   const handleCopyReport = async () => {
-    if (!analysis) return
-    await navigator.clipboard.writeText(buildTextReport(analysis))
-    setCopyState("report")
-    setTimeout(() => setCopyState("idle"), 2000)
+    if (!analysisA) return
+    await navigator.clipboard.writeText(buildTextReport(analysisA))
+    setCopyState("report"); setTimeout(() => setCopyState("idle"), 2000)
   }
 
   const handleDownloadReport = () => {
-    if (!analysis) return
-    const text = buildTextReport(analysis)
+    if (!analysisA) return
+    const text = buildTextReport(analysisA)
     const blob = new Blob([text], { type: "text/plain" })
-    const a = document.createElement("a")
-    a.href = URL.createObjectURL(blob)
-    a.download = `igitit-${analysis.meta.owner}-${analysis.meta.repo}-${Date.now()}.txt`
-    a.click()
-    URL.revokeObjectURL(a.href)
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob)
+    a.download = `igitit-${analysisA.meta.owner}-${analysisA.meta.repo}-${Date.now()}.txt`
+    a.click(); URL.revokeObjectURL(a.href)
   }
 
-  const dataColor = (type: "collect" | "store" | "send") => {
-    if (type === "collect") return "#C4974A"
-    if (type === "store") return "#4CAF7D"
-    return "#E05C5C"
-  }
-
-  const scoreColor = (pass: boolean) => pass ? "#4CAF7D" : "#E05C5C"
-
-  const STEPS = [
-    "fetching repository tree…",
-    "reading file structure…",
-    "analyzing with Claude…",
-    "generating plain-language output…",
+  const bothLoaded = !!analysisA && !!analysisB && compareMode
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "overview", label: "[ overview ]" },
+    { id: "data", label: "[ data narrative ]" },
+    { id: "modules", label: "[ module breakdown ]" },
+    { id: "score", label: "[ score ]" },
+    ...(!compareMode ? [{ id: "changelog" as Tab, label: "[ change log ]" }] : []),
+    ...(bothLoaded ? [{ id: "comparison" as Tab, label: "[ comparison ]" }] : []),
   ]
 
   return (
-    <div style={{
-      minHeight: "100dvh",
-      background: "#0b0b0c",
-      fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
-      fontSize: "14px",
-      color: "rgba(255,255,255,0.92)",
-      padding: "48px 40px 120px",
-      maxWidth: "1100px",
-      margin: "0 auto",
-    }}>
+    <div style={{ minHeight: "100dvh", background: "#0b0b0c", fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: "rgba(255,255,255,0.92)", padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
@@ -401,303 +486,136 @@ export default function IGititPage() {
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
         .tab-btn:hover { background: rgba(255,255,255,0.05) !important; }
-        .module-card:hover { border-color: rgba(255,255,255,0.15) !important; }
         .analyze-btn:hover:not(:disabled) { background: rgba(196,151,74,0.9) !important; }
         .history-item:hover { background: rgba(255,255,255,0.05) !important; }
-        .export-btn:hover { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.2) !important; }
+        .export-btn:hover { background: rgba(255,255,255,0.08) !important; }
         .commit-card:hover { border-color: rgba(255,255,255,0.14) !important; }
         .depth-btn:hover { background: rgba(255,255,255,0.08) !important; }
+        .compare-btn:hover { background: rgba(196,151,74,0.15) !important; border-color: rgba(196,151,74,0.5) !important; }
       `}</style>
 
       {/* HEADER */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: "40px",
-        paddingBottom: "20px",
-        borderBottom: "1px solid rgba(255,255,255,0.07)",
-      }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
-          <div
-            style={{ fontSize: "36px", letterSpacing: "-0.5px", cursor: "pointer" }}
-            onClick={() => {
-              setAnalysis(null); setError(null); setUrl(""); setChangelog(null)
-              window.history.replaceState(null, "", window.location.pathname)
-            }}
-          >
-            <span style={{ fontWeight: 500 }}>iGIT</span>
-            <span style={{ fontWeight: 300, opacity: 0.7 }}>it</span>
+          <div style={{ fontSize: "36px", letterSpacing: "-0.5px", cursor: "pointer" }}
+            onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); setComparison(null); window.history.replaceState(null, "", window.location.pathname) }}>
+            <span style={{ fontWeight: 500 }}>iGIT</span><span style={{ fontWeight: 300, opacity: 0.7 }}>it</span>
           </div>
-          <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em" }}>
-            open source, open language.
-          </div>
+          <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em" }}>open source, open language.</div>
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           {history.length > 0 && (
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              style={{
-                fontSize: "13px",
-                color: showHistory ? "#C4974A" : "rgba(255,255,255,0.4)",
-                letterSpacing: "0.08em",
-                border: `1px solid ${showHistory ? "rgba(196,151,74,0.4)" : "rgba(255,255,255,0.1)"}`,
-                padding: "6px 14px",
-                borderRadius: "4px",
-                background: "transparent",
-                fontFamily: "inherit",
-                cursor: "pointer",
-                transition: "all 0.15s",
-              }}
-            >
+            <button onClick={() => setShowHistory(!showHistory)} style={{ fontSize: "13px", color: showHistory ? "#C4974A" : "rgba(255,255,255,0.4)", letterSpacing: "0.08em", border: `1px solid ${showHistory ? "rgba(196,151,74,0.4)" : "rgba(255,255,255,0.1)"}`, padding: "6px 14px", borderRadius: "4px", background: "transparent", fontFamily: "inherit", cursor: "pointer", transition: "all 0.15s" }}>
               [ history · {history.length} ]
             </button>
           )}
-          <div style={{
-            fontSize: "14px",
-            color: "rgba(255,255,255,0.4)",
-            letterSpacing: "0.1em",
-            border: "1px solid rgba(255,255,255,0.1)",
-            padding: "6px 20px",
-            borderRadius: "4px",
-          }}>
-            OMARO PBC
-          </div>
+          <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 20px", borderRadius: "4px" }}>OMARO PBC</div>
         </div>
       </div>
 
       {/* HISTORY PANEL */}
       {showHistory && history.length > 0 && (
-        <div style={{
-          marginBottom: "24px",
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: "8px",
-          overflow: "hidden",
-          animation: "fadeIn 0.2s ease",
-        }}>
-          <div style={{ padding: "12px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: "11px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>
-            SESSION HISTORY
-          </div>
-          {history.map((entry) => (
-            <div
-              key={entry.id}
-              className="history-item"
-              onClick={() => {
-                setAnalysis(entry.analysis)
-                setUrl(entry.url)
-                setShowHistory(false)
-                setActiveTab("overview")
-                setChangelog(null)
-                setChangelogError(null)
-                const params = new URLSearchParams()
-                params.set("repo", encodeURIComponent(entry.url))
-                window.history.replaceState(null, "", `?${params.toString()}`)
-              }}
-              style={{
-                padding: "12px 20px",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                cursor: "pointer",
-                borderBottom: "1px solid rgba(255,255,255,0.04)",
-                transition: "background 0.1s",
-              }}
-            >
+        <div style={{ marginBottom: "24px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden", animation: "fadeIn 0.2s ease" }}>
+          <div style={{ padding: "12px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: "11px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.3)" }}>SESSION HISTORY</div>
+          {history.map(entry => (
+            <div key={entry.id} className="history-item" onClick={() => { setAnalysisA(entry.analysis); setUrlA(entry.url); setShowHistory(false); setActiveTab("overview"); setChangelog(null); setComparison(null); const p = new URLSearchParams(); p.set("repo", encodeURIComponent(entry.url)); window.history.replaceState(null, "", `?${p.toString()}`) }} style={{ padding: "12px 20px", display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.1s" }}>
               <span style={{ fontSize: "14px", opacity: 0.5 }}>{entry.platform === "github" ? "⌥" : "◈"}</span>
               <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.75)", flex: 1 }}>{entry.label}</span>
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)" }}>
-                {entry.analyzedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </span>
+              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)" }}>{entry.analyzedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* INPUT */}
-      <div style={{ marginBottom: "32px" }}>
-        <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>
-          paste a github or gitlab repository url
-        </div>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <div style={{
-            flex: 1,
-            background: "rgba(255,255,255,0.03)",
-            border: `1px solid ${isAnimating ? "rgba(196,151,74,0.4)" : "rgba(255,255,255,0.1)"}`,
-            borderRadius: "6px",
-            padding: "16px 24px",
-            position: "relative",
-            overflow: "hidden",
-            transition: "border-color 0.2s",
-          }}>
-            <input
-              ref={inputRef}
-              type="text"
-              value={url}
-              onChange={(e) => handleUrlChange(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-              placeholder="https://github.com/owner/repository"
-              style={{
-                width: "100%",
-                background: "transparent",
-                border: "none",
-                outline: "none",
-                fontFamily: "inherit",
-                fontSize: "18px",
-                color: isAnimating ? "#C4974A" : "rgba(255,255,255,0.88)",
-                letterSpacing: isAnimating ? "0.02em" : "normal",
-                transition: "color 0.2s",
-              }}
-            />
-            {isAnimating && (
-              <div style={{
-                position: "absolute", bottom: 0, left: 0, right: 0, height: "1px",
-                background: "linear-gradient(90deg, transparent, #C4974A, transparent)",
-                animation: "pulse 0.4s ease-in-out infinite",
-              }} />
-            )}
-          </div>
-          <button
-            className="analyze-btn"
-            onClick={handleAnalyze}
-            disabled={!url.trim() || isAnalyzing}
-            style={{
-              padding: "16px 32px",
-              background: url.trim() && !isAnalyzing ? "#C4974A" : "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "6px",
-              fontFamily: "inherit",
-              fontSize: "18px",
-              color: url.trim() && !isAnalyzing ? "#0b0b0c" : "rgba(255,255,255,0.3)",
-              cursor: url.trim() && !isAnalyzing ? "pointer" : "default",
-              letterSpacing: "0.08em",
-              whiteSpace: "nowrap",
-              transition: "all 0.15s",
-            }}
-          >
-            {isAnalyzing ? "[ analyzing… ]" : "[ analyze ]"}
-          </button>
-        </div>
-        {url.trim() && !isAnalyzing && (
-          <div style={{ marginTop: "8px", fontSize: "12px", color: detectPlatform(url.trim()) ? "#4CAF7D" : "#E05C5C", letterSpacing: "0.06em", opacity: 0.7 }}>
-            {detectPlatform(url.trim()) === "github" && "✓ github.com detected"}
-            {detectPlatform(url.trim()) === "gitlab" && "✓ gitlab.com detected"}
-            {!detectPlatform(url.trim()) && "⚠ only github.com and gitlab.com are supported"}
-          </div>
-        )}
-      </div>
-
-      {/* ERROR */}
-      {error && !isAnalyzing && (
-        <div style={{
-          padding: "16px 20px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)",
-          borderRadius: "8px", fontSize: "14px", color: "#E05C5C", marginBottom: "24px", animation: "fadeIn 0.3s ease",
-        }}>
-          <span style={{ marginRight: "8px" }}>⚠</span>{error}
-        </div>
-      )}
-
-      {/* ANALYZING STATE */}
-      {isAnalyzing && (
-        <div style={{ padding: "32px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", animation: "fadeIn 0.3s ease" }}>
-          {STEPS.map((msg, i) => (
-            <div key={i} style={{
-              fontSize: "14px",
-              color: i < analyzeStep ? "rgba(255,255,255,0.25)" : i === analyzeStep ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
-              letterSpacing: "0.04em", marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px",
-              animation: `fadeIn 0.4s ease ${i * 0.2}s both`,
-            }}>
-              <span style={{ color: i < analyzeStep ? "#4CAF7D" : i === analyzeStep ? "#C4974A" : "rgba(255,255,255,0.15)", fontSize: "12px" }}>
-                {i < analyzeStep ? "✓" : i === analyzeStep ? "→" : "·"}
-              </span>
-              {msg}
-              {i === analyzeStep && <span style={{ animation: "blink 0.8s step-end infinite" }}>_</span>}
+      {/* INPUT AREA */}
+      {!compareMode ? (
+        /* SINGLE INPUT */
+        <div style={{ marginBottom: "32px" }}>
+          <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>paste a github or gitlab repository url</div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: `1px solid ${animatingA ? "rgba(196,151,74,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s" }}>
+              <input type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com/owner/repository" style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "18px", color: animatingA ? "#C4974A" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }} />
+              {animatingA && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #C4974A, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
             </div>
-          ))}
+            <button className="analyze-btn" onClick={handleAnalyzeA} disabled={!urlA.trim() || analyzingA} style={{ padding: "16px 32px", background: urlA.trim() && !analyzingA ? "#C4974A" : "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", color: urlA.trim() && !analyzingA ? "#0b0b0c" : "rgba(255,255,255,0.3)", cursor: urlA.trim() && !analyzingA ? "pointer" : "default", whiteSpace: "nowrap", transition: "all 0.15s" }}>
+              {analyzingA ? "[ analyzing… ]" : "[ analyze ]"}
+            </button>
+          </div>
+          {urlA.trim() && !analyzingA && (
+            <div style={{ marginTop: "8px", fontSize: "12px", color: detectPlatform(urlA.trim()) ? "#4CAF7D" : "#E05C5C", opacity: 0.7 }}>
+              {detectPlatform(urlA.trim()) === "github" && "✓ github.com detected"}
+              {detectPlatform(urlA.trim()) === "gitlab" && "✓ gitlab.com detected"}
+              {!detectPlatform(urlA.trim()) && "⚠ only github.com and gitlab.com are supported"}
+            </div>
+          )}
+          {errorA && !analyzingA && (
+            <div style={{ marginTop: "10px", padding: "12px 16px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "6px", fontSize: "13px", color: "#E05C5C" }}>⚠ {errorA}</div>
+          )}
+          {analyzingA && (
+            <div style={{ marginTop: "12px", padding: "24px 28px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
+              {["fetching repository tree…", "reading file structure…", "analyzing with Claude…", "generating plain-language output…"].map((msg, i) => (
+                <div key={i} style={{ fontSize: "14px", color: i < stepA ? "rgba(255,255,255,0.25)" : i === stepA ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)", marginBottom: "10px", display: "flex", gap: "10px", alignItems: "center", animation: `fadeIn 0.4s ease ${i * 0.2}s both` }}>
+                  <span style={{ color: i < stepA ? "#4CAF7D" : i === stepA ? "#C4974A" : "rgba(255,255,255,0.15)", fontSize: "12px" }}>{i < stepA ? "✓" : i === stepA ? "→" : "·"}</span>
+                  {msg}{i === stepA && <span style={{ animation: "blink 0.8s step-end infinite" }}>_</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        /* COMPARE: TWO INPUTS SIDE BY SIDE */
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "32px" }}>
+          <RepoInputPanel label="REPO A" url={urlA} onUrlChange={handleUrlChange(setUrlA, setAnimatingA)} onAnalyze={handleAnalyzeA} isAnalyzing={analyzingA} analyzeStep={stepA} error={errorA} isAnimating={animatingA} analysis={analysisA} />
+          <RepoInputPanel label="REPO B" url={urlB} onUrlChange={handleUrlChange(setUrlB, setAnimatingB)} onAnalyze={handleAnalyzeB} isAnalyzing={analyzingB} analyzeStep={stepB} error={errorB} isAnimating={animatingB} analysis={analysisB} />
         </div>
       )}
 
       {/* RESULTS */}
-      {analysis && !isAnalyzing && (
+      {analysisA && !analyzingA && (
         <div style={{ animation: "fadeIn 0.4s ease" }}>
 
-          {/* REPO META */}
-          <div style={{ marginBottom: "24px" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "6px", flexWrap: "wrap", gap: "8px" }}>
-              <div style={{ fontSize: "18px", fontWeight: 500, letterSpacing: "0.02em" }}>
-                {analysis.meta.owner}/{analysis.meta.repo}
+          {/* META ROW (single mode only) */}
+          {!compareMode && (
+            <div style={{ marginBottom: "20px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "6px", flexWrap: "wrap", gap: "8px" }}>
+                <div style={{ fontSize: "18px", fontWeight: 500 }}>{analysisA.meta.owner}/{analysisA.meta.repo}</div>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                  {analysisA.meta.platform && <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysisA.meta.platform}</span>}
+                  {analysisA.meta.language && <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysisA.meta.language}</span>}
+                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>★ {analysisA.meta.stars}</span>
+                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysisA.meta.fileCount} files</span>
+                  {analysisA.meta.license && <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(196,151,74,0.3)", borderRadius: "4px", color: "#C4974A" }}>{analysisA.meta.license}</span>}
+                </div>
               </div>
-              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                {analysis.meta.platform && (
-                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysis.meta.platform}</span>
-                )}
-                {analysis.meta.language && (
-                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysis.meta.language}</span>
-                )}
-                <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>★ {analysis.meta.stars}</span>
-                <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>{analysis.meta.fileCount} files</span>
-                {analysis.meta.license && (
-                  <span style={{ fontSize: "12px", padding: "3px 10px", border: "1px solid rgba(196,151,74,0.3)", borderRadius: "4px", color: "#C4974A" }}>{analysis.meta.license}</span>
-                )}
-              </div>
+              {analysisA.meta.description && <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>{analysisA.meta.description}</div>}
             </div>
-            {analysis.meta.description && (
-              <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>{analysis.meta.description}</div>
-            )}
-          </div>
+          )}
 
-          {/* EXPORT BAR */}
-          <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
+          {/* EXPORT + COMPARE BAR */}
+          <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap", alignItems: "center" }}>
             {[
               { id: "link", label: copyState === "link" ? "✓ link copied" : "[ copy link ]", action: handleCopyLink },
               { id: "report", label: copyState === "report" ? "✓ copied" : "[ copy report ]", action: handleCopyReport },
               { id: "download", label: "[ download .txt ]", action: handleDownloadReport },
-            ].map((btn) => (
-              <button key={btn.id} className="export-btn" onClick={btn.action} style={{
-                padding: "8px 16px",
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "6px",
-                fontFamily: "inherit",
-                fontSize: "13px",
-                color: (btn.id === "link" && copyState === "link") || (btn.id === "report" && copyState === "report") ? "#4CAF7D" : "rgba(255,255,255,0.4)",
-                cursor: "pointer",
-                letterSpacing: "0.06em",
-                transition: "all 0.15s",
-              }}>
+            ].map(btn => (
+              <button key={btn.id} className="export-btn" onClick={btn.action} style={{ padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: (btn.id === "link" && copyState === "link") || (btn.id === "report" && copyState === "report") ? "#4CAF7D" : "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
                 {btn.label}
               </button>
             ))}
+            <div style={{ marginLeft: "auto" }}>
+              <button
+                className="compare-btn"
+                onClick={() => { setCompareMode(!compareMode); if (compareMode) { setAnalysisB(null); setUrlB(""); setComparison(null); setActiveTab("overview") } }}
+                style={{ padding: "8px 18px", background: compareMode ? "rgba(196,151,74,0.15)" : "rgba(255,255,255,0.03)", border: `1px solid ${compareMode ? "#C4974A" : "rgba(255,255,255,0.15)"}`, borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: compareMode ? "#C4974A" : "rgba(255,255,255,0.5)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
+                {compareMode ? "[ × exit compare ]" : "[ + compare ]"}
+              </button>
+            </div>
           </div>
 
-          {/* TABS — 5 columns */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px", marginBottom: "20px" }}>
-            {([
-              { id: "overview", label: "[ overview ]" },
-              { id: "data", label: "[ data narrative ]" },
-              { id: "modules", label: "[ module breakdown ]" },
-              { id: "score", label: "[ score ]" },
-              { id: "changelog", label: "[ change log ]" },
-            ] as { id: Tab; label: string }[]).map((tab) => (
-              <button
-                key={tab.id}
-                className="tab-btn"
-                onClick={() => handleTabClick(tab.id)}
-                style={{
-                  padding: "14px 6px",
-                  background: activeTab === tab.id ? "rgba(196,151,74,0.1)" : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${activeTab === tab.id ? "#C4974A" : "rgba(255,255,255,0.08)"}`,
-                  borderRadius: "8px",
-                  fontFamily: "inherit",
-                  fontSize: "14px",
-                  color: activeTab === tab.id ? "#C4974A" : "rgba(255,255,255,0.45)",
-                  cursor: "pointer",
-                  letterSpacing: "0.03em",
-                  lineHeight: 1.4,
-                  transition: "all 0.15s",
-                  textAlign: "center",
-                }}
-              >
+          {/* TABS */}
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${tabs.length}, 1fr)`, gap: "8px", marginBottom: "20px" }}>
+            {tabs.map(tab => (
+              <button key={tab.id} className="tab-btn" onClick={() => handleTabClick(tab.id)} style={{ padding: "14px 6px", background: activeTab === tab.id ? "rgba(196,151,74,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${activeTab === tab.id ? "#C4974A" : "rgba(255,255,255,0.08)"}`, borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: activeTab === tab.id ? "#C4974A" : "rgba(255,255,255,0.45)", cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s", textAlign: "center" }}>
                 {tab.label}
               </button>
             ))}
@@ -706,156 +624,132 @@ export default function IGititPage() {
           {/* TAB CONTENT */}
           <div key={activeTab} style={{ animation: "fadeIn 0.25s ease" }}>
 
-            {/* OVERVIEW */}
-            {activeTab === "overview" && (
+            {/* SIDE BY SIDE (overview/data/modules/score in compare mode) */}
+            {compareMode && ["overview", "data", "modules", "score"].includes(activeTab) && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                <div>
+                  <div style={{ fontSize: "12px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.25)", marginBottom: "12px", padding: "6px 12px", background: "rgba(255,255,255,0.03)", borderRadius: "4px", display: "inline-block" }}>
+                    {analysisA ? `${analysisA.meta.owner}/${analysisA.meta.repo}` : "REPO A"}
+                  </div>
+                  {analysisA && <RepoColumn analysis={analysisA} activeTab={activeTab} side="left" />}
+                </div>
+                <div>
+                  <div style={{ fontSize: "12px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.25)", marginBottom: "12px", padding: "6px 12px", background: "rgba(255,255,255,0.03)", borderRadius: "4px", display: "inline-block" }}>
+                    {analysisB ? `${analysisB.meta.owner}/${analysisB.meta.repo}` : "REPO B — analyze a repo above to compare"}
+                  </div>
+                  {analysisB ? <RepoColumn analysis={analysisB} activeTab={activeTab} side="right" /> : (
+                    <div style={{ padding: "40px", textAlign: "center", color: "rgba(255,255,255,0.2)", fontSize: "14px", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: "8px" }}>
+                      paste a url and analyze repo B to see comparison
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* SINGLE MODE TABS */}
+            {!compareMode && activeTab === "overview" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {analysis.overview.map((section, i) => (
+                {analysisA.overview.map((s, i) => (
                   <div key={i} style={{ padding: "36px 40px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
-                    <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>{section.title}</div>
-                    <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.82)", fontWeight: 300 }}>{section.content}</div>
+                    <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>{s.title}</div>
+                    <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.82)", fontWeight: 300 }}>{s.content}</div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* DATA NARRATIVE */}
-            {activeTab === "data" && (
+            {!compareMode && activeTab === "data" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{ padding: "36px 40px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
                   <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "20px" }}>DATA THIS SOFTWARE TOUCHES</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                    {analysis.dataItems.map((item, i) => (
+                    {analysisA.dataItems.map((item, i) => (
                       <div key={i} style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: dataColor(item.type), flexShrink: 0, marginTop: "7px" }} />
+                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: item.type === "collect" ? "#C4974A" : item.type === "store" ? "#4CAF7D" : "#E05C5C", flexShrink: 0, marginTop: "7px" }} />
                         <div>
-                          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.82)", fontWeight: 400 }}>{item.label}</span>
-                          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>{" "}— {item.description}</span>
-                          {item.sourceLine && (
-                            <div style={{ marginTop: "4px", fontSize: "12px", color: "#C4974A", opacity: 0.7 }}>→ {item.sourceLine}</div>
-                          )}
+                          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.82)" }}>{item.label}</span>
+                          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}> — {item.description}</span>
+                          {item.sourceLine && <div style={{ marginTop: "4px", fontSize: "12px", color: "#C4974A", opacity: 0.7 }}>→ {item.sourceLine}</div>}
                         </div>
                       </div>
                     ))}
                   </div>
                   <div style={{ display: "flex", gap: "16px", marginTop: "24px", paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                     {[{ color: "#C4974A", label: "collected" }, { color: "#4CAF7D", label: "stored" }, { color: "#E05C5C", label: "transmitted" }].map(({ color, label }) => (
-                      <div key={label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: color }} />
-                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.04em" }}>{label}</span>
-                      </div>
+                      <div key={label} style={{ display: "flex", alignItems: "center", gap: "6px" }}><div style={{ width: "7px", height: "7px", borderRadius: "50%", background: color }} /><span style={{ fontSize: "12px", color: "rgba(255,255,255,0.35)" }}>{label}</span></div>
                     ))}
                   </div>
                 </div>
                 <div style={{ padding: "36px 40px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
                   <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>DATA FLOW SUMMARY</div>
-                  <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{analysis.dataFlowSummary}</div>
+                  <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{analysisA.dataFlowSummary}</div>
                 </div>
               </div>
             )}
 
-            {/* MODULE BREAKDOWN */}
-            {activeTab === "modules" && (
+            {!compareMode && activeTab === "modules" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {analysis.modules.map((mod, i) => (
-                  <div key={i} className="module-card" style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden", transition: "border-color 0.15s" }}>
-                    <div style={{ padding: "24px 32px", cursor: "pointer" }} onClick={() => setExpandedModule(expandedModule === mod.name ? null : mod.name)}>
-                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "10px" }}>
-                        <div style={{ fontSize: "16px", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>{mod.name}</div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          {mod.path && (
-                            <span style={{ fontSize: "11px", padding: "3px 8px", background: "rgba(255,255,255,0.05)", borderRadius: "4px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em" }}>{mod.path}</span>
-                          )}
-                          {mod.sourceSnippet && (
-                            <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.25)" }}>{expandedModule === mod.name ? "▲" : "▼"}</span>
-                          )}
+                {analysisA.modules.map((mod, i) => {
+                  const [exp, setExp] = useState<boolean>(false)
+                  return (
+                    <div key={i} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", overflow: "hidden" }}>
+                      <div style={{ padding: "24px 32px", cursor: "pointer" }} onClick={() => setExp(!exp)}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+                          <span style={{ fontSize: "16px", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>{mod.name}</span>
+                          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                            {mod.path && <span style={{ fontSize: "11px", padding: "3px 8px", background: "rgba(255,255,255,0.05)", borderRadius: "4px", color: "rgba(255,255,255,0.35)" }}>{mod.path}</span>}
+                            {mod.sourceSnippet && <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.25)" }}>{exp ? "▲" : "▼"}</span>}
+                          </div>
                         </div>
+                        <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.55)", fontWeight: 300 }}>{mod.description}</div>
                       </div>
-                      <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.55)", fontWeight: 300 }}>{mod.description}</div>
+                      {exp && mod.sourceSnippet && (
+                        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
+                          <div style={{ padding: "10px 32px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "11px", color: "rgba(255,255,255,0.25)", display: "flex", justifyContent: "space-between" }}><span>[ source ]</span><span>{mod.path}</span></div>
+                          <pre style={{ padding: "20px 32px", margin: 0, fontSize: "13px", lineHeight: 1.7, overflowX: "auto", fontFamily: "inherit", whiteSpace: "pre-wrap" }}>
+                            {mod.sourceSnippet.split("\n").map((line, li) => <span key={li} style={{ display: "block", color: line.trim().startsWith("//") ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.65)" }}>{line}</span>)}
+                          </pre>
+                        </div>
+                      )}
                     </div>
-                    {expandedModule === mod.name && mod.sourceSnippet && (
-                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)", animation: "fadeIn 0.2s ease" }}>
-                        <div style={{ padding: "10px 32px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "11px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em", display: "flex", justifyContent: "space-between" }}>
-                          <span>[ source ]</span><span>{mod.path}</span>
-                        </div>
-                        <pre style={{ padding: "20px 32px", margin: 0, fontSize: "13px", lineHeight: 1.7, overflowX: "auto", fontFamily: "inherit", whiteSpace: "pre-wrap" }}>
-                          {mod.sourceSnippet.split("\n").map((line, li) => (
-                            <span key={li} style={{ display: "block", color: line.trim().startsWith("//") ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.65)" }}>{line}</span>
-                          ))}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
 
-            {/* SCORE */}
-            {activeTab === "score" && (
+            {!compareMode && activeTab === "score" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div style={{ padding: "36px 40px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
-                  <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "24px" }}>
-                    ACCOUNTABILITY SCORE · {analysis.meta.owner}/{analysis.meta.repo}
-                  </div>
+                  <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "24px" }}>ACCOUNTABILITY SCORE · {analysisA.meta.owner}/{analysisA.meta.repo}</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                    {analysis.score.map((dim, i) => (
+                    {analysisA.score.map((dim, i) => (
                       <div key={i}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                           <span style={{ fontSize: "16px", color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{dim.label}</span>
-                          <span style={{ fontSize: "14px", color: scoreColor(dim.pass), letterSpacing: "0.04em" }}>{dim.verdictLabel}</span>
+                          <span style={{ fontSize: "14px", color: dim.pass ? "#4CAF7D" : "#E05C5C" }}>{dim.verdictLabel}</span>
                         </div>
-                        <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden", marginBottom: dim.reasoning ? "8px" : "0" }}>
-                          <div style={{ height: "100%", width: dim.pass ? "85%" : "20%", background: scoreColor(dim.pass), borderRadius: "2px", transition: "width 0.6s ease" }} />
+                        <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden", marginBottom: dim.reasoning ? "8px" : 0 }}>
+                          <div style={{ height: "100%", width: dim.pass ? "85%" : "20%", background: dim.pass ? "#4CAF7D" : "#E05C5C", borderRadius: "2px", transition: "width 0.6s ease" }} />
                         </div>
-                        {dim.reasoning && (
-                          <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", lineHeight: 1.6, fontStyle: "italic" }}>{dim.reasoning}</div>
-                        )}
+                        {dim.reasoning && <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", lineHeight: 1.6, fontStyle: "italic" }}>{dim.reasoning}</div>}
                       </div>
                     ))}
                   </div>
                 </div>
                 <div style={{ padding: "36px 40px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
                   <div style={{ fontSize: "12px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>OVERALL VERDICT</div>
-                  <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{analysis.overallVerdict}</div>
+                  <div style={{ fontSize: "18px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{analysisA.overallVerdict}</div>
                 </div>
               </div>
             )}
 
-            {/* CHANGE LOG */}
-            {activeTab === "changelog" && (
+            {/* CHANGELOG (single mode only) */}
+            {!compareMode && activeTab === "changelog" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-
-                {/* DEPTH SELECTOR */}
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  padding: "16px 20px",
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  borderRadius: "8px",
-                }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "16px 20px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
                   <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", marginRight: "4px" }}>commits to analyze:</span>
-                  {([10, 25, 50] as const).map((n) => (
-                    <button
-                      key={n}
-                      className="depth-btn"
-                      onClick={() => loadChangelog(n)}
-                      disabled={changelogLoading}
-                      style={{
-                        padding: "6px 16px",
-                        background: changelogDepth === n && changelog ? "rgba(196,151,74,0.15)" : "rgba(255,255,255,0.04)",
-                        border: `1px solid ${changelogDepth === n && changelog ? "#C4974A" : "rgba(255,255,255,0.1)"}`,
-                        borderRadius: "4px",
-                        fontFamily: "inherit",
-                        fontSize: "13px",
-                        color: changelogDepth === n && changelog ? "#C4974A" : "rgba(255,255,255,0.4)",
-                        cursor: changelogLoading ? "default" : "pointer",
-                        letterSpacing: "0.06em",
-                        transition: "all 0.15s",
-                      }}
-                    >
-                      {n}
-                    </button>
+                  {([10, 25, 50] as const).map(n => (
+                    <button key={n} className="depth-btn" onClick={() => loadChangelog(n)} disabled={changelogLoading} style={{ padding: "6px 16px", background: changelogDepth === n && changelog ? "rgba(196,151,74,0.15)" : "rgba(255,255,255,0.04)", border: `1px solid ${changelogDepth === n && changelog ? "#C4974A" : "rgba(255,255,255,0.1)"}`, borderRadius: "4px", fontFamily: "inherit", fontSize: "13px", color: changelogDepth === n && changelog ? "#C4974A" : "rgba(255,255,255,0.4)", cursor: changelogLoading ? "default" : "pointer", transition: "all 0.15s" }}>{n}</button>
                   ))}
                   {changelog && !changelogLoading && (
                     <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.2)", marginLeft: "auto" }}>
@@ -863,87 +757,44 @@ export default function IGititPage() {
                     </span>
                   )}
                 </div>
-
-                {/* LOADING */}
-                {changelogLoading && (
-                  <div style={{ padding: "40px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "14px", letterSpacing: "0.06em" }}>
-                    <span style={{ animation: "blink 0.8s step-end infinite" }}>scanning commit history…_</span>
-                  </div>
-                )}
-
-                {/* ERROR */}
-                {changelogError && !changelogLoading && (
-                  <div style={{ padding: "16px 20px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "8px", fontSize: "14px", color: "#E05C5C" }}>
-                    <span style={{ marginRight: "8px" }}>⚠</span>{changelogError}
-                  </div>
-                )}
-
-                {/* COMMIT TIMELINE */}
+                {changelogLoading && <div style={{ padding: "40px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "14px" }}><span style={{ animation: "blink 0.8s step-end infinite" }}>scanning commit history…_</span></div>}
+                {changelogError && !changelogLoading && <div style={{ padding: "16px 20px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "8px", fontSize: "14px", color: "#E05C5C" }}>⚠ {changelogError}</div>}
                 {changelog && !changelogLoading && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                     {changelog.map((commit, i) => {
                       const sig = SIG[commit.significance] ?? SIG.routine
-                      const isExpanded = expandedCommit === commit.sha
+                      const isExp = expandedCommit === commit.sha
                       return (
-                        <div
-                          key={i}
-                          className="commit-card"
-                          style={{
-                            border: `1px solid ${commit.significance === "flagged" ? "rgba(224,92,92,0.25)" : commit.significance === "notable" ? "rgba(196,151,74,0.18)" : "rgba(255,255,255,0.07)"}`,
-                            borderRadius: "8px",
-                            overflow: "hidden",
-                            background: commit.significance === "flagged" ? "rgba(224,92,92,0.04)" : "rgba(255,255,255,0.015)",
-                            transition: "border-color 0.15s",
-                          }}
-                        >
-                          <div
-                            style={{ padding: "20px 28px", cursor: "pointer" }}
-                            onClick={() => setExpandedCommit(isExpanded ? null : commit.sha)}
-                          >
-                            <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
+                        <div key={i} className="commit-card" style={{ border: `1px solid ${commit.significance === "flagged" ? "rgba(224,92,92,0.25)" : commit.significance === "notable" ? "rgba(196,151,74,0.18)" : "rgba(255,255,255,0.07)"}`, borderRadius: "8px", overflow: "hidden", background: commit.significance === "flagged" ? "rgba(224,92,92,0.04)" : "rgba(255,255,255,0.015)", transition: "border-color 0.15s" }}>
+                          <div style={{ padding: "20px 28px", cursor: "pointer" }} onClick={() => setExpandedCommit(isExp ? null : commit.sha)}>
+                            <div style={{ display: "flex", gap: "14px" }}>
                               <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: sig.dot, flexShrink: 0, marginTop: "6px" }} />
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "6px" }}>
-                                  <div style={{ fontSize: "15px", fontWeight: 500, color: "rgba(255,255,255,0.88)", lineHeight: 1.4 }}>
-                                    {commit.plainTitle}
-                                  </div>
-                                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-                                    <span style={{ fontSize: "11px", color: sig.color, letterSpacing: "0.08em", border: `1px solid ${sig.dot}`, padding: "2px 8px", borderRadius: "4px", opacity: 0.8 }}>
-                                      {commit.significance}
-                                    </span>
-                                    <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>{isExpanded ? "▲" : "▼"}</span>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginBottom: "6px" }}>
+                                  <div style={{ fontSize: "15px", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>{commit.plainTitle}</div>
+                                  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0 }}>
+                                    <span style={{ fontSize: "11px", color: sig.color, border: `1px solid ${sig.dot}`, padding: "2px 8px", borderRadius: "4px", opacity: 0.8 }}>{commit.significance}</span>
+                                    <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>{isExp ? "▲" : "▼"}</span>
                                   </div>
                                 </div>
-                                <div style={{ fontSize: "15px", lineHeight: 1.65, color: "rgba(255,255,255,0.45)", fontWeight: 300 }}>
-                                  {commit.plainSummary}
-                                </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "10px", flexWrap: "wrap" }}>
-                                  <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)", fontFamily: "inherit" }}>{commit.sha}</span>
+                                <div style={{ fontSize: "15px", lineHeight: 1.65, color: "rgba(255,255,255,0.45)", fontWeight: 300 }}>{commit.plainSummary}</div>
+                                <div style={{ display: "flex", gap: "12px", marginTop: "10px", flexWrap: "wrap" }}>
+                                  <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>{commit.sha}</span>
                                   <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>{formatDate(commit.date)}</span>
                                   <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>{commit.author}</span>
-                                  {commit.affectedAreas?.map((area, ai) => (
-                                    <span key={ai} style={{ fontSize: "11px", padding: "2px 8px", background: "rgba(255,255,255,0.05)", borderRadius: "3px", color: "rgba(255,255,255,0.3)" }}>
-                                      {area}
-                                    </span>
-                                  ))}
+                                  {commit.affectedAreas?.map((area, ai) => <span key={ai} style={{ fontSize: "11px", padding: "2px 8px", background: "rgba(255,255,255,0.05)", borderRadius: "3px", color: "rgba(255,255,255,0.3)" }}>{area}</span>)}
                                 </div>
                               </div>
                             </div>
                           </div>
-
-                          {/* EXPANDED */}
-                          {isExpanded && (
+                          {isExp && (
                             <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.2)", padding: "16px 28px 20px", animation: "fadeIn 0.2s ease" }}>
                               <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", marginBottom: "8px" }}>ORIGINAL COMMIT MESSAGE</div>
-                              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", fontFamily: "inherit", marginBottom: "16px", lineHeight: 1.6 }}>
-                                {commit.originalMessage}
-                              </div>
-                              {commit.significanceReason && (
-                                <>
-                                  <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", marginBottom: "8px" }}>WHY {commit.significance.toUpperCase()}</div>
-                                  <div style={{ fontSize: "13px", color: sig.color, opacity: 0.8, lineHeight: 1.6 }}>{commit.significanceReason}</div>
-                                </>
-                              )}
+                              <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", marginBottom: "16px", lineHeight: 1.6 }}>{commit.originalMessage}</div>
+                              {commit.significanceReason && <>
+                                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em", marginBottom: "8px" }}>WHY {commit.significance.toUpperCase()}</div>
+                                <div style={{ fontSize: "13px", color: sig.color, opacity: 0.8, lineHeight: 1.6 }}>{commit.significanceReason}</div>
+                              </>}
                             </div>
                           )}
                         </div>
@@ -953,30 +804,106 @@ export default function IGititPage() {
                 )}
               </div>
             )}
+
+            {/* COMPARISON TAB */}
+            {activeTab === "comparison" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {comparisonLoading && (
+                  <div style={{ padding: "60px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "14px", letterSpacing: "0.06em" }}>
+                    <span style={{ animation: "blink 0.8s step-end infinite" }}>comparing {analysisA.meta.owner}/{analysisA.meta.repo} vs {analysisB?.meta.owner}/{analysisB?.meta.repo}…_</span>
+                  </div>
+                )}
+                {comparisonError && !comparisonLoading && (
+                  <div style={{ padding: "16px 20px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "8px", fontSize: "14px", color: "#E05C5C" }}>⚠ {comparisonError}</div>
+                )}
+                {comparison && !comparisonLoading && (
+                  <>
+                    {/* HEADLINE */}
+                    <div style={{ padding: "28px 36px", background: "rgba(196,151,74,0.06)", border: "1px solid rgba(196,151,74,0.2)", borderRadius: "8px" }}>
+                      <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(196,151,74,0.6)", marginBottom: "12px" }}>COMPARISON HEADLINE</div>
+                      <div style={{ fontSize: "20px", lineHeight: 1.65, color: "rgba(255,255,255,0.88)", fontWeight: 400 }}>{comparison.headline}</div>
+                    </div>
+
+                    {/* COLUMN HEADERS */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", padding: "0 4px" }}>
+                      <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.06em", textAlign: "center", padding: "8px", background: "rgba(255,255,255,0.03)", borderRadius: "4px" }}>
+                        {analysisA.meta.owner}/{analysisA.meta.repo}
+                      </div>
+                      <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.06em", textAlign: "center", padding: "8px", background: "rgba(255,255,255,0.03)", borderRadius: "4px" }}>
+                        {analysisB?.meta.owner}/{analysisB?.meta.repo}
+                      </div>
+                    </div>
+
+                    {/* COMPARISON SECTIONS */}
+                    {comparison.sections.map((section, i) => (
+                      <div key={i} style={{ border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", overflow: "hidden" }}>
+                        <div style={{ padding: "14px 24px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
+                          <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)" }}>{section.title}</div>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0" }}>
+                          <div style={{ padding: "24px 28px", borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+                            <div style={{ fontSize: "15px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{section.leftSummary}</div>
+                          </div>
+                          <div style={{ padding: "24px 28px" }}>
+                            <div style={{ fontSize: "15px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{section.rightSummary}</div>
+                          </div>
+                        </div>
+                        <div style={{ padding: "16px 28px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(196,151,74,0.04)" }}>
+                          <span style={{ fontSize: "11px", color: "rgba(196,151,74,0.5)", letterSpacing: "0.08em", marginRight: "10px" }}>VERDICT</span>
+                          <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)", fontWeight: 300 }}>{section.verdict}</span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* KEY DIFFERENCES */}
+                    <div style={{ padding: "28px 36px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
+                      <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "18px" }}>KEY DIFFERENCES</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {comparison.keyDifferences.map((diff, i) => (
+                          <div key={i} style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                            <span style={{ color: "#C4974A", fontSize: "12px", marginTop: "2px", flexShrink: 0 }}>→</span>
+                            <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.65)", lineHeight: 1.6, fontWeight: 300 }}>{diff}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* OVERALL WINNER */}
+                    <div style={{ padding: "28px 36px", background: "rgba(255,255,255,0.02)", border: `1px solid ${comparison.overallWinner.repoName === "tied" ? "rgba(255,255,255,0.1)" : "rgba(196,151,74,0.25)"}`, borderRadius: "8px" }}>
+                      <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "12px" }}>OVERALL VERDICT</div>
+                      <div style={{ fontSize: "18px", color: "#C4974A", marginBottom: "12px", fontWeight: 500 }}>{comparison.overallWinner.label}</div>
+                      <div style={{ fontSize: "16px", lineHeight: 1.75, color: "rgba(255,255,255,0.7)", fontWeight: 300 }}>{comparison.overallWinner.reasoning}</div>
+                    </div>
+
+                    {/* FOR JOURNALISTS */}
+                    <div style={{ padding: "20px 28px", background: "transparent", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "8px" }}>
+                      <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.25)", marginBottom: "10px" }}>FOR JOURNALISTS & REGULATORS</div>
+                      <div style={{ fontSize: "14px", lineHeight: 1.7, color: "rgba(255,255,255,0.45)", fontWeight: 300 }}>{comparison.forJournalists}</div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {/* LISTEN BAR */}
-          <div style={{
-            marginTop: "24px", padding: "16px 20px", background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", display: "flex", alignItems: "center", gap: "16px",
-          }}>
-            <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>[ listen to analysis ]</span>
-            <select style={{ flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", padding: "8px 12px", fontFamily: "inherit", fontSize: "14px", color: "rgba(255,255,255,0.6)", outline: "none", cursor: "pointer" }}>
-              <option value="overview">overview</option>
-              <option value="data">data narrative</option>
-              <option value="modules">module breakdown</option>
-              <option value="score">accountability score</option>
-            </select>
-            <button style={{ width: "52px", height: "44px", borderRadius: "8px", background: "#C4974A", border: "none", fontFamily: "inherit", fontSize: "13px", color: "#0b0b0c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>▶</button>
-          </div>
+          {!compareMode && (
+            <div style={{ marginTop: "24px", padding: "16px 20px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", display: "flex", alignItems: "center", gap: "16px" }}>
+              <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>[ listen to analysis ]</span>
+              <select style={{ flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", padding: "8px 12px", fontFamily: "inherit", fontSize: "14px", color: "rgba(255,255,255,0.6)", outline: "none", cursor: "pointer" }}>
+                <option value="overview">overview</option>
+                <option value="data">data narrative</option>
+                <option value="modules">module breakdown</option>
+                <option value="score">accountability score</option>
+              </select>
+              <button style={{ width: "52px", height: "44px", borderRadius: "8px", background: "#C4974A", border: "none", fontFamily: "inherit", fontSize: "13px", color: "#0b0b0c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>▶</button>
+            </div>
+          )}
         </div>
       )}
 
       {/* FOOTER */}
-      <div style={{
-        marginTop: "60px", paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.05)",
-        fontSize: "14px", color: "rgba(255,255,255,0.2)", lineHeight: 1.7, letterSpacing: "0.04em",
-      }}>
+      <div style={{ marginTop: "60px", paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: "14px", color: "rgba(255,255,255,0.2)", lineHeight: 1.7, letterSpacing: "0.04em" }}>
         <div>generated by iGITit · powered by Claude · an OMARO PBC product · igitit.xyz (coming soon)</div>
         <div>analysis reflects repository state at time of request · not legal or compliance advice</div>
       </div>
