@@ -310,6 +310,7 @@ export default function IGititPage() {
   const [errorA, setErrorA] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [expandedModuleSingle, setExpandedModuleSingle] = useState<string | null>(null)
+  const [fetchedFilePaths, setFetchedFilePaths] = useState<string[]>([])
 
   // Compare repo
   const [compareMode, setCompareMode] = useState(false)
@@ -375,6 +376,7 @@ export default function IGititPage() {
       const repoRes = await fetch("/api/repo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) })
       if (!repoRes.ok) { const e = await repoRes.json(); throw new Error(e.error ?? "Failed to fetch repository") }
       const repoData = await repoRes.json()
+      setFetchedFilePaths(repoData.filePaths ?? [])
 
       setStep(2)
       const analyzeRes = await fetch("/api/analyze", {
@@ -587,7 +589,12 @@ export default function IGititPage() {
           {errorA && !analyzingA && (
             <div style={{ marginTop: "10px", padding: "12px 16px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "6px", fontSize: "13px", color: "#E05C5C" }}>⚠ {errorA}</div>
           )}
-          {analyzingA && <CommitGraphLoader step={stepA} />}
+          {analyzingA && (
+            <div>
+              <CommitGraphLoader step={stepA} />
+              <GitByte files={fetchedFilePaths.length > 0 ? fetchedFilePaths : undefined} active={true} />
+            </div>
+          )}
         </div>
       ) : (
         /* COMPARE: TWO INPUTS SIDE BY SIDE */
@@ -860,7 +867,14 @@ export default function IGititPage() {
                     </span>
                   )}
                 </div>
-                {changelogLoading && <div style={{ padding: "40px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "14px" }}><span style={{ animation: "blink 0.8s step-end infinite" }}>scanning commit history…_</span></div>}
+                {changelogLoading && (
+                  <div>
+                    <div style={{ padding: "40px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "14px" }}>
+                      <span style={{ animation: "blink 0.8s step-end infinite" }}>scanning commit history…_</span>
+                    </div>
+                    <GitByte files={fetchedFilePaths.length > 0 ? fetchedFilePaths : undefined} active={true} />
+                  </div>
+                )}
                 {changelogError && !changelogLoading && <div style={{ padding: "16px 20px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "8px", fontSize: "14px", color: "#E05C5C" }}>⚠ {changelogError}</div>}
                 {changelog && !changelogLoading && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
