@@ -357,10 +357,9 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
         borderTop: "1px solid rgba(255,255,255,0.05)",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
+        justifyContent: "space-between",
       }}>
-        <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic", position: "absolute", left: "20px" }}>
+        <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic" }}>
           {statusText}
         </div>
         <button
