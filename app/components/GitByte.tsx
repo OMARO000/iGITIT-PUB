@@ -79,10 +79,10 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
       const s = stateRef.current
       s.poop = {
         x: 320,
-        y: s.gitbyte.y + s.gitbyte.h / 2 + 5,
+        y: s.gitbyte.y + 30,
         text,
         alpha: 1,
-        vy: 1.5,
+        vy: 1.2,
         age: 0,
       }
       s.outputProduced++
@@ -200,18 +200,21 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
       ctx.globalAlpha = s.poop.alpha
       ctx.font = "13px 'IBM Plex Mono', monospace"
       const tw = ctx.measureText(s.poop.text).width + 24
+      // Always draw bubble to the RIGHT of a fixed left edge
+      const bx = 40
+      const by = s.poop.y - 16
       ctx.fillStyle = "rgba(255,255,255,0.06)"
       ctx.beginPath()
-      ctx.roundRect(s.poop.x - tw, s.poop.y - 16, tw, 26, 4)
+      ctx.roundRect(bx, by, tw, 26, 4)
       ctx.fill()
       ctx.strokeStyle = "rgba(76,175,125,0.4)"; ctx.lineWidth = 0.5; ctx.stroke()
       ctx.fillStyle = "#4CAF7D"
-      ctx.fillText(s.poop.text, s.poop.x - tw + 10, s.poop.y + 3)
+      ctx.fillText(s.poop.text, bx + 10, s.poop.y + 3)
       // drip dots
       ctx.fillStyle = "rgba(76,175,125,0.35)"
       for (let i = 0; i < 3; i++) {
         ctx.beginPath()
-        ctx.arc(s.poop.x - tw/2 - 6 + i * 8, s.poop.y + 16 + Math.sin(s.poop.age / 10 + i) * 2, 2, 0, Math.PI * 2)
+        ctx.arc(bx + tw / 2 - 6 + i * 8, s.poop.y + 16 + Math.sin(s.poop.age / 10 + i) * 2, 2, 0, Math.PI * 2)
         ctx.fill()
       }
       ctx.globalAlpha = 1
