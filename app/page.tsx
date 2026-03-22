@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useCallback } from "react"
 
 // ─────────────────────────────────────────────
 // TYPES
@@ -38,7 +38,6 @@ interface Module {
 
 interface ScoreDimension {
   label: string
-  verdict: "transparent" | "disclosed" | "fully auditabl" | "not defined" | "flagged" | "pass"
   verdictLabel: string
   pass: boolean
 }
@@ -95,128 +94,16 @@ function useBinaryAnimation() {
 }
 
 // ─────────────────────────────────────────────
-// TYPEWRITER HOOK
-// ─────────────────────────────────────────────
-
-function useTypewriter(text: string, speed = 12, active = false) {
-  const [displayed, setDisplayed] = useState("")
-  const [done, setDone] = useState(false)
-  const indexRef = useRef(0)
-
-  useEffect(() => {
-    if (!active || !text) return
-    indexRef.current = 0
-    setDisplayed("")
-    setDone(false)
-    const interval = setInterval(() => {
-      if (indexRef.current >= text.length) {
-        setDone(true)
-        clearInterval(interval)
-        return
-      }
-      setDisplayed(text.slice(0, indexRef.current + 1))
-      indexRef.current++
-    }, speed)
-    return () => clearInterval(interval)
-  }, [text, speed, active])
-
-  return { displayed, done }
-}
-
-// ─────────────────────────────────────────────
-// MOCK ANALYSIS (real Claude API call in prod)
-// ─────────────────────────────────────────────
-
-function getMockAnalysis(url: string): Analysis {
-  const isOmen = url.includes("OMEN")
-  const isUs = url.includes("US") || url.includes("us-app")
-
-  return {
-    meta: {
-      owner: isOmen ? "OMARO000" : isUs ? "OMARO000" : "owner",
-      repo: isOmen ? "OMEN-PUB" : isUs ? "-US-PUB" : "repository",
-      description: isOmen
-        ? "permanent open-source corporate accountability ledger · TypeScript · Next.js"
-        : isUs
-        ? "human connection platform · TypeScript · Next.js"
-        : "open-source repository · TypeScript",
-      language: "TypeScript",
-      stars: isOmen ? 12 : 4,
-      fileCount: isOmen ? 84 : 47,
-    },
-    overview: [
-      {
-        title: "WHAT THIS SOFTWARE DOES",
-        content: isOmen
-          ? "OMEN is a permanent, open-source corporate accountability ledger. it documents verified violations across 646 companies using court-grade primary sources — tracking privacy, labor, ethics, environment, and antitrust failures in a single auditable record."
-          : "this software builds and operates a human connection platform focused on authentic relationships. it uses a multi-layer matching engine, AI-guided intake conversations, and self-portrait generation to help people understand themselves and connect meaningfully.",
-      },
-      {
-        title: "WHO IT SERVES",
-        content: isOmen
-          ? "journalists, regulators, researchers, and the public — anyone who needs to verify corporate behavior against a permanent, tamper-resistant record. built for accountability, not litigation."
-          : "people seeking genuine platonic, romantic, or professional connections — specifically those who want depth over volume and prefer self-knowledge as a foundation for meeting others.",
-      },
-      {
-        title: "WHY IT WAS BUILT",
-        content: isOmen
-          ? "corporate violations are routinely buried, settled quietly, or forgotten. OMEN exists to ensure that verified findings persist permanently — pinned to IPFS, open source, and independently verifiable by anyone."
-          : "most connection platforms optimize for engagement and volume. this one optimizes for quality and honesty — treating the intake process as genuine self-reflection rather than profile creation.",
-      },
-    ],
-    dataItems: isOmen
-      ? [
-          { type: "collect", label: "company violation records", description: "sourced from SEC filings, court documents, regulatory rulings, and government databases" },
-          { type: "collect", label: "AI research agent inputs", description: "public URLs and documents fed into the research pipeline for analysis" },
-          { type: "store", label: "SQLite database", description: "violation blocks, confidence scores, source URLs, and company tickers stored locally" },
-          { type: "store", label: "staged blocks", description: "violations pending human review held in a separate queue before publishing" },
-          { type: "send", label: "Pinata / IPFS", description: "approved violation blocks pinned permanently to the decentralized web" },
-          { type: "send", label: "Anthropic API", description: "violation text sent to Claude for research, scoring, and synthesis" },
-        ]
-      : [
-          { type: "collect", label: "intake conversation", description: "voice and text responses during the 8-block intake flow — used to generate user portrait" },
-          { type: "collect", label: "behavioral signals", description: "disclosed interaction patterns within the platform — never passive device tracking" },
-          { type: "store", label: "SQLite database", description: "user portraits, match scores, conversation history, and connection outcomes" },
-          { type: "store", label: "portrait NFT data", description: "cryptographic portrait artifacts stored on Solana via Metaplex" },
-          { type: "send", label: "Anthropic API", description: "conversation text sent to Claude for portrait generation and match analysis" },
-          { type: "send", label: "ElevenLabs API", description: "text sent for voice synthesis — no audio stored server-side" },
-        ],
-    dataFlowSummary: isOmen
-      ? "public source documents enter the system via the research agent. they are analyzed by Claude, scored for confidence, and staged for human review. approved violations are written to SQLite and immediately pinned to IPFS via Pinata — creating a permanent, tamper-resistant record. no user data is collected."
-      : "user input enters via the intake conversation. it is analyzed by Claude to generate a portrait and match scores. connection data is stored locally in SQLite. no data is sold, shared with third parties, or used for advertising. users may export their declared profile at any time.",
-    modules: isOmen
-      ? [
-          { name: "research agent", path: "scripts/", description: "an AI-powered pipeline that takes a company name, searches approved sources, and generates a structured violation record. it enforces strict evidence standards — only court-grade primary sources qualify. think of it as an automated investigative researcher with rules it cannot break.", sourceSnippet: "// researchCompanies.ts\nconst APPROVED_SOURCES = [\n  'sec.gov',\n  'ftc.gov', \n  'doj.gov',\n  'courtlistener.com',\n  // 27 more approved domains\n]\n\nasync function researchCompany(ticker: string) {\n  const violations = await agent.search({\n    company: ticker,\n    sources: APPROVED_SOURCES,\n    confidenceThreshold: 0.93\n  })\n  return violations\n}" },
-          { name: "ledger + IPFS layer", path: "lib/ipfs/", description: "once a violation is approved, it gets written to a local SQLite database and simultaneously pinned to IPFS via Pinata. this means the record exists in two places — a queryable local database and a permanent, decentralized archive that no single party can delete.", sourceSnippet: "// ipfsPin.ts\nexport async function pinViolation(block: ViolationBlock) {\n  const cid = await pinata.pinJSON({\n    ...block,\n    pinnedAt: Date.now(),\n    version: '1.0'\n  })\n  await db.update(violations)\n    .set({ ipfsCid: cid })\n    .where(eq(violations.id, block.id))\n}" },
-          { name: "B2B API", path: "app/api/", description: "a six-safeguard API that lets external developers query the ledger programmatically. journalists can pull all violations for a specific company. the safeguards prevent misuse — rate limiting, authentication, and category restrictions are all enforced server-side.", sourceSnippet: "// route.ts (B2B API)\nconst SAFEGUARDS = [\n  validateApiKey,\n  checkRateLimit,\n  validateTicker,\n  checkCategoryAccess,\n  sanitizeOutput,\n  logAccess\n]\n\nexport async function GET(req: Request) {\n  for (const guard of SAFEGUARDS) {\n    const result = await guard(req)\n    if (!result.ok) return result.error\n  }\n}" },
-          { name: "anonymous account system", path: "lib/auth/", description: "modeled after Mullvad VPN — users get a randomly generated account number, no email, no name. the system is designed so that even OMARO cannot link an account to a real person. all preferences and contributions are stored under the account number only.", sourceSnippet: "// accounts.ts\nexport function generateAccountNumber(): string {\n  // 16-digit random number\n  // no email, no name, no PII\n  // even OMARO cannot link to identity\n  return Array.from({length: 16}, () =>\n    Math.floor(Math.random() * 10)\n  ).join('')\n}" },
-        ]
-      : [
-          { name: "intake engine", path: "app/conversation/", description: "an 8-block conversation structure guides users through self-reflection. each block targets a different dimension of identity and connection style. the blocks are invisible to the user — they experience one flowing conversation.", sourceSnippet: "// intake blocks (simplified)\nconst BLOCKS = [\n  'arrival',      // why are you here?\n  'presence',     // how do you show up?\n  'tension',      // what creates friction?\n  'connection',   // what does real connection feel like?\n  'pattern',      // what patterns do you notice?\n  'boundary',     // what are your limits?\n  'aspiration',   // what are you reaching for?\n  'portrait'      // synthesis + delivery\n]" },
-          { name: "7-layer match engine", path: "lib/matching/", description: "matching is computed across 7 dimensions — values alignment, communication style, conflict response, growth orientation, and more. the weights are published but the exact arbitration logic is proprietary. compatibility scores are never shown to users.", sourceSnippet: "// matchEngine.ts\nconst LAYERS = [\n  { id: 'values', weight: 0.22 },\n  { id: 'communication', weight: 0.18 },\n  { id: 'conflict', weight: 0.15 },\n  { id: 'growth', weight: 0.15 },\n  { id: 'presence', weight: 0.12 },\n  { id: 'boundary', weight: 0.10 },\n  { id: 'aspiration', weight: 0.08 },\n]" },
-        ],
-    score: [
-      { label: "data minimization", verdict: "transparent", verdictLabel: "[ transparent ]", pass: true },
-      { label: "third-party disclosure", verdict: "disclosed", verdictLabel: "[ disclosed ]", pass: true },
-      { label: "auditability", verdict: "fully auditabl", verdictLabel: "[ fully auditable ]", pass: true },
-      { label: "data retention policy", verdict: "not defined", verdictLabel: "[ not defined ]", pass: false },
-    ],
-    overallVerdict: isOmen
-      ? "this codebase scores highly on transparency and auditability. the primary gap is an undefined data retention policy — the system stores violation records permanently by design, but no documentation exists explaining the rationale or any exception process. recommend adding a RETENTION.md to address this."
-      : "this codebase demonstrates strong privacy practices with explicit data minimization and no third-party data sales. the matching engine weights are published. gaps exist in formal retention documentation and the behavioral data collection policy could be more precisely scoped.",
-  }
-}
-
-// ─────────────────────────────────────────────
 // MAIN PAGE
 // ─────────────────────────────────────────────
 
 export default function IGititPage() {
   const [url, setUrl] = useState("")
-  const [displayUrl, setDisplayUrl] = useState("")
   const [isAnimating, setIsAnimating] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analyzeStep, setAnalyzeStep] = useState(0)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>("overview")
   const [expandedModule, setExpandedModule] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -224,24 +111,53 @@ export default function IGititPage() {
 
   const handleUrlChange = (val: string) => {
     setUrl(val)
-    if (!val) { setDisplayUrl(""); return }
+    if (!val) return
     setIsAnimating(true)
-    animateBinary(
-      val,
-      setDisplayUrl,
-      () => setIsAnimating(false)
-    )
+    animateBinary(val, () => {}, () => setIsAnimating(false))
   }
 
   const handleAnalyze = async () => {
     if (!url.trim() || isAnalyzing) return
     setIsAnalyzing(true)
     setAnalysis(null)
+    setError(null)
     setActiveTab("overview")
-    // simulate API delay — replace with real Claude API call
-    await new Promise(r => setTimeout(r, 1800))
-    setAnalysis(getMockAnalysis(url))
-    setIsAnalyzing(false)
+    setAnalyzeStep(0)
+
+    try {
+      // Step 1 — fetch repo
+      setAnalyzeStep(1)
+      const repoRes = await fetch("/api/repo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url.trim() }),
+      })
+      if (!repoRes.ok) {
+        const err = await repoRes.json()
+        throw new Error(err.error ?? "Failed to fetch repository")
+      }
+      const repoData = await repoRes.json()
+
+      // Step 2 — analyze
+      setAnalyzeStep(2)
+      const analyzeRes = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(repoData),
+      })
+      if (!analyzeRes.ok) {
+        const err = await analyzeRes.json()
+        throw new Error(err.error ?? "Failed to analyze repository")
+      }
+      const { analysis: analysisData, meta } = await analyzeRes.json()
+
+      setAnalysis({ ...analysisData, meta })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setIsAnalyzing(false)
+      setAnalyzeStep(0)
+    }
   }
 
   const dataColor = (type: "collect" | "store" | "send") => {
@@ -251,6 +167,13 @@ export default function IGititPage() {
   }
 
   const scoreColor = (pass: boolean) => pass ? "#4CAF7D" : "#E05C5C"
+
+  const STEPS = [
+    "fetching repository tree…",
+    "reading file structure…",
+    "analyzing with Claude…",
+    "generating plain-language output…",
+  ]
 
   return (
     <div style={{
@@ -270,15 +193,12 @@ export default function IGititPage() {
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-        @keyframes scanline {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100vh); }
-        }
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         .tab-btn:hover { background: rgba(255,255,255,0.05) !important; }
         .module-card:hover { border-color: rgba(255,255,255,0.15) !important; }
-        .analyze-btn:hover { background: rgba(196,151,74,0.9) !important; }
+        .analyze-btn:hover:not(:disabled) { background: rgba(196,151,74,0.9) !important; }
       `}</style>
 
       {/* HEADER */}
@@ -325,11 +245,12 @@ export default function IGititPage() {
           <div style={{
             flex: 1,
             background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.1)",
+            border: `1px solid ${isAnimating ? "rgba(196,151,74,0.4)" : "rgba(255,255,255,0.1)"}`,
             borderRadius: "6px",
             padding: "14px 16px",
             position: "relative",
             overflow: "hidden",
+            transition: "border-color 0.2s",
           }}>
             <input
               ref={inputRef}
@@ -386,6 +307,22 @@ export default function IGititPage() {
         </div>
       </div>
 
+      {/* ERROR */}
+      {error && !isAnalyzing && (
+        <div style={{
+          padding: "16px 20px",
+          background: "rgba(224,92,92,0.08)",
+          border: "1px solid rgba(224,92,92,0.3)",
+          borderRadius: "8px",
+          fontSize: "12px",
+          color: "#E05C5C",
+          marginBottom: "24px",
+          animation: "fadeIn 0.3s ease",
+        }}>
+          <span style={{ marginRight: "8px" }}>⚠</span>{error}
+        </div>
+      )}
+
       {/* ANALYZING STATE */}
       {isAnalyzing && (
         <div style={{
@@ -395,17 +332,29 @@ export default function IGititPage() {
           borderRadius: "8px",
           animation: "fadeIn 0.3s ease",
         }}>
-          {["fetching repository tree…", "reading file structure…", "analyzing data flows…", "generating plain-language output…"].map((msg, i) => (
+          {STEPS.map((msg, i) => (
             <div key={i} style={{
               fontSize: "12px",
-              color: "rgba(255,255,255,0.4)",
+              color: i < analyzeStep ? "rgba(255,255,255,0.25)" :
+                     i === analyzeStep ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)",
               letterSpacing: "0.04em",
-              marginBottom: "8px",
-              animation: `fadeIn 0.4s ease ${i * 0.3}s both`,
+              marginBottom: "10px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              animation: `fadeIn 0.4s ease ${i * 0.2}s both`,
             }}>
-              <span style={{ color: "#C4974A", marginRight: "8px" }}>→</span>
+              <span style={{
+                color: i < analyzeStep ? "#4CAF7D" :
+                       i === analyzeStep ? "#C4974A" : "rgba(255,255,255,0.15)",
+                fontSize: "10px",
+              }}>
+                {i < analyzeStep ? "✓" : i === analyzeStep ? "→" : "·"}
+              </span>
               {msg}
-              {i === 3 && <span style={{ animation: "blink 0.8s step-end infinite" }}>_</span>}
+              {i === analyzeStep && (
+                <span style={{ animation: "blink 0.8s step-end infinite" }}>_</span>
+              )}
             </div>
           ))}
         </div>
@@ -417,14 +366,23 @@ export default function IGititPage() {
 
           {/* REPO META */}
           <div style={{ marginBottom: "24px" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "6px" }}>
+            <div style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              marginBottom: "6px",
+              flexWrap: "wrap",
+              gap: "8px",
+            }}>
               <div style={{ fontSize: "15px", fontWeight: 500, letterSpacing: "0.02em" }}>
                 {analysis.meta.owner}/{analysis.meta.repo}
               </div>
-              <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
-                <span style={{ fontSize: "10px", padding: "3px 8px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
-                  {analysis.meta.language}
-                </span>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                {analysis.meta.language && (
+                  <span style={{ fontSize: "10px", padding: "3px 8px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
+                    {analysis.meta.language}
+                  </span>
+                )}
                 <span style={{ fontSize: "10px", padding: "3px 8px", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px", color: "rgba(255,255,255,0.6)" }}>
                   ★ {analysis.meta.stars}
                 </span>
@@ -433,9 +391,11 @@ export default function IGititPage() {
                 </span>
               </div>
             </div>
-            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
-              {analysis.meta.description}
-            </div>
+            {analysis.meta.description && (
+              <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
+                {analysis.meta.description}
+              </div>
+            )}
           </div>
 
           {/* TABS */}
@@ -476,7 +436,7 @@ export default function IGititPage() {
           </div>
 
           {/* TAB CONTENT */}
-          <div style={{ animation: "fadeIn 0.25s ease" }} key={activeTab}>
+          <div key={activeTab} style={{ animation: "fadeIn 0.25s ease" }}>
 
             {/* OVERVIEW */}
             {activeTab === "overview" && (
@@ -544,6 +504,17 @@ export default function IGititPage() {
                           <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>
                             {" "}— {item.description}
                           </span>
+                          {item.sourceLine && (
+                            <div style={{
+                              marginTop: "4px",
+                              fontSize: "10px",
+                              color: "#C4974A",
+                              opacity: 0.7,
+                              fontFamily: "inherit",
+                            }}>
+                              → {item.sourceLine}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -607,24 +578,33 @@ export default function IGititPage() {
                       style={{ padding: "18px 20px", cursor: "pointer" }}
                       onClick={() => setExpandedModule(expandedModule === mod.name ? null : mod.name)}
                     >
-                      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "8px" }}>
+                      <div style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        justifyContent: "space-between",
+                        marginBottom: "8px",
+                      }}>
                         <div style={{ fontSize: "13px", fontWeight: 500, color: "rgba(255,255,255,0.88)" }}>
                           {mod.name}
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <span style={{
-                            fontSize: "9px",
-                            padding: "3px 8px",
-                            background: "rgba(255,255,255,0.05)",
-                            borderRadius: "4px",
-                            color: "rgba(255,255,255,0.35)",
-                            letterSpacing: "0.06em",
-                          }}>
-                            {mod.path}
-                          </span>
-                          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)" }}>
-                            {expandedModule === mod.name ? "▲" : "▼"}
-                          </span>
+                          {mod.path && (
+                            <span style={{
+                              fontSize: "9px",
+                              padding: "3px 8px",
+                              background: "rgba(255,255,255,0.05)",
+                              borderRadius: "4px",
+                              color: "rgba(255,255,255,0.35)",
+                              letterSpacing: "0.06em",
+                            }}>
+                              {mod.path}
+                            </span>
+                          )}
+                          {mod.sourceSnippet && (
+                            <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)" }}>
+                              {expandedModule === mod.name ? "▲" : "▼"}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div style={{ fontSize: "12px", lineHeight: 1.75, color: "rgba(255,255,255,0.55)", fontWeight: 300 }}>
@@ -660,19 +640,16 @@ export default function IGititPage() {
                           fontFamily: "inherit",
                           whiteSpace: "pre-wrap",
                         }}>
-                          {mod.sourceSnippet.split("\n").map((line, li) => {
-                            const isComment = line.trim().startsWith("//")
-                            return (
-                              <span key={li} style={{
-                                display: "block",
-                                color: isComment
-                                  ? "rgba(255,255,255,0.25)"
-                                  : "rgba(255,255,255,0.65)",
-                              }}>
-                                {line}
-                              </span>
-                            )
-                          })}
+                          {mod.sourceSnippet.split("\n").map((line, li) => (
+                            <span key={li} style={{
+                              display: "block",
+                              color: line.trim().startsWith("//")
+                                ? "rgba(255,255,255,0.25)"
+                                : "rgba(255,255,255,0.65)",
+                            }}>
+                              {line}
+                            </span>
+                          ))}
                         </pre>
                       </div>
                     )}
@@ -761,7 +738,12 @@ export default function IGititPage() {
             alignItems: "center",
             gap: "16px",
           }}>
-            <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>
+            <span style={{
+              fontSize: "11px",
+              color: "rgba(255,255,255,0.3)",
+              letterSpacing: "0.06em",
+              whiteSpace: "nowrap",
+            }}>
               [ listen to analysis ]
             </span>
             <select style={{
