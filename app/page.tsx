@@ -311,6 +311,8 @@ export default function IGititPage() {
   const [mounted, setMounted] = useState(false)
   const [expandedModuleSingle, setExpandedModuleSingle] = useState<string | null>(null)
   const [fetchedFilePaths, setFetchedFilePaths] = useState<string[]>([])
+  const [fetchedFileSnippets, setFetchedFileSnippets] = useState<string[]>([])
+  const [fetchedFileOutputs, setFetchedFileOutputs] = useState<string[]>([])
 
   // Compare repo
   const [compareMode, setCompareMode] = useState(false)
@@ -378,6 +380,14 @@ export default function IGititPage() {
       const repoData = await repoRes.json()
       setFetchedFilePaths(repoData.filePaths ?? [])
 
+      // Build snippets — first non-empty line of each file
+      const snippets = (repoData.filePaths ?? []).map((path: string) => {
+        const content = repoData.files?.[path] ?? ""
+        const firstLine = content.split("\n").find((l: string) => l.trim().length > 2) ?? path
+        return firstLine.trim().slice(0, 60)
+      })
+      setFetchedFileSnippets(snippets)
+
       setStep(2)
       const analyzeRes = await fetch("/api/analyze", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -387,6 +397,16 @@ export default function IGititPage() {
       const { analysis: data, meta } = await analyzeRes.json()
       const full: Analysis = { ...data, meta: { ...meta, platform: platform === "github" ? "GitHub" : "GitLab" } }
       setAnalysis(full)
+
+      // Build outputs from module descriptions
+      const outputs = (repoData.filePaths ?? []).map((path: string) => {
+        const mod = full.modules?.find((m: { path?: string }) => path.includes(m.path?.replace(/\/$/, "") ?? "____"))
+        if (mod) {
+          return mod.description.split(".")[0].slice(0, 50)
+        }
+        return "processed"
+      })
+      setFetchedFileOutputs(outputs)
 
       const entry: HistoryEntry = { id: crypto.randomUUID(), url, label: repoLabelFromUrl(url), platform, analyzedAt: new Date(), analysis: full }
       setHistory(prev => [entry, ...prev.filter(h => h.label !== entry.label)].slice(0, 10))
@@ -592,7 +612,11 @@ export default function IGititPage() {
           {analyzingA && (
             <div>
               <CommitGraphLoader step={stepA} />
-              <GitByte files={fetchedFilePaths.length > 0 ? fetchedFilePaths : undefined} active={true} />
+              <GitByte
+                files={fetchedFileSnippets.length > 0 ? fetchedFileSnippets : fetchedFilePaths}
+                outputs={fetchedFileOutputs.length > 0 ? fetchedFileOutputs : undefined}
+                active={true}
+              />
             </div>
           )}
         </div>
@@ -872,7 +896,11 @@ export default function IGititPage() {
                     <div style={{ padding: "40px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "14px" }}>
                       <span style={{ animation: "blink 0.8s step-end infinite" }}>scanning commit history…_</span>
                     </div>
-                    <GitByte files={fetchedFilePaths.length > 0 ? fetchedFilePaths : undefined} active={true} />
+                    <GitByte
+                      files={fetchedFileSnippets.length > 0 ? fetchedFileSnippets : fetchedFilePaths}
+                      outputs={fetchedFileOutputs.length > 0 ? fetchedFileOutputs : undefined}
+                      active={true}
+                    />
                   </div>
                 )}
                 {changelogError && !changelogLoading && <div style={{ padding: "16px 20px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "8px", fontSize: "14px", color: "#E05C5C" }}>⚠ {changelogError}</div>}
