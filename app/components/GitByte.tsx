@@ -357,21 +357,22 @@ export default function GitByte({ files = DEMO_FILES, active = false }: GitByteP
         borderTop: "1px solid rgba(255,255,255,0.05)",
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
+        justifyContent: "center",
+        position: "relative",
       }}>
-        <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic" }}>
+        <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic", position: "absolute", left: "20px" }}>
           {statusText}
         </div>
         <button
           onClick={handleFeed}
           style={{
-            background: "transparent",
-            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(74,158,240,0.12)",
+            border: "1px solid #4A9EF0",
             borderRadius: "4px",
-            padding: "5px 14px",
+            padding: "7px 18px",
             fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: "12px",
-            color: "rgba(255,255,255,0.35)",
+            fontSize: "16px",
+            color: "#4A9EF0",
             cursor: "pointer",
             letterSpacing: "0.06em",
           }}
