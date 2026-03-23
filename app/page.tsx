@@ -685,7 +685,7 @@ export default function IGititPage() {
             ))}
             <button
               className="export-btn"
-              onClick={() => downloadAnalysisPDF(analysisA, analysisA.meta, (changelog ?? undefined) as Record<string, unknown>[] | undefined)}
+              onClick={() => downloadAnalysisPDF(analysisA, analysisA.meta, changelog ?? undefined)}
               style={{ padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}
             >
               [ download pdf ]
@@ -1061,7 +1061,7 @@ export default function IGititPage() {
                       <div style={{ display: "flex", justifyContent: "flex-end" }}>
                         <button
                           className="export-btn"
-                          onClick={() => downloadComparePDF(analysisA, analysisA.meta, analysisB, analysisB.meta, comparison as Record<string, unknown>)}
+                          onClick={() => downloadComparePDF(analysisA, analysisA.meta, analysisB, analysisB.meta, comparison)}
                           style={{ padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}
                         >
                           [ download comparison pdf ]
