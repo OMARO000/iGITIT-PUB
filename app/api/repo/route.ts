@@ -188,11 +188,15 @@ async function fetchRadicleRepo(node: string, rid: string) {
   if (!metaRes.ok) throw new Error(`Radicle API error: ${metaRes.status}`)
   const meta = await metaRes.json()
 
-  const head = meta.head ?? meta.delegates?.[0]?.id
+  const head = meta?.payloads?.["xyz.radicle.project"]?.meta?.head
+  const projectData = meta?.payloads?.["xyz.radicle.project"]?.data
+  const description = projectData?.description ?? ""
+  const name = projectData?.name ?? rid
+  const defaultBranch = projectData?.defaultBranch ?? "master"
   if (!head) throw new Error("Could not determine Radicle repo HEAD")
 
   // Get file tree
-  const treeRes = await fetch(`${base}/repos/${rid}/tree/${head}`, { headers })
+  const treeRes = await fetch(`${base}/repos/${rid}/tree/${head}/`, { headers })
   if (!treeRes.ok) throw new Error(`Radicle tree error: ${treeRes.status}`)
   const treeData = await treeRes.json()
 
@@ -222,8 +226,8 @@ async function fetchRadicleRepo(node: string, rid: string) {
   return {
     meta: {
       owner: node,
-      repo: rid,
-      description: meta.description ?? "",
+      repo: name,
+      description,
       language: "Unknown",
       stars: 0,
       fileCount: treeData.entries?.length ?? 0,
