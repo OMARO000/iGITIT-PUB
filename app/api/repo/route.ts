@@ -109,14 +109,17 @@ async function fetchGitHubRepo(owner: string, repo: string) {
 
 async function fetchGitLabRepo(owner: string, repo: string) {
   const projectId = encodeURIComponent(`${owner}/${repo}`)
+  const GITLAB_TOKEN = process.env.GITLAB_TOKEN
   const headers: Record<string, string> = { "Accept": "application/json" }
+  if (GITLAB_TOKEN) headers["Authorization"] = `Bearer ${GITLAB_TOKEN}`
 
   const metaRes = await fetch(`https://gitlab.com/api/v4/projects/${projectId}`, { headers })
   if (!metaRes.ok) throw new Error(`GitLab API error: ${metaRes.status}`)
   const meta = await metaRes.json()
 
+  const defaultBranch = meta.default_branch ?? "main"
   const treeRes = await fetch(
-    `https://gitlab.com/api/v4/projects/${projectId}/repository/tree?recursive=true&per_page=100`,
+    `https://gitlab.com/api/v4/projects/${projectId}/repository/tree?recursive=true&per_page=100&ref=${defaultBranch}`,
     { headers }
   )
   if (!treeRes.ok) throw new Error(`GitLab tree error: ${treeRes.status}`)
@@ -132,7 +135,7 @@ async function fetchGitLabRepo(owner: string, repo: string) {
     allFiles.map(async (file: { path: string }) => {
       try {
         const contentRes = await fetch(
-          `https://gitlab.com/api/v4/projects/${projectId}/repository/files/${encodeURIComponent(file.path)}/raw?ref=main`,
+          `https://gitlab.com/api/v4/projects/${projectId}/repository/files/${encodeURIComponent(file.path)}/raw?ref=${defaultBranch}`,
           { headers }
         )
         if (!contentRes.ok) return
