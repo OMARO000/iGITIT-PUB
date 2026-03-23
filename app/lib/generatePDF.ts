@@ -231,9 +231,9 @@ export async function downloadAnalysisPDF(
     doc.setFontSize(7); doc.setFont("courier","normal"); doc.setTextColor(...C.muted)
     doc.text(li.label, lx + 6, y); lx += doc.getTextWidth(li.label) + 14
   }
-  y += 8
+  y += 4
 
-  h.divider(y); y += 8
+  h.divider(y); y += 6
 
   // ACCOUNTABILITY SCORE
   y = h.checkPage(y, 20)
@@ -267,11 +267,11 @@ export async function downloadAnalysisPDF(
   y = h.checkPage(y, 30)
   h.sectionLabel(y, "OVERALL VERDICT"); y += 8
   if (analysis.overallVerdict) {
-    const lines = doc.splitTextToSize(analysis.overallVerdict, h.W - 40)
+    const lines = doc.splitTextToSize(analysis.overallVerdict, h.W - 52)
     const boxH = lines.length * 5 + 12
     doc.setFillColor(...C.light); doc.rect(14, y - 2, h.W - 28, boxH, "F")
     doc.setFontSize(9); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
-    doc.text(lines, 16, y + 6); y += boxH + 8
+    doc.text(lines, 18, y + 6); y += boxH + 8
   }
 
   // MODULE BREAKDOWN ─────────────────────────────────────
