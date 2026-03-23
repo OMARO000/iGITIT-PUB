@@ -26,6 +26,13 @@ function parseGitLabUrl(url: string): { owner: string; repo: string } | null {
   return { owner: match[1], repo: match[2].replace(/\.git$/, "") }
 }
 
+function parseRadicleUrl(url: string): { node: string; rid: string } | null {
+  // Format: https://app.radicle.xyz/nodes/seed.radicle.garden/rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5
+  const match = url.match(/app\.radicle\.xyz\/nodes\/([^/]+)\/(rad:[a-zA-Z0-9]+)/)
+  if (!match) return null
+  return { node: match[1], rid: match[2] }
+}
+
 function shouldSkipFile(path: string): boolean {
   const ext = "." + path.split(".").pop()?.toLowerCase()
   if (SKIP_EXTS.includes(ext)) return true
@@ -172,6 +179,64 @@ async function fetchGitLabRepo(owner: string, repo: string) {
   }
 }
 
+async function fetchRadicleRepo(node: string, rid: string) {
+  const base = `https://${node}/api/v1`
+  const headers = { "Accept": "application/json" }
+
+  // Get repo metadata
+  const metaRes = await fetch(`${base}/repos/${rid}`, { headers })
+  if (!metaRes.ok) throw new Error(`Radicle API error: ${metaRes.status}`)
+  const meta = await metaRes.json()
+
+  const head = meta.head ?? meta.delegates?.[0]?.id
+  if (!head) throw new Error("Could not determine Radicle repo HEAD")
+
+  // Get file tree
+  const treeRes = await fetch(`${base}/repos/${rid}/tree/${head}`, { headers })
+  if (!treeRes.ok) throw new Error(`Radicle tree error: ${treeRes.status}`)
+  const treeData = await treeRes.json()
+
+  // treeData.entries is an array of { name, path, kind: "blob"|"tree" }
+  const allFiles = (treeData.entries ?? [])
+    .filter((f: { kind: string; path: string }) => f.kind === "blob" && !shouldSkipFile(f.path))
+    .sort((a: { path: string }, b: { path: string }) => priorityScore(b.path) - priorityScore(a.path))
+    .slice(0, MAX_FILES)
+
+  const fileContents: Record<string, string> = {}
+  await Promise.all(
+    allFiles.map(async (file: { path: string }) => {
+      try {
+        const contentRes = await fetch(
+          `${base}/repos/${rid}/raw/${head}/${file.path}`,
+          { headers }
+        )
+        if (!contentRes.ok) return
+        const text = await contentRes.text()
+        if (text.length <= MAX_FILE_SIZE) {
+          fileContents[file.path] = text
+        }
+      } catch { /* skip */ }
+    })
+  )
+
+  return {
+    meta: {
+      owner: node,
+      repo: rid,
+      description: meta.description ?? "",
+      language: "Unknown",
+      stars: 0,
+      fileCount: treeData.entries?.length ?? 0,
+      topics: [],
+      license: null,
+      updatedAt: null,
+      platform: "Radicle",
+    },
+    files: fileContents,
+    filePaths: Object.keys(fileContents),
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { url } = await req.json()
@@ -186,8 +251,12 @@ export async function POST(req: NextRequest) {
       const parsed = parseGitLabUrl(url)
       if (!parsed) return NextResponse.json({ error: "Invalid GitLab URL" }, { status: 400 })
       result = await fetchGitLabRepo(parsed.owner, parsed.repo)
+    } else if (url.includes("app.radicle.xyz")) {
+      const parsed = parseRadicleUrl(url)
+      if (!parsed) return NextResponse.json({ error: "Invalid Radicle URL" }, { status: 400 })
+      result = await fetchRadicleRepo(parsed.node, parsed.rid)
     } else {
-      return NextResponse.json({ error: "Only GitHub and GitLab URLs are supported" }, { status: 400 })
+      return NextResponse.json({ error: "Only GitHub, GitLab, and Radicle URLs are supported" }, { status: 400 })
     }
 
     return NextResponse.json(result)
