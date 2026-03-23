@@ -118,14 +118,22 @@ async function fetchGitLabRepo(owner: string, repo: string) {
   const meta = await metaRes.json()
 
   const defaultBranch = meta.default_branch ?? "main"
-  const treeRes = await fetch(
-    `https://gitlab.com/api/v4/projects/${projectId}/repository/tree?recursive=true&per_page=100&ref=${defaultBranch}`,
-    { headers }
-  )
-  if (!treeRes.ok) throw new Error(`GitLab tree error: ${treeRes.status}`)
-  const treeData = await treeRes.json()
 
-  const allFiles = (treeData ?? [])
+  // Don't use recursive — fetch files from priority dirs directly
+  const priorityPaths = ["", "src", "app", "lib", "api", "scripts"]
+  let allTreeItems: { type: string; path: string }[] = []
+
+  for (const dirPath of priorityPaths) {
+    try {
+      const url = `https://gitlab.com/api/v4/projects/${projectId}/repository/tree?per_page=100&ref=${defaultBranch}${dirPath ? `&path=${encodeURIComponent(dirPath)}` : ""}`
+      const res = await fetch(url, { headers })
+      if (!res.ok) continue
+      const data = await res.json()
+      if (Array.isArray(data)) allTreeItems = [...allTreeItems, ...data]
+    } catch { continue }
+  }
+
+  const allFiles = allTreeItems
     .filter((f: { type: string; path: string }) => f.type === "blob" && !shouldSkipFile(f.path))
     .sort((a: { path: string }, b: { path: string }) => priorityScore(b.path) - priorityScore(a.path))
     .slice(0, MAX_FILES)
@@ -154,7 +162,7 @@ async function fetchGitLabRepo(owner: string, repo: string) {
       description: meta.description ?? "",
       language: meta.predominant_language ?? "Unknown",
       stars: meta.star_count ?? 0,
-      fileCount: treeData?.length ?? 0,
+      fileCount: allTreeItems.filter(f => f.type === "blob").length,
       topics: meta.topics ?? [],
       license: meta.license?.name ?? null,
       updatedAt: meta.last_activity_at ?? null,
