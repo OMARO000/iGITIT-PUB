@@ -22,13 +22,13 @@ const DEMO_OUTPUTS = [
   "explains the project", "defines data shapes", "navigation bar", "login hook", "example secrets",
 ]
 
-const W = 640
+const W = 1100
 const H = 400
 
 export default function GitByte({ files = DEMO_FILES, outputs, active = false, speed = 1 }: GitByteProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef({
-    gitbyte: { x: 320, y: H / 2, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
+    gitbyte: { x: 550, y: H / 2, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
     food: null as { x: number; y: number; text: string; eaten: boolean } | null,
     poop: null as { x: number; y: number; text: string; alpha: number; vy: number; age: number } | null,
     particles: [] as { x: number; y: number; vx: number; vy: number; alpha: number; size: number; color: string }[],
