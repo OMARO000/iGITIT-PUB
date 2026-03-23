@@ -1,494 +1,417 @@
-// generatePDF.ts
-// Client-side PDF generation for iGITit using jsPDF
-// Dynamically loads jsPDF from CDN — no install needed
+// generatePDF.ts — iGITit client-side PDF generation via jsPDF
+// Field mapping matches Analysis interface in page.tsx:
+//   overview: OverviewSection[] { title, content }
+//   dataItems: DataItem[] { type, label, description, sourceLine? }
+//   dataFlowSummary: string
+//   modules: Module[] { name, path, description, sourceSnippet? }
+//   score: ScoreDimension[] { label, verdictLabel, pass, reasoning? }
+//   overallVerdict: string
 
 declare global {
-  interface Window { jspdf: { jsPDF: new (opts?: object) => jsPDFInstance } }
+  interface Window { jspdf: { jsPDF: new (opts?: object) => JPDF } }
 }
 
-interface jsPDFInstance {
-  setFontSize(size: number): void
-  setFont(name: string, style?: string): void
+interface JPDF {
+  setFontSize(s: number): void
+  setFont(n: string, style?: string): void
   setTextColor(r: number, g?: number, b?: number): void
   setFillColor(r: number, g?: number, b?: number): void
   setDrawColor(r: number, g?: number, b?: number): void
   setLineWidth(w: number): void
-  rect(x: number, y: number, w: number, h: number, style?: string): void
-  text(text: string | string[], x: number, y: number, opts?: object): void
+  rect(x: number, y: number, w: number, h: number, s?: string): void
+  text(t: string | string[], x: number, y: number, o?: object): void
   line(x1: number, y1: number, x2: number, y2: number): void
   addPage(): void
-  save(filename: string): void
+  save(f: string): void
   internal: { pageSize: { getWidth(): number; getHeight(): number } }
-  splitTextToSize(text: string, maxWidth: number): string[]
-  getTextWidth(text: string): number
-  circle(x: number, y: number, r: number, style?: string): void
+  splitTextToSize(t: string, w: number): string[]
+  getTextWidth(t: string): number
+  circle(x: number, y: number, r: number, s?: string): void
 }
 
-async function loadJsPDF(): Promise<typeof window.jspdf.jsPDF> {
+async function loadJsPDF(): Promise<new (o?: object) => JPDF> {
   if (window.jspdf?.jsPDF) return window.jspdf.jsPDF
-  await new Promise<void>((resolve, reject) => {
-    const script = document.createElement("script")
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-    script.onload = () => resolve()
-    script.onerror = () => reject(new Error("Failed to load jsPDF"))
-    document.head.appendChild(script)
+  await new Promise<void>((res, rej) => {
+    const s = document.createElement("script")
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+    s.onload = () => res(); s.onerror = () => rej(new Error("jsPDF load failed"))
+    document.head.appendChild(s)
   })
   return window.jspdf.jsPDF
 }
 
-// ── Color constants ──────────────────────────────────────
 const C = {
-  black:    [11, 11, 12] as [number,number,number],
-  white:    [255, 255, 255] as [number,number,number],
-  blue:     [74, 158, 240] as [number,number,number],
-  green:    [76, 175, 125] as [number,number,number],
-  red:      [224, 92, 92] as [number,number,number],
-  text:     [26, 26, 26] as [number,number,number],
-  muted:    [100, 100, 100] as [number,number,number],
-  light:    [248, 248, 246] as [number,number,number],
-  border:   [232, 232, 228] as [number,number,number],
-  subtext:  [68, 68, 68] as [number,number,number],
+  black:   [11, 11, 12] as [number,number,number],
+  white:   [255,255,255] as [number,number,number],
+  blue:    [74,158,240] as [number,number,number],
+  green:   [76,175,125] as [number,number,number],
+  red:     [224,92,92] as [number,number,number],
+  amber:   [186,117,23] as [number,number,number],
+  text:    [26,26,26] as [number,number,number],
+  muted:   [120,120,120] as [number,number,number],
+  subtext: [68,68,68] as [number,number,number],
+  light:   [248,248,246] as [number,number,number],
+  border:  [232,232,228] as [number,number,number],
 }
 
-// ── Drawing helpers ──────────────────────────────────────
-function makeHelpers(doc: jsPDFInstance) {
+function helpers(doc: JPDF) {
   const W = doc.internal.pageSize.getWidth()
+  const H = doc.internal.pageSize.getHeight()
 
-  function header(repoLabel: string, date: string, subtitle?: string) {
-    // Dark header bar
-    doc.setFillColor(...C.black)
-    doc.rect(0, 0, W, 44, "F")
-    // Logo
-    doc.setFontSize(18)
-    doc.setFont("courier", "bold")
-    doc.setTextColor(...C.white)
-    doc.text("iGITit", 14, 28)
-    // Blue dot above logo
-    doc.setFillColor(...C.blue)
-    doc.circle(14, 8, 2.5, "F")
-    // Tagline
-    doc.setFontSize(8)
-    doc.setFont("courier", "normal")
-    doc.setTextColor(150, 150, 150)
-    doc.text("open source, open language.", 14, 38)
-    // Right side
-    doc.setFontSize(8)
-    doc.setTextColor(160, 160, 160)
-    doc.text("ANALYSIS REPORT", W - 14, 18, { align: "right" })
-    doc.setTextColor(120, 120, 120)
-    doc.text(date, W - 14, 26, { align: "right" })
-    doc.text("generated by iGITit · OMARO PBC", W - 14, 34, { align: "right" })
+  const header = (name: string, date: string) => {
+    doc.setFillColor(...C.black); doc.rect(0,0,W,44,"F")
+    doc.setFillColor(...C.blue); doc.circle(14,8,2.5,"F")
+    doc.setFontSize(18); doc.setFont("courier","bold"); doc.setTextColor(...C.white)
+    doc.text("iGITit",14,28)
+    doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(150,150,150)
+    doc.text("open source, open language.",14,38)
+    doc.setFontSize(8); doc.setTextColor(160,160,160)
+    doc.text("ANALYSIS REPORT",W-14,18,{align:"right"})
+    doc.text(date,W-14,26,{align:"right"})
+    doc.text("generated by iGITit · OMARO PBC",W-14,34,{align:"right"})
   }
 
-  function repoBar(y: number, name: string, desc: string, pills: string[]) {
-    doc.setFillColor(...C.light)
-    doc.rect(0, y, W, 22, "F")
-    doc.setDrawColor(...C.border)
-    doc.setLineWidth(0.1)
-    doc.line(0, y, W, y)
-    doc.line(0, y + 22, W, y + 22)
-    doc.setFontSize(12)
-    doc.setFont("courier", "bold")
-    doc.setTextColor(...C.text)
-    doc.text(name, 14, y + 9)
-    doc.setFontSize(8)
-    doc.setFont("courier", "normal")
-    doc.setTextColor(...C.muted)
-    doc.text(desc.slice(0, 80), 14, y + 17)
-    // Pills
-    let px = W - 14
+  const repoBar = (name: string, desc: string, pills: string[]) => {
+    doc.setFillColor(...C.light); doc.rect(0,44,W,22,"F")
+    doc.setDrawColor(...C.border); doc.setLineWidth(0.1)
+    doc.line(0,44,W,44); doc.line(0,66,W,66)
+    doc.setFontSize(12); doc.setFont("courier","bold"); doc.setTextColor(...C.text)
+    doc.text(name,14,54)
+    doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.muted)
+    doc.text(desc.slice(0,80),14,62)
+    let px = W-14
     pills.slice().reverse().forEach(pill => {
-      const pw = doc.getTextWidth(pill) + 8
-      px -= pw
-      doc.setFillColor(...C.white)
-      doc.setDrawColor(...C.border)
-      doc.rect(px, y + 5, pw, 10, "FD")
-      doc.setFontSize(7)
-      doc.setTextColor(...C.muted)
-      doc.text(pill, px + 4, y + 12)
-      px -= 4
+      const pw = doc.getTextWidth(pill)+8; px -= pw
+      doc.setFillColor(...C.white); doc.setDrawColor(...C.border)
+      doc.rect(px,49,pw,10,"FD")
+      doc.setFontSize(7); doc.setTextColor(...C.muted)
+      doc.text(pill,px+4,56); px -= 4
     })
   }
 
-  function sectionLabel(y: number, label: string) {
-    doc.setFontSize(7)
-    doc.setFont("courier", "normal")
-    doc.setTextColor(...C.muted)
-    doc.text(label, 14, y)
-    doc.setDrawColor(...C.border)
-    doc.setLineWidth(0.1)
-    doc.line(14, y + 2, W - 14, y + 2)
+  const footer = () => {
+    doc.setFillColor(...C.light); doc.rect(0,H-14,W,14,"F")
+    doc.setDrawColor(...C.border); doc.setLineWidth(0.1); doc.line(0,H-14,W,H-14)
+    doc.setFontSize(6.5); doc.setFont("courier","normal"); doc.setTextColor(...C.muted)
+    doc.text("generated by iGITit · powered by Claude · an OMARO PBC product · not legal or compliance advice",14,H-6)
+    doc.setTextColor(...C.blue); doc.text("igitit.xyz",W-14,H-6,{align:"right"})
   }
 
-  function sectionTitle(y: number, title: string) {
-    doc.setFontSize(10)
-    doc.setFont("courier", "bold")
-    doc.setTextColor(...C.text)
-    doc.text(title, 14, y)
+  const sectionLabel = (y: number, label: string) => {
+    doc.setFontSize(7); doc.setFont("courier","normal"); doc.setTextColor(...C.muted)
+    doc.text(label,14,y)
+    doc.setDrawColor(...C.border); doc.setLineWidth(0.1); doc.line(14,y+2,W-14,y+2)
   }
 
-  function bodyText(x: number, y: number, text: string, maxW: number): number {
-    doc.setFontSize(9)
-    doc.setFont("courier", "normal")
-    doc.setTextColor(...C.subtext)
+  const sectionTitle = (y: number, title: string) => {
+    doc.setFontSize(10); doc.setFont("courier","bold"); doc.setTextColor(...C.text)
+    doc.text(title,14,y)
+  }
+
+  const bodyText = (x: number, y: number, text: string, maxW: number): number => {
+    doc.setFontSize(9); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
     const lines = doc.splitTextToSize(text, maxW)
-    doc.text(lines, x, y)
+    doc.text(lines,x,y)
     return lines.length * 5
   }
 
-  function scoreRow(y: number, label: string, pct: number, verdict: string, pass: boolean) {
-    doc.setFontSize(8)
-    doc.setFont("courier", "normal")
-    doc.setTextColor(...C.subtext)
-    doc.text(label, 14, y)
-    // Bar track
-    doc.setFillColor(...C.border)
-    doc.rect(100, y - 4, 80, 3, "F")
-    // Bar fill
-    doc.setFillColor(...(pass ? C.green : C.red))
-    doc.rect(100, y - 4, 80 * (pct / 100), 3, "F")
-    // Verdict
-    doc.setTextColor(...(pass ? C.green : C.red))
-    doc.text(verdict, W - 14, y, { align: "right" })
+  const divider = (y: number) => {
+    doc.setDrawColor(...C.border); doc.setLineWidth(0.1); doc.line(14,y,W-14,y)
   }
 
-  function divider(y: number) {
-    doc.setDrawColor(...C.border)
-    doc.setLineWidth(0.1)
-    doc.line(14, y, W - 14, y)
-  }
-
-  function footer() {
-    const H = doc.internal.pageSize.getHeight()
-    doc.setFillColor(...C.light)
-    doc.rect(0, H - 14, W, 14, "F")
-    doc.setDrawColor(...C.border)
-    doc.setLineWidth(0.1)
-    doc.line(0, H - 14, W, H - 14)
-    doc.setFontSize(6.5)
-    doc.setFont("courier", "normal")
-    doc.setTextColor(...C.muted)
-    doc.text("generated by iGITit · powered by Claude · an OMARO PBC product · not legal or compliance advice", 14, H - 6)
-    doc.setTextColor(...C.blue)
-    doc.text("igitit.xyz", W - 14, H - 6, { align: "right" })
-  }
-
-  function checkPage(doc: jsPDFInstance, y: number, needed = 20): number {
-    const H = doc.internal.pageSize.getHeight()
-    if (y + needed > H - 20) {
-      doc.addPage()
-      footer()
-      return 20
-    }
+  const checkPage = (y: number, needed = 20): number => {
+    if (y + needed > H - 20) { doc.addPage(); footer(); return 58 }
     return y
   }
 
-  return { header, repoBar, sectionLabel, sectionTitle, bodyText, scoreRow, divider, footer, checkPage, W }
+  return { header, repoBar, footer, sectionLabel, sectionTitle, bodyText, divider, checkPage, W, H }
 }
 
-// ── Main export: single repo ─────────────────────────────
+// ── Types matching page.tsx exactly ──────────────────────
+export interface OverviewSection { title: string; content: string }
+export interface DataItem { type: "collect"|"store"|"send"; label: string; description: string; sourceLine?: string }
+export interface Module { name: string; path: string; description: string; sourceSnippet?: string }
+export interface ScoreDimension { label: string; verdictLabel: string; pass: boolean; reasoning?: string }
+export interface Analysis {
+  meta?: Record<string,unknown>
+  overview: OverviewSection[]
+  dataItems: DataItem[]
+  dataFlowSummary: string
+  modules: Module[]
+  score: ScoreDimension[]
+  overallVerdict: string
+}
+export interface ChangelogEntry {
+  sha: string; date: string; author: string
+  originalMessage: string; plainTitle: string; plainSummary: string
+  significance: "routine"|"notable"|"flagged"
+  significanceReason: string; affectedAreas: string[]
+}
+export interface RepoMeta {
+  owner: string; repo: string; description: string; language: string
+  stars: number; topics: string[]; license: string|null; updatedAt: string|null; platform?: string
+}
+export interface CompareSection {
+  title: string; leftSummary: string; rightSummary: string; verdict: string
+}
+export interface Comparison {
+  headline: string
+  sections: CompareSection[]
+  overallWinner: { label: string; repoName: string; reasoning: string }
+  keyDifferences: string[]
+  forJournalists: string
+}
+
 export async function downloadAnalysisPDF(
-  analysis: Record<string, unknown>,
-  meta: Record<string, unknown>,
-  changelog?: Record<string, unknown>[],
+  analysis: Analysis,
+  meta: RepoMeta,
+  changelog?: ChangelogEntry[]
 ) {
   const jsPDF = await loadJsPDF()
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
-  const h = makeHelpers(doc)
-  const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
-  const repoName = `${meta.owner ?? ""}/${meta.repo ?? ""}`
-  const desc = (meta.description as string) ?? ""
+  const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" })
+  const h = helpers(doc)
+  const date = new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})
+  const repoName = `${meta.owner}/${meta.repo}`
   const pills = [
-    (meta.platform as string) ?? "GitHub",
-    (meta.language as string) ?? "Unknown",
-    meta.stars ? `★ ${Number(meta.stars).toLocaleString()}` : "",
-    (meta.license as string) ?? "",
+    meta.platform ?? "GitHub",
+    meta.language ?? "Unknown",
+    meta.stars ? `★ ${meta.stars.toLocaleString()}` : "",
+    meta.license ?? "",
   ].filter(Boolean)
 
-  // PAGE 1 ─────────────────────────────────────────────
+  // PAGE 1 ─────────────────────────────────────────────────
   h.header(repoName, date)
-  h.repoBar(44, repoName, desc, pills)
+  h.repoBar(repoName, meta.description ?? "", pills)
   h.footer()
 
   let y = 78
 
   // OVERVIEW
   h.sectionLabel(y, "OVERVIEW"); y += 8
-  const overview = analysis.overview as Record<string, string> ?? {}
-  const overviewFields = [
-    { title: "What this software does", key: "purpose" },
-    { title: "Who builds it", key: "ownership" },
-    { title: "Who uses it", key: "userBase" },
-    { title: "License & usage rights", key: "license" },
-    { title: "Notable concerns", key: "concerns" },
-  ]
-  for (const field of overviewFields) {
-    const text = overview[field.key] ?? ""
-    if (!text) continue
-    y = h.checkPage(doc, y, 20)
-    h.sectionTitle(y, field.title); y += 6
-    y += h.bodyText(14, y, text, h.W - 28); y += 6
+  for (const section of analysis.overview ?? []) {
+    y = h.checkPage(y, 22)
+    h.sectionTitle(y, section.title); y += 6
+    y += h.bodyText(14, y, section.content, h.W - 28); y += 6
   }
 
   h.divider(y); y += 8
 
   // DATA NARRATIVE
-  y = h.checkPage(doc, y, 20)
+  y = h.checkPage(y, 20)
   h.sectionLabel(y, "DATA NARRATIVE"); y += 8
-  const dataNarrative = analysis.dataNarrative as Record<string, unknown>[] ?? []
-  for (const item of dataNarrative) {
-    y = h.checkPage(doc, y, 14)
-    const typeColor = item.type === "collected" ? C.blue : item.type === "stored" ? C.green : C.red
-    doc.setFillColor(...typeColor)
-    doc.circle(17, y - 1.5, 2, "F")
-    doc.setFontSize(9)
-    doc.setFont("courier", "bold")
-    doc.setTextColor(...C.text)
-    doc.text(String(item.name ?? ""), 22, y)
-    doc.setFont("courier", "normal")
-    doc.setTextColor(...C.subtext)
-    const desc2 = String(item.description ?? "")
-    const lines = doc.splitTextToSize(desc2, h.W - 36)
-    if (lines.length > 0) {
-      doc.setFontSize(8)
-      doc.text(lines[0], 22, y + 5)
-      if (lines.length > 1) {
-        y += h.bodyText(22, y + 10, lines.slice(1).join(" "), h.W - 36)
-      }
-    }
-    y += 12
+
+  for (const item of analysis.dataItems ?? []) {
+    y = h.checkPage(y, 16)
+    const dotColor = item.type === "collect" ? C.blue : item.type === "store" ? C.green : C.red
+    doc.setFillColor(...dotColor); doc.circle(17, y - 1.5, 2, "F")
+    doc.setFontSize(9); doc.setFont("courier","bold"); doc.setTextColor(...C.text)
+    doc.text(item.label, 22, y)
+    doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+    const lines = doc.splitTextToSize(item.description, h.W - 36)
+    doc.setFontSize(8); doc.text(lines, 22, y + 5)
+    y += 5 + lines.length * 4.5 + 4
   }
+
+  if (analysis.dataFlowSummary) {
+    y = h.checkPage(y, 20)
+    doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.muted)
+    const sumLines = doc.splitTextToSize(analysis.dataFlowSummary, h.W - 28)
+    doc.text(sumLines, 14, y); y += sumLines.length * 4.5 + 6
+  }
+
+  // Legend
+  const legendItems = [
+    { color: C.blue, label: "collected" },
+    { color: C.green, label: "stored" },
+    { color: C.red, label: "transmitted" },
+  ]
+  let lx = 14
+  for (const li of legendItems) {
+    doc.setFillColor(...li.color); doc.circle(lx + 2, y - 1.5, 1.5, "F")
+    doc.setFontSize(7); doc.setFont("courier","normal"); doc.setTextColor(...C.muted)
+    doc.text(li.label, lx + 6, y); lx += doc.getTextWidth(li.label) + 14
+  }
+  y += 8
 
   h.divider(y); y += 8
 
   // ACCOUNTABILITY SCORE
-  y = h.checkPage(doc, y, 20)
+  y = h.checkPage(y, 20)
   h.sectionLabel(y, "ACCOUNTABILITY SCORE"); y += 8
-  const score = analysis.score as Record<string, unknown> ?? {}
-  const dimensions = score.dimensions as Record<string, unknown>[] ?? []
-  for (const dim of dimensions) {
-    y = h.checkPage(doc, y, 10)
-    const pass = dim.pass as boolean
-    const pct = pass ? 85 : 20
-    h.scoreRow(y, String(dim.label ?? dim.name ?? ""), pct, String(dim.verdict ?? (pass ? "pass" : "fail")), pass)
-    y += 8
+
+  for (const dim of analysis.score ?? []) {
+    y = h.checkPage(y, 12)
+    doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+    doc.text(dim.label, 14, y)
+    // Bar track
+    doc.setFillColor(...C.border); doc.rect(100, y - 4, 80, 3, "F")
+    // Bar fill
+    doc.setFillColor(...(dim.pass ? C.green : C.red))
+    doc.rect(100, y - 4, dim.pass ? 68 : 16, 3, "F")
+    // Verdict
+    doc.setTextColor(...(dim.pass ? C.green : C.red))
+    doc.text(dim.verdictLabel, h.W - 14, y, {align:"right"})
+    // Reasoning
+    if (dim.reasoning) {
+      doc.setFontSize(7); doc.setTextColor(...C.muted); doc.setFont("courier","normal")
+      const rLines = doc.splitTextToSize(dim.reasoning, h.W - 28)
+      doc.text(rLines[0], 14, y + 5)
+      y += 5
+    }
+    y += 9
   }
 
   h.divider(y); y += 8
 
   // OVERALL VERDICT
-  y = h.checkPage(doc, y, 30)
+  y = h.checkPage(y, 30)
   h.sectionLabel(y, "OVERALL VERDICT"); y += 8
-  const verdictText = String((score.verdict as string) ?? (analysis.verdict as string) ?? "")
-  if (verdictText) {
-    doc.setFillColor(...C.light)
-    const lines = doc.splitTextToSize(verdictText, h.W - 42)
+  if (analysis.overallVerdict) {
+    const lines = doc.splitTextToSize(analysis.overallVerdict, h.W - 42)
     const boxH = lines.length * 5 + 10
-    doc.rect(14, y - 2, h.W - 28, boxH, "F")
-    doc.setFontSize(9)
-    doc.setFont("courier", "normal")
-    doc.setTextColor(...C.subtext)
-    doc.text(lines, 20, y + 5)
-    y += boxH + 8
+    doc.setFillColor(...C.light); doc.rect(14, y - 2, h.W - 28, boxH, "F")
+    doc.setFontSize(9); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+    doc.text(lines, 20, y + 5); y += boxH + 8
   }
 
-  // MODULE BREAKDOWN
-  const modules = analysis.modules as Record<string, unknown>[] ?? []
-  if (modules.length > 0) {
-    doc.addPage()
-    h.header(repoName, date)
-    h.footer()
+  // MODULE BREAKDOWN ─────────────────────────────────────
+  if (analysis.modules?.length > 0) {
+    doc.addPage(); h.header(repoName, date); h.footer()
     y = 58
     h.sectionLabel(y, "MODULE BREAKDOWN"); y += 8
-    for (const mod of modules) {
-      y = h.checkPage(doc, y, 24)
-      h.sectionTitle(y, String(mod.name ?? mod.path ?? "")); y += 6
-      const modDesc = String(mod.description ?? "")
-      if (modDesc) { y += h.bodyText(14, y, modDesc, h.W - 28); y += 4 }
-      const purpose = String(mod.purpose ?? "")
-      if (purpose) {
-        doc.setFontSize(8)
-        doc.setTextColor(...C.muted)
-        doc.setFont("courier", "normal")
-        doc.text(`purpose: ${purpose}`, 14, y); y += 5
-      }
-      h.divider(y); y += 6
+    for (const mod of analysis.modules) {
+      y = h.checkPage(y, 28)
+      h.sectionTitle(y, `${mod.name}  ·  ${mod.path}`); y += 6
+      y += h.bodyText(14, y, mod.description, h.W - 28); y += 4
+      h.divider(y); y += 8
     }
   }
 
-  // CHANGELOG
+  // CHANGELOG ────────────────────────────────────────────
   if (changelog && changelog.length > 0) {
-    doc.addPage()
-    h.header(repoName, date)
-    h.footer()
+    doc.addPage(); h.header(repoName, date); h.footer()
     y = 58
     h.sectionLabel(y, "CHANGE LOG"); y += 8
-    for (const commit of changelog.slice(0, 30)) {
-      y = h.checkPage(doc, y, 18)
-      const sig = String(commit.significance ?? "routine")
-      const sigColor = sig === "flagged" ? C.red : sig === "notable" ? [186, 117, 23] as [number,number,number] : C.muted
-      doc.setFillColor(...sigColor)
-      doc.circle(17, y - 1.5, 2, "F")
-      doc.setFontSize(8)
-      doc.setFont("courier", "bold")
-      doc.setTextColor(...C.text)
-      doc.text(String(commit.sha ?? "").slice(0, 7), 22, y)
-      doc.setFont("courier", "normal")
-      doc.setTextColor(...C.subtext)
-      const summary = String(commit.message ?? commit.summary ?? "")
-      const lines = doc.splitTextToSize(summary, h.W - 50)
-      doc.text(lines[0] ?? "", 40, y)
-      if (lines.length > 1) {
-        doc.setFontSize(7.5)
-        doc.text(lines.slice(1).join(" "), 22, y + 5)
-        y += 5
-      }
-      if (commit.plainLanguage) {
-        doc.setFontSize(7.5)
-        doc.setTextColor(...C.muted)
-        doc.text(`→ ${String(commit.plainLanguage).slice(0, 90)}`, 22, y + 5)
+    for (const commit of changelog.slice(0, 40)) {
+      y = h.checkPage(y, 20)
+      const sigColor = commit.significance === "flagged" ? C.red : commit.significance === "notable" ? C.amber : C.muted
+      doc.setFillColor(...sigColor); doc.circle(17, y - 1.5, 2, "F")
+      doc.setFontSize(8); doc.setFont("courier","bold"); doc.setTextColor(...C.text)
+      doc.text(commit.sha.slice(0,7), 22, y)
+      doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+      const titleLines = doc.splitTextToSize(commit.plainTitle, h.W - 50)
+      doc.text(titleLines[0] ?? "", 40, y)
+      if (commit.plainSummary) {
+        doc.setFontSize(7.5); doc.setTextColor(...C.muted)
+        const plLines = doc.splitTextToSize(`→ ${commit.plainSummary}`, h.W - 36)
+        doc.text(plLines[0], 22, y + 5)
         y += 5
       }
       y += 10
     }
   }
 
-  doc.save(`igitit-${String(meta.repo ?? "report")}-${Date.now()}.pdf`)
+  doc.save(`igitit-${meta.repo}-${Date.now()}.pdf`)
 }
 
-// ── Compare report ───────────────────────────────────────
+// ── Compare report ────────────────────────────────────────
 export async function downloadComparePDF(
-  analysisA: Record<string, unknown>,
-  metaA: Record<string, unknown>,
-  analysisB: Record<string, unknown>,
-  metaB: Record<string, unknown>,
-  comparison: Record<string, unknown>,
+  analysisA: Analysis,
+  metaA: RepoMeta,
+  analysisB: Analysis,
+  metaB: RepoMeta,
+  comparison: Comparison,
 ) {
   const jsPDF = await loadJsPDF()
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
-  const h = makeHelpers(doc)
-  const date = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
-  const nameA = `${metaA.owner ?? ""}/${metaA.repo ?? ""}`
-  const nameB = `${metaB.owner ?? ""}/${metaB.repo ?? ""}`
+  const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" })
+  const h = helpers(doc)
+  const date = new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})
+  const nameA = `${metaA.owner}/${metaA.repo}`
+  const nameB = `${metaB.owner}/${metaB.repo}`
+  const colW = (h.W - 28) / 2
+
   h.footer()
 
-  // COVER
-  doc.setFillColor(...C.black)
-  doc.rect(0, 0, h.W, 44, "F")
-  doc.setFontSize(18)
-  doc.setFont("courier", "bold")
-  doc.setTextColor(...C.white)
-  doc.text("iGITit", 14, 28)
-  doc.setFillColor(...C.blue)
-  doc.circle(14, 8, 2.5, "F")
-  doc.setFontSize(8)
-  doc.setFont("courier", "normal")
-  doc.setTextColor(150, 150, 150)
-  doc.text("open source, open language.", 14, 38)
-  doc.setFontSize(8)
-  doc.setTextColor(160, 160, 160)
-  doc.text("COMPARISON REPORT", h.W - 14, 18, { align: "right" })
-  doc.text(date, h.W - 14, 26, { align: "right" })
-  doc.text("generated by iGITit · OMARO PBC", h.W - 14, 34, { align: "right" })
+  // COVER HEADER
+  doc.setFillColor(...C.black); doc.rect(0,0,h.W,44,"F")
+  doc.setFillColor(...C.blue); doc.circle(14,8,2.5,"F")
+  doc.setFontSize(18); doc.setFont("courier","bold"); doc.setTextColor(...C.white)
+  doc.text("iGITit",14,28)
+  doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(150,150,150)
+  doc.text("open source, open language.",14,38)
+  doc.setFontSize(8); doc.setTextColor(160,160,160)
+  doc.text("COMPARISON REPORT",h.W-14,18,{align:"right"})
+  doc.text(date,h.W-14,26,{align:"right"})
+  doc.text("generated by iGITit · OMARO PBC",h.W-14,34,{align:"right"})
 
-  // Repo bars side by side
-  const colW = (h.W - 28) / 2
-  // Repo A
-  doc.setFillColor(...C.light)
-  doc.rect(0, 44, h.W / 2, 22, "F")
-  doc.setDrawColor(...C.border)
-  doc.setLineWidth(0.1)
-  doc.line(0, 44, h.W / 2, 44)
-  doc.line(0, 66, h.W / 2, 66)
-  doc.setFontSize(9)
-  doc.setFont("courier", "bold")
-  doc.setTextColor(...C.text)
-  doc.text(nameA, 14, 54)
-  doc.setFontSize(7)
-  doc.setFont("courier", "normal")
-  doc.setTextColor(...C.muted)
-  doc.text(String(metaA.description ?? "").slice(0, 45), 14, 62)
-  // Repo B
-  doc.setFillColor(...C.light)
-  doc.rect(h.W / 2, 44, h.W / 2, 22, "F")
-  doc.line(h.W / 2, 44, h.W, 44)
-  doc.line(h.W / 2, 66, h.W, 66)
-  doc.setFontSize(9)
-  doc.setFont("courier", "bold")
-  doc.setTextColor(...C.text)
-  doc.text(nameB, h.W / 2 + 4, 54)
-  doc.setFontSize(7)
-  doc.setFont("courier", "normal")
-  doc.setTextColor(...C.muted)
-  doc.text(String(metaB.description ?? "").slice(0, 45), h.W / 2 + 4, 62)
+  // Headline
+  doc.setFillColor(...C.light); doc.rect(0,44,h.W,14,"F")
+  doc.setDrawColor(...C.border); doc.setLineWidth(0.1)
+  doc.line(0,44,h.W,44); doc.line(0,58,h.W,58)
+  doc.setFontSize(9); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+  doc.text(comparison.headline ?? `${nameA} vs ${nameB}`, 14, 53)
 
-  let y = 78
+  // Repo name headers
+  doc.setFillColor(...C.light); doc.rect(0,58,h.W,14,"F")
+  doc.line(0,58,h.W,58); doc.line(0,72,h.W,72)
+  doc.line(h.W/2,58,h.W/2,72)
+  doc.setFontSize(9); doc.setFont("courier","bold"); doc.setTextColor(...C.text)
+  doc.text(nameA, 14, 67)
+  doc.text(nameB, h.W/2+4, 67)
 
-  // Comparison sections
-  const sections = comparison.sections as Record<string, unknown>[] ?? []
-  for (const section of sections) {
-    y = h.checkPage(doc, y, 30)
-    h.sectionLabel(y, String(section.label ?? section.title ?? "").toUpperCase()); y += 8
-    // Side by side
-    const textA = String(section.repoA ?? section.a ?? "")
-    const textB = String(section.repoB ?? section.b ?? "")
-    const linesA = doc.splitTextToSize(textA, colW - 4)
-    const linesB = doc.splitTextToSize(textB, colW - 4)
-    doc.setFontSize(8)
-    doc.setFont("courier", "normal")
-    doc.setTextColor(...C.subtext)
+  let y = 82
+
+  // COMPARISON SECTIONS
+  for (const section of comparison.sections ?? []) {
+    y = h.checkPage(y, 30)
+    h.sectionLabel(y, section.title.toUpperCase()); y += 8
+    const linesA = doc.splitTextToSize(section.leftSummary ?? "", colW - 4)
+    const linesB = doc.splitTextToSize(section.rightSummary ?? "", colW - 4)
+    doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
     doc.text(linesA, 14, y)
-    doc.text(linesB, h.W / 2 + 4, y)
+    doc.text(linesB, h.W/2+4, y)
     const rowH = Math.max(linesA.length, linesB.length) * 4.5 + 4
-    doc.setDrawColor(...C.border)
-    doc.setLineWidth(0.1)
-    doc.line(h.W / 2, y - 4, h.W / 2, y + rowH)
-    y += rowH + 4
+    doc.setDrawColor(...C.border); doc.setLineWidth(0.1)
+    doc.line(h.W/2, y-4, h.W/2, y+rowH)
+    // verdict strip
+    y += rowH
+    doc.setFillColor(...C.light); doc.rect(14, y, h.W-28, 8, "F")
+    doc.setFontSize(7); doc.setTextColor(...C.muted)
+    doc.text(`VERDICT  ${section.verdict}`, 18, y+5.5)
+    y += 8 + 4
     h.divider(y); y += 8
   }
 
-  // Key differences
-  const diffs = comparison.keyDifferences as string[] ?? []
-  if (diffs.length > 0) {
-    y = h.checkPage(doc, y, 20)
+  // KEY DIFFERENCES
+  if (comparison.keyDifferences?.length > 0) {
+    y = h.checkPage(y, 20)
     h.sectionLabel(y, "KEY DIFFERENCES"); y += 8
-    for (const diff of diffs) {
-      y = h.checkPage(doc, y, 10)
-      doc.setFillColor(...C.blue)
-      doc.circle(17, y - 1.5, 1.5, "F")
-      const lines = doc.splitTextToSize(diff, h.W - 36)
-      doc.setFontSize(8)
-      doc.setFont("courier", "normal")
-      doc.setTextColor(...C.subtext)
-      doc.text(lines, 22, y)
-      y += lines.length * 4.5 + 4
+    for (const diff of comparison.keyDifferences) {
+      y = h.checkPage(y, 10)
+      doc.setFillColor(...C.blue); doc.circle(17, y-1.5, 1.5, "F")
+      const lines = doc.splitTextToSize(diff, h.W-36)
+      doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+      doc.text(lines, 22, y); y += lines.length * 4.5 + 4
     }
     h.divider(y); y += 8
   }
 
-  // Overall winner
-  const winner = String(comparison.winner ?? comparison.verdict ?? "")
-  if (winner) {
-    y = h.checkPage(doc, y, 30)
-    h.sectionLabel(y, "OVERALL VERDICT"); y += 8
-    const lines = doc.splitTextToSize(winner, h.W - 42)
-    const boxH = lines.length * 5 + 10
-    doc.setFillColor(...C.light)
-    doc.rect(14, y - 2, h.W - 28, boxH, "F")
-    doc.setFontSize(9)
-    doc.setFont("courier", "normal")
-    doc.setTextColor(...C.subtext)
-    doc.text(lines, 20, y + 5)
-    y += boxH + 8
-  }
+  // OVERALL WINNER
+  y = h.checkPage(y, 30)
+  h.sectionLabel(y, "OVERALL VERDICT"); y += 8
+  const winnerText = `${comparison.overallWinner.label}\n${comparison.overallWinner.reasoning}`
+  const winLines = doc.splitTextToSize(winnerText, h.W-42)
+  const winBoxH = winLines.length * 5 + 10
+  doc.setFillColor(...C.light); doc.rect(14, y-2, h.W-28, winBoxH, "F")
+  doc.setFontSize(9); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+  doc.text(winLines, 20, y+5); y += winBoxH + 8
 
-  // For journalists
-  const forJ = String(comparison.forJournalists ?? comparison.journalistNote ?? "")
-  if (forJ) {
-    y = h.checkPage(doc, y, 20)
+  // FOR JOURNALISTS
+  if (comparison.forJournalists) {
+    y = h.checkPage(y, 20)
     h.sectionLabel(y, "FOR JOURNALISTS"); y += 8
-    h.bodyText(14, y, forJ, h.W - 28)
+    h.bodyText(14, y, comparison.forJournalists, h.W-28)
   }
 
-  doc.save(`igitit-compare-${String(metaA.repo ?? "a")}-vs-${String(metaB.repo ?? "b")}-${Date.now()}.pdf`)
+  doc.save(`igitit-compare-${metaA.repo}-vs-${metaB.repo}-${Date.now()}.pdf`)
 }
