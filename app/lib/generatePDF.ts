@@ -60,11 +60,11 @@ function helpers(doc: JPDF) {
 
   const header = (name: string, date: string) => {
     doc.setFillColor(...C.black); doc.rect(0,0,W,44,"F")
-    doc.setFillColor(...C.blue); doc.circle(14,8,2.5,"F")
+    doc.setFillColor(...C.blue); doc.circle(14,14,2.5,"F")
     doc.setFontSize(18); doc.setFont("courier","bold"); doc.setTextColor(...C.white)
-    doc.text("iGITit",14,28)
+    doc.text("iGITit",20,20)
     doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(150,150,150)
-    doc.text("open source, open language.",14,38)
+    doc.text("open source, open language.",20,30)
     doc.setFontSize(8); doc.setTextColor(160,160,160)
     doc.text("ANALYSIS REPORT",W-14,18,{align:"right"})
     doc.text(date,W-14,26,{align:"right"})
@@ -175,7 +175,7 @@ export async function downloadAnalysisPDF(
   const pills = [
     meta.platform ?? "GitHub",
     meta.language ?? "Unknown",
-    meta.stars ? `★ ${meta.stars.toLocaleString()}` : "",
+    meta.stars ? `${meta.stars.toLocaleString()} stars` : "",
     meta.license ?? "",
   ].filter(Boolean)
 
@@ -244,13 +244,13 @@ export async function downloadAnalysisPDF(
     doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
     doc.text(dim.label, 14, y)
     // Bar track
-    doc.setFillColor(...C.border); doc.rect(100, y - 4, 80, 3, "F")
+    doc.setFillColor(...C.border); doc.rect(80, y - 4, 60, 3, "F")
     // Bar fill
     doc.setFillColor(...(dim.pass ? C.green : C.red))
-    doc.rect(100, y - 4, dim.pass ? 68 : 16, 3, "F")
+    doc.rect(80, y - 4, dim.pass ? 50 : 12, 3, "F")
     // Verdict
     doc.setTextColor(...(dim.pass ? C.green : C.red))
-    doc.text(dim.verdictLabel, h.W - 14, y, {align:"right"})
+    doc.text(dim.verdictLabel, h.W - 16, y, {align:"right"})
     // Reasoning
     if (dim.reasoning) {
       doc.setFontSize(7); doc.setTextColor(...C.muted); doc.setFont("courier","normal")
@@ -267,11 +267,11 @@ export async function downloadAnalysisPDF(
   y = h.checkPage(y, 30)
   h.sectionLabel(y, "OVERALL VERDICT"); y += 8
   if (analysis.overallVerdict) {
-    const lines = doc.splitTextToSize(analysis.overallVerdict, h.W - 42)
-    const boxH = lines.length * 5 + 10
+    const lines = doc.splitTextToSize(analysis.overallVerdict, h.W - 40)
+    const boxH = lines.length * 5 + 12
     doc.setFillColor(...C.light); doc.rect(14, y - 2, h.W - 28, boxH, "F")
     doc.setFontSize(9); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
-    doc.text(lines, 20, y + 5); y += boxH + 8
+    doc.text(lines, 16, y + 6); y += boxH + 8
   }
 
   // MODULE BREAKDOWN ─────────────────────────────────────
