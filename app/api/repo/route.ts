@@ -211,15 +211,15 @@ async function fetchRadicleRepo(node: string, rid: string) {
     allFiles.map(async (file: { path: string }) => {
       try {
         const contentRes = await fetch(
-          `${base}/repos/${rid}/raw/${head}/${file.path}`,
+          `${base}/repos/${rid}/blob/${head}/${file.path}`,
           { headers }
         )
         if (!contentRes.ok) return
-        const text = await contentRes.text()
-        if (text.length <= MAX_FILE_SIZE) {
-          fileContents[file.path] = text
+        const data = await contentRes.json()
+        if (!data.binary && data.content && data.content.length <= MAX_FILE_SIZE) {
+          fileContents[file.path] = data.content
         }
-      } catch { /* skip */ }
+      } catch { }
     })
   )
 
