@@ -598,7 +598,7 @@ export default function IGititPage() {
       {!compareMode ? (
         /* SINGLE INPUT */
         <div style={{ marginBottom: "32px" }}>
-          <div style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>paste a github, gitlab or radicle repository url</div>
+          <div suppressHydrationWarning style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>paste a github, gitlab or radicle repository url</div>
           <div style={{ display: "flex", gap: "10px" }}>
             <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: `1px solid ${animatingA ? "rgba(74,158,240,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s" }}>
               <input type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com / gitlab.com / app.radicle.xyz" style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "18px", color: animatingA ? "#4A9EF0" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }} />
