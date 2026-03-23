@@ -58,9 +58,10 @@ function useBinaryAnimation() {
   }, [])
 }
 
-function detectPlatform(url: string): "github" | "gitlab" | null {
+function detectPlatform(url: string): "github" | "gitlab" | "radicle" | null {
   if (url.includes("github.com")) return "github"
   if (url.includes("gitlab.com")) return "gitlab"
+  if (url.includes("radicle.xyz")) return "radicle"
   return null
 }
 
@@ -425,7 +426,7 @@ export default function IGititPage() {
   const handleAnalyzeA = async () => {
     const platform = detectPlatform(urlA.trim())
     if (!urlA.trim() || analyzingA) return
-    if (!platform) { setErrorA("Only GitHub and GitLab URLs are supported."); return }
+    if (!platform) { setErrorA("Only GitHub, GitLab, and Radicle URLs are supported."); return }
     setAnalysisA(null); setChangelog(null); setChangelogError(null); setActiveTab("overview")
     const params = new URLSearchParams()
     params.set("repo", encodeURIComponent(urlA.trim()))
@@ -437,7 +438,7 @@ export default function IGititPage() {
   const handleAnalyzeB = async () => {
     const platform = detectPlatform(urlB.trim())
     if (!urlB.trim() || analyzingB) return
-    if (!platform) { setErrorB("Only GitHub and GitLab URLs are supported."); return }
+    if (!platform) { setErrorB("Only GitHub, GitLab, and Radicle URLs are supported."); return }
     setAnalysisB(null)
     const params = new URLSearchParams()
     if (urlA.trim()) params.set("repo", encodeURIComponent(urlA.trim()))
@@ -611,7 +612,8 @@ export default function IGititPage() {
             <div style={{ marginTop: "8px", fontSize: "12px", color: detectPlatform(urlA.trim()) ? "#4CAF7D" : "#E05C5C", opacity: 0.7 }}>
               {detectPlatform(urlA.trim()) === "github" && "✓ github.com detected"}
               {detectPlatform(urlA.trim()) === "gitlab" && "✓ gitlab.com detected"}
-              {!detectPlatform(urlA.trim()) && "⚠ only github.com and gitlab.com are supported"}
+              {detectPlatform(urlA.trim()) === "radicle" && "✓ radicle.xyz detected"}
+              {!detectPlatform(urlA.trim()) && "⚠ only github.com, gitlab.com, and radicle.xyz are supported"}
             </div>
           )}
           {errorA && !analyzingA && (
