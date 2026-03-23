@@ -55,7 +55,7 @@ function helpers(doc: JPDF) {
   const W = doc.internal.pageSize.getWidth()   // 210mm
   const H = doc.internal.pageSize.getHeight()  // 297mm
   const TEXT_W = W - 28    // 182mm — full page text width
-  const INNER_W = W - 40   // 170mm — inside padded boxes
+  const INNER_W = W - 40 - 6  // 164mm — inside padded boxes (accounts for x=20 text start)
 
   // Header with dot flush left of "iGITit"
   const header = (date: string, reportType: string, verified?: boolean, cid?: string) => {
@@ -291,7 +291,7 @@ export async function downloadAnalysisPDF(
   // ── MODULE BREAKDOWN ──────────────────────────────────
   if (analysis.modules?.length > 0) {
     doc.addPage(); h.header(date, "Analysis Report", verified, cid); h.footer()
-    y = 20
+    y = 56
     h.sectionLabel(y, "MODULE BREAKDOWN"); y += 8
     for (const mod of analysis.modules) {
       y = h.checkPage(y, 24)
@@ -304,7 +304,7 @@ export async function downloadAnalysisPDF(
   // ── CHANGELOG ─────────────────────────────────────────
   if (changelog && changelog.length > 0) {
     doc.addPage(); h.header(date, "Analysis Report", verified, cid); h.footer()
-    y = 20
+    y = 56
     h.sectionLabel(y, `CHANGE LOG  (${Math.min(changelog.length,50)} commits)`); y += 8
     for (const commit of changelog.slice(0,50)) {
       y = h.checkPage(y, 18)
