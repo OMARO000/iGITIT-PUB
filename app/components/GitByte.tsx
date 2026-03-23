@@ -23,7 +23,7 @@ const DEMO_OUTPUTS = [
 ]
 
 const W = 640
-const H = 336
+const H = 400
 
 export default function GitByte({ files = DEMO_FILES, outputs, active = false, speed = 1 }: GitByteProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)

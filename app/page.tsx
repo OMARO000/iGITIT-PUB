@@ -636,7 +636,7 @@ export default function IGititPage() {
             <RepoInputPanel label="REPO B" url={urlB} onUrlChange={handleUrlChange(setUrlB, setAnimatingB)} onAnalyze={handleAnalyzeB} isAnalyzing={analyzingB} analyzeStep={stepB} error={errorB} isAnimating={animatingB} analysis={analysisB} />
           </div>
           {(analyzingA || analyzingB) && (
-            <div style={{ marginTop: "16px" }}>
+            <div style={{ marginTop: "16px", width: "100%" }}>
               <GitByte
                 files={[...fetchedFilePaths, ...(fetchedFilePathsB ?? [])]}
                 outputs={[...fetchedFileOutputs, ...(fetchedFileOutputsB ?? [])]}
