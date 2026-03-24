@@ -194,9 +194,6 @@ export async function downloadAnalysisPDF(
   verified?: boolean,
   cid?: string,
 ) {
-  console.log("PDF changelog entries:", changelog?.length ?? "none")
-  console.log("PDF analysis overview:", analysis.overview?.length ?? "none")
-  console.log("PDF meta:", meta?.owner, meta?.repo)
   const jsPDF = await loadJsPDF()
   const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" })
   const h = helpers(doc)
@@ -339,8 +336,6 @@ export async function downloadComparePDF(
   metaB: RepoMeta,
   comparison: Comparison,
 ) {
-  console.log("Compare PDF - analysisB overview:", analysisB?.overview?.length ?? "none")
-  console.log("Compare PDF - analysisB verdict:", analysisB?.overallVerdict?.slice(0,50) ?? "none")
   const jsPDF = await loadJsPDF()
   const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" })
   const h = helpers(doc)
