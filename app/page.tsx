@@ -317,6 +317,7 @@ export default function IGititPage() {
   const [fetchedFilePaths, setFetchedFilePaths] = useState<string[]>([])
   const [fetchedFileSnippets, setFetchedFileSnippets] = useState<string[]>([])
   const [fetchedFileOutputs, setFetchedFileOutputs] = useState<string[]>([])
+  const [fetchedFileContents, setFetchedFileContents] = useState<Record<string, string>>({})
   const [fetchedFilePathsB, setFetchedFilePathsB] = useState<string[]>([])
   const [fetchedFileOutputsB, setFetchedFileOutputsB] = useState<string[]>([])
 
@@ -342,6 +343,7 @@ export default function IGititPage() {
   const [showHistory, setShowHistory] = useState(false)
   const [copyState, setCopyState] = useState<"idle" | "link" | "report">("idle")
 
+  const [includeFullSource, setIncludeFullSource] = useState(false)
   const [verifyState, setVerifyState] = useState<"idle" | "loading" | "done" | "error">("idle")
   const [verifyResult, setVerifyResult] = useState<{
     cid: string; hash: string; timestamp: string; gatewayUrl: string; verifyUrl: string
@@ -433,6 +435,7 @@ export default function IGititPage() {
       if (!repoRes.ok) { const e = await repoRes.json(); throw new Error(e.error ?? "Failed to fetch repository") }
       const repoData = await repoRes.json()
       ;(setFilePaths ?? setFetchedFilePaths)(repoData.filePaths ?? [])
+      if (!setFilePaths) setFetchedFileContents(repoData.files ?? {})
 
       // Build snippets — first non-empty line of each file
       const snippets = (repoData.filePaths ?? []).map((path: string) => {
@@ -548,6 +551,8 @@ export default function IGititPage() {
           analysis: analysisA,
           meta: analysisA.meta,
           url: urlA,
+          includeFullSource,
+          files: includeFullSource ? fetchedFileContents : undefined,
         }),
       })
       if (!res.ok) {
@@ -736,6 +741,18 @@ export default function IGititPage() {
               >
                 [ download comparison pdf ]
               </button>
+            )}
+
+            {verifyState === "idle" && (
+              <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "rgba(255,255,255,0.3)", cursor: "pointer", letterSpacing: "0.06em" }}>
+                <input
+                  type="checkbox"
+                  checked={includeFullSource}
+                  onChange={e => setIncludeFullSource(e.target.checked)}
+                  style={{ accentColor: "#4A9EF0" }}
+                />
+                include full source
+              </label>
             )}
 
             {/* VERIFY BUTTON */}
