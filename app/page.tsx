@@ -333,6 +333,7 @@ export default function IGititPage() {
   const [comparison, setComparison] = useState<Comparison | null>(null)
   const [comparisonLoading, setComparisonLoading] = useState(false)
   const [comparisonError, setComparisonError] = useState<string | null>(null)
+  const comparisonRef = useRef<Comparison | null>(null)
 
   // Shared state
   const [activeTab, setActiveTab] = useState<Tab>("overview")
@@ -463,6 +464,7 @@ export default function IGititPage() {
       if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Failed to compare") }
       const { comparison: data } = await res.json()
       setComparison(data)
+      comparisonRef.current = data
     } catch (err) {
       setComparisonError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
@@ -1069,11 +1071,10 @@ export default function IGititPage() {
                       <div style={{ display: "flex", justifyContent: "flex-end" }}>
                         <button
                           className="export-btn"
-                          onClick={() => {
-                            if (!comparison) {
-                              loadComparison().then(() => downloadComparePDF(analysisA, analysisA.meta, analysisB!, analysisB!.meta, comparison!))
-                            } else {
-                              downloadComparePDF(analysisA, analysisA.meta, analysisB!, analysisB!.meta, comparison!)
+                          onClick={async () => {
+                            if (!comparisonRef.current) await loadComparison()
+                            if (comparisonRef.current) {
+                              downloadComparePDF(analysisA, analysisA.meta, analysisB!, analysisB!.meta, comparisonRef.current)
                             }
                           }}
                           style={{ padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}
