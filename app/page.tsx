@@ -715,14 +715,16 @@ export default function IGititPage() {
                 {btn.label}
               </button>
             ))}
-            <button
-              className="export-btn"
-              title={!changelogRef.current ? "tip: load the change log tab first to include it in the PDF" : ""}
-              onClick={() => downloadAnalysisPDF(analysisA, analysisA.meta, changelogRef.current && changelogRef.current.length > 0 ? changelogRef.current : undefined, !!verifyResult?.cid, verifyResult?.cid ?? undefined)}
-              style={{ padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}
-            >
-              [ download pdf ]
-            </button>
+            {!compareMode && (
+              <button
+                className="export-btn"
+                title={!changelogRef.current ? "tip: load the change log tab first to include it in the PDF" : ""}
+                onClick={() => downloadAnalysisPDF(analysisA, analysisA.meta, changelogRef.current && changelogRef.current.length > 0 ? changelogRef.current : undefined, !!verifyResult?.cid, verifyResult?.cid ?? undefined)}
+                style={{ padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}
+              >
+                [ download pdf ]
+              </button>
+            )}
 
             {/* VERIFY BUTTON */}
             <button
