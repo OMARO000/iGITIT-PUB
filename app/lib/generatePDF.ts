@@ -131,8 +131,8 @@ function helpers(doc: JPDF) {
   }
 
   const verdictBox = (y: number, text: string): number => {
-    // Use INNER_W for text split to guarantee no overflow
-    const lines = doc.splitTextToSize(text, INNER_W)
+    // courier font renders wider than expected — use 150mm to guarantee no overflow
+    const lines = doc.splitTextToSize(text, 150)
     const boxH = lines.length * 5.2 + 14
     doc.setFillColor(...C.light)
     doc.rect(14, y, W-28, boxH, "F")
