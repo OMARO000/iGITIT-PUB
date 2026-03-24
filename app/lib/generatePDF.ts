@@ -347,7 +347,7 @@ export async function downloadComparePDF(
   const date = new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})
   const nameA = `${metaA.owner}/${metaA.repo}`
   const nameB = `${metaB.owner}/${metaB.repo}`
-  const colW = (h.W - 32) / 2
+  const colW = (h.W - 40) / 2
 
   h.footer()
 
@@ -384,11 +384,11 @@ export async function downloadComparePDF(
   for (const section of comparison.sections ?? []) {
     y = h.checkPage(y, 32)
     h.sectionLabel(y, section.title.toUpperCase()); y += 8
-    const linesA = doc.splitTextToSize(section.leftSummary ?? "", colW)
-    const linesB = doc.splitTextToSize(section.rightSummary ?? "", colW)
-    doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+    const linesA = doc.splitTextToSize(section.leftSummary ?? "", colW - 8)
+    const linesB = doc.splitTextToSize(section.rightSummary ?? "", colW - 8)
+    doc.setFontSize(7.5); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
     doc.text(linesA, 14, y)
-    doc.text(linesB, h.W/2+4, y)
+    doc.text(linesB, h.W/2+6, y)
     const rowH = Math.max(linesA.length, linesB.length) * 4.5 + 4
     doc.setDrawColor(...C.border); doc.setLineWidth(0.1)
     doc.line(h.W/2, y-4, h.W/2, y+rowH)
@@ -397,7 +397,8 @@ export async function downloadComparePDF(
     if (section.verdict) {
       doc.setFillColor(...C.light); doc.rect(14, y, h.W-28, 8, "F")
       doc.setFontSize(7); doc.setFont("courier","normal"); doc.setTextColor(...C.muted)
-      doc.text(`VERDICT  ${section.verdict}`, 18, y+5.5)
+      const vLines = doc.splitTextToSize(`VERDICT  ${section.verdict}`, h.W - 32)
+      doc.text(vLines[0], 18, y+5.5)
       y += 10
     }
     h.divider(y); y += 7
