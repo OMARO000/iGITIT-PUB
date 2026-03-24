@@ -818,6 +818,9 @@ export default function IGititPage() {
                   [ copy verify link ]
                 </button>
               </div>
+              <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(76,175,125,0.15)", fontSize: "11px", color: "rgba(255,255,255,0.35)", lineHeight: 1.6 }}>
+                AI-generated analysis — may contain errors. Pinned record preserves what was analyzed, not that conclusions are correct. Not legal advice.
+              </div>
               {verifyError && (
                 <div style={{ marginTop: "10px", fontSize: "12px", color: "#E05C5C" }}>⚠ {verifyError}</div>
               )}
