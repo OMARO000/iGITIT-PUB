@@ -56,7 +56,7 @@ const S = {
   font: "'IBM Plex Mono', 'Courier New', monospace",
 }
 
-function card(children: React.ReactNode, style?: React.CSSProperties) {
+function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{ padding: "32px 36px", background: "rgba(255,255,255,0.02)", border: `1px solid ${S.border}`, borderRadius: "8px", marginBottom: "12px", ...style }}>
       {children}
@@ -219,17 +219,15 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
       {/* OVERVIEW */}
       <div style={{ marginBottom: "8px", fontSize: "11px", letterSpacing: "0.12em", color: S.dim }}>OVERVIEW</div>
       {analysis.overview.map((section, i) => (
-        <div key={i}>
-          {card(<>
-            {sectionLabel(section.title)}
-            {bodyText(section.content)}
-          </>, { marginBottom: i < analysis.overview.length - 1 ? "8px" : "24px" })}
-        </div>
+        <Card key={i} style={{ marginBottom: i < analysis.overview.length - 1 ? "8px" : "24px" }}>
+          {sectionLabel(section.title)}
+          {bodyText(section.content)}
+        </Card>
       ))}
 
       {/* DATA NARRATIVE */}
       <div style={{ marginBottom: "8px", fontSize: "11px", letterSpacing: "0.12em", color: S.dim }}>DATA NARRATIVE</div>
-      {card(<>
+      <Card>
         {sectionLabel("DATA THIS SOFTWARE TOUCHES")}
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           {analysis.dataItems.map((item, i) => (
@@ -251,12 +249,12 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
             </div>
           ))}
         </div>
-      </>)}
+      </Card>
 
-      {card(<>
+      <Card style={{ marginBottom: "24px" }}>
         {sectionLabel("DATA FLOW SUMMARY")}
         {bodyText(analysis.dataFlowSummary)}
-      </>, { marginBottom: "24px" })}
+      </Card>
 
       {/* MODULE BREAKDOWN */}
       <div style={{ marginBottom: "8px", fontSize: "11px", letterSpacing: "0.12em", color: S.dim }}>MODULE BREAKDOWN</div>
@@ -285,7 +283,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
 
       {/* ACCOUNTABILITY SCORE */}
       <div style={{ marginBottom: "8px", fontSize: "11px", letterSpacing: "0.12em", color: S.dim }}>ACCOUNTABILITY SCORE</div>
-      {card(<>
+      <Card>
         {sectionLabel(`ACCOUNTABILITY SCORE · ${repo.owner}/${repo.repo}`)}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {analysis.score.map((dim, i) => (
@@ -301,12 +299,12 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
             </div>
           ))}
         </div>
-      </>)}
+      </Card>
 
-      {card(<>
+      <Card style={{ marginBottom: "40px" }}>
         {sectionLabel("OVERALL VERDICT")}
         {bodyText(analysis.overallVerdict)}
-      </>, { marginBottom: "40px" })}
+      </Card>
 
       {/* PERMANENT RECORD FOOTER */}
       <div style={{ padding: "24px 28px", background: "rgba(196,151,74,0.04)", border: `1px solid rgba(196,151,74,0.15)`, borderRadius: "8px", marginBottom: "40px" }}>
