@@ -395,11 +395,12 @@ export async function downloadComparePDF(
     y += rowH
     // Verdict strip
     if (section.verdict) {
-      doc.setFillColor(...C.light); doc.rect(14, y, h.W-28, 8, "F")
       doc.setFontSize(7); doc.setFont("courier","normal"); doc.setTextColor(...C.muted)
       const vLines = doc.splitTextToSize(`VERDICT  ${section.verdict}`, h.W - 32)
-      doc.text(vLines[0], 18, y+5.5)
-      y += 10
+      const vBoxH = vLines.length * 4.5 + 6
+      doc.setFillColor(...C.light); doc.rect(14, y, h.W-28, vBoxH, "F")
+      doc.text(vLines, 18, y+5)
+      y += vBoxH + 4
     }
     h.divider(y); y += 7
   }
