@@ -211,10 +211,12 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
       {/* OVERVIEW */}
       <div style={{ marginBottom: "8px", fontSize: "11px", letterSpacing: "0.12em", color: S.dim }}>OVERVIEW</div>
       {analysis.overview.map((section, i) => (
-        card(<>
-          {sectionLabel(section.title)}
-          {bodyText(section.content)}
-        </>, { marginBottom: i < analysis.overview.length - 1 ? "8px" : "24px", key: i } as React.CSSProperties)
+        <div key={i}>
+          {card(<>
+            {sectionLabel(section.title)}
+            {bodyText(section.content)}
+          </>, { marginBottom: i < analysis.overview.length - 1 ? "8px" : "24px" })}
+        </div>
       ))}
 
       {/* DATA NARRATIVE */}
