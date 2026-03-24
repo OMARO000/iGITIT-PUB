@@ -334,6 +334,7 @@ export default function IGititPage() {
   const [comparisonLoading, setComparisonLoading] = useState(false)
   const [comparisonError, setComparisonError] = useState<string | null>(null)
   const comparisonRef = useRef<Comparison | null>(null)
+  const changelogRef = useRef<ChangelogEntry[] | null>(null)
 
   // Shared state
   const [activeTab, setActiveTab] = useState<Tab>("overview")
@@ -388,6 +389,7 @@ export default function IGititPage() {
       if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Failed to fetch changelog") }
       const data = await res.json()
       setChangelog(data.changelog)
+      changelogRef.current = data.changelog ?? []
     } catch (err) {
       setChangelogError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
@@ -460,6 +462,7 @@ export default function IGititPage() {
           body: JSON.stringify({ owner: full.meta.owner, repo: full.meta.repo, platform: full.meta.platform ?? "GitHub", depth: 50 }),
         }).then(r => r.json()).then(data => {
           setChangelog(data.changelog ?? [])
+          changelogRef.current = data.changelog ?? []
         }).catch(() => {}).finally(() => setChangelogLoading(false))
       }
 
@@ -485,7 +488,7 @@ export default function IGititPage() {
     const platform = detectPlatform(urlA.trim())
     if (!urlA.trim() || analyzingA) return
     if (!platform) { setErrorA("Only GitHub, GitLab, and Radicle URLs are supported."); return }
-    setAnalysisA(null); setChangelog(null); setChangelogError(null); setActiveTab("overview")
+    setAnalysisA(null); setChangelog(null); changelogRef.current = null; setChangelogError(null); setActiveTab("overview")
     const params = new URLSearchParams()
     params.set("repo", encodeURIComponent(urlA.trim()))
     if (urlB.trim()) params.set("compare", encodeURIComponent(urlB.trim()))
@@ -595,7 +598,7 @@ export default function IGititPage() {
       {/* HEADER */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
-          <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); setComparison(null); window.history.replaceState(null, "", window.location.pathname) }} />
+          <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }} />
           <div style={{ fontSize: "22px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -712,8 +715,8 @@ export default function IGititPage() {
             ))}
             <button
               className="export-btn"
-              title={!changelog ? "tip: load the change log tab first to include it in the PDF" : ""}
-              onClick={() => downloadAnalysisPDF(analysisA, analysisA.meta, changelog && changelog.length > 0 ? changelog : undefined, !!verifyResult?.cid, verifyResult?.cid ?? undefined)}
+              title={!changelogRef.current ? "tip: load the change log tab first to include it in the PDF" : ""}
+              onClick={() => downloadAnalysisPDF(analysisA, analysisA.meta, changelogRef.current && changelogRef.current.length > 0 ? changelogRef.current : undefined, !!verifyResult?.cid, verifyResult?.cid ?? undefined)}
               style={{ padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}
             >
               [ download pdf ]

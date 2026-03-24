@@ -339,6 +339,8 @@ export async function downloadComparePDF(
   metaB: RepoMeta,
   comparison: Comparison,
 ) {
+  console.log("Compare PDF - analysisB overview:", analysisB?.overview?.length ?? "none")
+  console.log("Compare PDF - analysisB verdict:", analysisB?.overallVerdict?.slice(0,50) ?? "none")
   const jsPDF = await loadJsPDF()
   const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" })
   const h = helpers(doc)
