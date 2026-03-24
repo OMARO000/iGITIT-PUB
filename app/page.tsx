@@ -372,7 +372,14 @@ export default function IGititPage() {
     if (compareMode && analysisA && analysisB && !comparison && !comparisonLoading) {
       loadComparison()
     }
-  }, [analysisA, analysisB, compareMode])
+  }, [analysisA, analysisB, compareMode, loadComparison])
+
+  // Auto-load changelog when a single repo is analyzed
+  useEffect(() => {
+    if (analysisA && !compareMode && !changelog && !changelogLoading) {
+      loadChangelog(50)
+    }
+  }, [analysisA, compareMode])
 
   const handleUrlChange = (setter: (v: string) => void, setAnim: (v: boolean) => void) => (val: string) => {
     setter(val)
@@ -456,7 +463,7 @@ export default function IGititPage() {
     await runAnalysis(urlB.trim(), platform, setAnalyzingB, setStepB, setAnalysisB, setErrorB, setFetchedFilePathsB, setFetchedFileOutputsB)
   }
 
-  const loadComparison = async () => {
+  const loadComparison = useCallback(async () => {
     if (!analysisA || !analysisB) return
     setComparisonLoading(true); setComparisonError(null)
     try {
@@ -470,7 +477,7 @@ export default function IGititPage() {
     } finally {
       setComparisonLoading(false)
     }
-  }
+  }, [analysisA, analysisB])
 
   const handleTabClick = (tab: Tab) => {
     setActiveTab(tab)
