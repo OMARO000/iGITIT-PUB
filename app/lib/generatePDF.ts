@@ -430,37 +430,104 @@ export async function downloadComparePDF(
   }
 
   // ── INDIVIDUAL ANALYSES ───────────────────────────────
-  // Repo A summary
-  doc.addPage(); h.footer()
-  doc.setFillColor(...C.black); doc.rect(0,0,h.W,20,"F")
-  doc.setFontSize(10); doc.setFont("courier","bold"); doc.setTextColor(...C.white)
-  doc.text(`REPO A: ${nameA}`, 14, 13)
-  y = 28
-  h.sectionLabel(y, "OVERVIEW"); y += 8
-  for (const section of analysisA.overview ?? []) {
-    y = h.checkPage(y, 20)
-    h.sectionTitle(y, section.title.toUpperCase()); y += 6
-    y += h.bodyText(14, y, section.content, h.TEXT_W); y += 4
-  }
-  h.divider(y); y += 7
-  h.sectionLabel(y, "OVERALL VERDICT"); y += 8
-  if (analysisA.overallVerdict) { const bh = h.verdictBox(y, analysisA.overallVerdict); y += bh + 8 }
+  // Shared helper — renders a full repo breakdown onto subsequent pages
+  const writeFullRepo = (analysis: Analysis, label: string) => {
+    doc.addPage(); h.footer()
+    // Repo label banner
+    doc.setFillColor(...C.black); doc.rect(0,0,h.W,46,"F")
+    doc.setFillColor(...C.blue); doc.circle(17,22,3,"F")
+    doc.setFontSize(14); doc.setFont("courier","bold"); doc.setTextColor(...C.white)
+    doc.text(label, 27, 27)
+    doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(140,140,140)
+    doc.text("full analysis", 27, 36)
+    h.footer()
+    let ry = 56
 
-  // Repo B summary
-  doc.addPage(); h.footer()
-  doc.setFillColor(...C.black); doc.rect(0,0,h.W,20,"F")
-  doc.setFontSize(10); doc.setFont("courier","bold"); doc.setTextColor(...C.white)
-  doc.text(`REPO B: ${nameB}`, 14, 13)
-  y = 28
-  h.sectionLabel(y, "OVERVIEW"); y += 8
-  for (const section of analysisB.overview ?? []) {
-    y = h.checkPage(y, 20)
-    h.sectionTitle(y, section.title.toUpperCase()); y += 6
-    y += h.bodyText(14, y, section.content, h.TEXT_W); y += 4
+    // OVERVIEW
+    h.sectionLabel(ry, "OVERVIEW"); ry += 8
+    for (const section of analysis.overview ?? []) {
+      ry = h.checkPage(ry, 22)
+      h.sectionTitle(ry, section.title.toUpperCase()); ry += 6
+      ry += h.bodyText(14, ry, section.content, h.TEXT_W); ry += 5
+    }
+    h.divider(ry); ry += 7
+
+    // DATA NARRATIVE
+    ry = h.checkPage(ry, 20)
+    h.sectionLabel(ry, "DATA NARRATIVE"); ry += 8
+    for (const item of analysis.dataItems ?? []) {
+      ry = h.checkPage(ry, 16)
+      const dotColor = item.type === "collect" ? C.blue : item.type === "store" ? C.green : C.red
+      doc.setFillColor(...dotColor); doc.circle(17, ry-1.5, 2, "F")
+      doc.setFontSize(9); doc.setFont("courier","bold"); doc.setTextColor(...C.text)
+      doc.text(item.label, 22, ry)
+      const descLines = doc.splitTextToSize(item.description, h.TEXT_W - 10)
+      doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+      doc.text(descLines, 22, ry+5)
+      ry += 5 + descLines.length * 4.5 + 3
+    }
+    if (analysis.dataFlowSummary) {
+      ry = h.checkPage(ry, 16)
+      const sumLines = doc.splitTextToSize(analysis.dataFlowSummary, h.TEXT_W)
+      doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.muted)
+      doc.text(sumLines, 14, ry)
+      ry += sumLines.length * 4.5 + 4
+    }
+    // Legend
+    const legendItems = [
+      { color: C.blue, label: "collected" },
+      { color: C.green, label: "stored" },
+      { color: C.red, label: "transmitted" },
+    ]
+    let lx = 14
+    for (const li of legendItems) {
+      doc.setFillColor(...li.color); doc.circle(lx+2, ry-1.5, 1.5, "F")
+      doc.setFontSize(7); doc.setFont("courier","normal"); doc.setTextColor(...C.muted)
+      doc.text(li.label, lx+6, ry)
+      lx += doc.getTextWidth(li.label) + 14
+    }
+    ry += 5
+    h.divider(ry); ry += 7
+
+    // ACCOUNTABILITY SCORE
+    ry = h.checkPage(ry, 20)
+    h.sectionLabel(ry, "ACCOUNTABILITY SCORE"); ry += 8
+    for (const dim of analysis.score ?? []) {
+      ry = h.checkPage(ry, 12)
+      doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+      doc.text(dim.label, 14, ry)
+      doc.setFillColor(...C.border); doc.rect(75, ry-4, 55, 3, "F")
+      doc.setFillColor(...(dim.pass ? C.green : C.red))
+      doc.rect(75, ry-4, dim.pass ? 46 : 12, 3, "F")
+      doc.setFontSize(8); doc.setTextColor(...(dim.pass ? C.green : C.red))
+      doc.text(dim.verdictLabel, h.W-14, ry, {align:"right"})
+      ry += 9
+    }
+    h.divider(ry); ry += 7
+
+    // OVERALL VERDICT
+    ry = h.checkPage(ry, 35)
+    h.sectionLabel(ry, "OVERALL VERDICT"); ry += 8
+    if (analysis.overallVerdict) {
+      const bh = h.verdictBox(ry, analysis.overallVerdict)
+      ry += bh + 8
+    }
+
+    // MODULES
+    if (analysis.modules?.length > 0) {
+      ry = h.checkPage(ry, 24)
+      h.sectionLabel(ry, "MODULE BREAKDOWN"); ry += 8
+      for (const mod of analysis.modules) {
+        ry = h.checkPage(ry, 24)
+        h.sectionTitle(ry, `${mod.name}  ·  ${mod.path}`); ry += 6
+        ry += h.bodyText(14, ry, mod.description, h.TEXT_W); ry += 3
+        h.divider(ry); ry += 7
+      }
+    }
   }
-  h.divider(y); y += 7
-  h.sectionLabel(y, "OVERALL VERDICT"); y += 8
-  if (analysisB.overallVerdict) { h.verdictBox(y, analysisB.overallVerdict) }
+
+  writeFullRepo(analysisA, `REPO A: ${nameA}`)
+  writeFullRepo(analysisB, `REPO B: ${nameB}`)
 
   doc.save(`igitit-compare-${metaA.repo}-vs-${metaB.repo}-${Date.now()}.pdf`)
 }
