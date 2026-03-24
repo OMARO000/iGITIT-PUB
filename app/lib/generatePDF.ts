@@ -131,14 +131,14 @@ function helpers(doc: JPDF) {
   }
 
   const verdictBox = (y: number, text: string): number => {
-    // courier font renders wider than expected — use 150mm to guarantee no overflow
-    const lines = doc.splitTextToSize(text, 150)
+    // courier is very wide — use 130mm to guarantee no overflow
+    const lines = doc.splitTextToSize(text, 130)
     const boxH = lines.length * 5.2 + 14
     doc.setFillColor(...C.light)
     doc.rect(14, y, W-28, boxH, "F")
     doc.setDrawColor(...C.border); doc.setLineWidth(0.1)
     doc.rect(14, y, W-28, boxH, "D")
-    doc.setFontSize(9); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+    doc.setFontSize(8.5); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
     doc.text(lines, 20, y+8)
     return boxH
   }
@@ -194,6 +194,9 @@ export async function downloadAnalysisPDF(
   verified?: boolean,
   cid?: string,
 ) {
+  console.log("PDF changelog entries:", changelog?.length ?? "none")
+  console.log("PDF analysis overview:", analysis.overview?.length ?? "none")
+  console.log("PDF meta:", meta?.owner, meta?.repo)
   const jsPDF = await loadJsPDF()
   const doc = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" })
   const h = helpers(doc)
