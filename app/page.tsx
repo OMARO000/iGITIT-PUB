@@ -246,7 +246,7 @@ function RepoInputPanel({
             type="text" value={url}
             onChange={e => onUrlChange(e.target.value)}
             onKeyDown={e => e.key === "Enter" && onAnalyze()}
-            placeholder="https://github.com/owner/repo"
+            placeholder="https://github.com / gitlab.com / app.radicle.xyz"
             style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "15px", color: isAnimating ? "#4A9EF0" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }}
           />
           {isAnimating && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #4A9EF0, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
@@ -267,7 +267,7 @@ function RepoInputPanel({
       </div>
       {url.trim() && !isAnalyzing && (
         <div style={{ fontSize: "11px", color: platform ? "#4CAF7D" : "#E05C5C", opacity: 0.7 }}>
-          {platform === "github" && "✓ github.com"}{platform === "gitlab" && "✓ gitlab.com"}{!platform && "⚠ unsupported"}
+          {platform === "github" && "✓ github.com"}{platform === "gitlab" && "✓ gitlab.com"}{platform === "radicle" && "✓ radicle.xyz"}{!platform && "⚠ unsupported"}
         </div>
       )}
       {error && !isAnalyzing && (
