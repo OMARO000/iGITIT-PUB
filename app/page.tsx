@@ -443,28 +443,30 @@ export default function IGititPage() {
       if (!setFilePaths) setFetchedFileSnippets(snippets)
 
       setStep(2)
-      const analyzeRes = await fetch("/api/analyze", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...repoData, meta: { ...repoData.meta, platform: platform === "github" ? "GitHub" : "GitLab" } }),
-      })
+      // Fire changelog and analysis IN PARALLEL — by the time Claude finishes, changelog is ready
+      if (setAnalysis === setAnalysisA && !compareMode) {
+        setChangelogLoading(true); setChangelog(null); setChangelogDepth(50)
+      }
+      const [analyzeRes] = await Promise.all([
+        fetch("/api/analyze", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...repoData, meta: { ...repoData.meta, platform: platform === "github" ? "GitHub" : "GitLab" } }),
+        }),
+        // Preload changelog in background while Claude analyzes
+        setAnalysis === setAnalysisA && !compareMode
+          ? fetch("/api/changelog", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ owner: repoData.meta.owner, repo: repoData.meta.repo, platform: platform === "github" ? "GitHub" : "GitLab", depth: 50 }),
+            }).then(r => r.json()).then(data => {
+              setChangelog(data.changelog ?? [])
+              changelogRef.current = data.changelog ?? []
+            }).catch(() => {}).finally(() => setChangelogLoading(false))
+          : Promise.resolve(),
+      ])
       if (!analyzeRes.ok) { const e = await analyzeRes.json(); throw new Error(e.error ?? "Failed to analyze") }
       const { analysis: data, meta } = await analyzeRes.json()
       const full: Analysis = { ...data, meta: { ...meta, platform: platform === "github" ? "GitHub" : "GitLab" } }
       setAnalysis(full)
-
-      // Auto-preload changelog for single-repo mode — fires directly with the
-      // analysis data we just received, bypassing the useEffect/useCallback chain
-      if (setAnalysis === setAnalysisA && !compareMode) {
-        setChangelogLoading(true); setChangelog(null); setChangelogDepth(50)
-        fetch("/api/changelog", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ owner: full.meta.owner, repo: full.meta.repo, platform: full.meta.platform ?? "GitHub", depth: 50 }),
-        }).then(r => r.json()).then(data => {
-          setChangelog(data.changelog ?? [])
-          changelogRef.current = data.changelog ?? []
-        }).catch(() => {}).finally(() => setChangelogLoading(false))
-      }
 
       // Build outputs from module descriptions — cycle through in order
       const outputs = (repoData.filePaths ?? []).map((_: string, idx: number) => {
