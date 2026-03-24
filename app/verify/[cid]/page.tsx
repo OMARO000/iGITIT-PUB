@@ -187,9 +187,9 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
       </div>
 
       {/* AI DISCLAIMER */}
-      <div style={{ padding: "20px 28px", background: "rgba(196,151,74,0.04)", border: "1px solid rgba(196,151,74,0.15)", borderRadius: "8px", marginBottom: "28px" }}>
-        <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(196,151,74,0.5)", marginBottom: "10px" }}>IMPORTANT · READ BEFORE CITING</div>
-        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", lineHeight: 1.75, fontWeight: 300 }}>
+      <div style={{ padding: "20px 28px", background: "rgba(196,151,74,0.08)", border: "1px solid rgba(196,151,74,0.3)", borderRadius: "8px", marginBottom: "28px" }}>
+        <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(196,151,74,0.8)", marginBottom: "10px" }}>IMPORTANT · READ BEFORE CITING</div>
+        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.75, fontWeight: 300 }}>
           This is an AI-generated analysis of publicly available source code at a specific point in time. It may contain errors, omissions, or misinterpretations. The pinned record preserves what was analyzed and what conclusions were reached — not that those conclusions are definitively correct. Always verify findings with primary sources before citing in legal, regulatory, or journalistic contexts. This is not legal or compliance advice.
         </div>
       </div>
