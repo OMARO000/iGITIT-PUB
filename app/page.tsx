@@ -364,8 +364,43 @@ export default function IGititPage() {
     const r2 = params.get("compare"); if (r2) { setUrlB(decodeURIComponent(r2)); setCompareMode(true) }
   }, [])
 
-  // Reset comparison when either analysis changes
-  useEffect(() => { setComparison(null); setComparisonError(null) }, [analysisA, analysisB])
+  const loadComparison = useCallback(async () => {
+    if (!analysisA || !analysisB) return
+    setComparisonLoading(true); setComparisonError(null)
+    try {
+      const res = await fetch("/api/compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisA, analysisB }) })
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Failed to compare") }
+      const { comparison: data } = await res.json()
+      setComparison(data)
+      comparisonRef.current = data
+    } catch (err) {
+      setComparisonError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setComparisonLoading(false)
+    }
+  }, [analysisA, analysisB])
+
+  const loadChangelog = useCallback(async (depth: 10 | 25 | 50) => {
+    if (!analysisA) return
+    setChangelogLoading(true); setChangelogError(null); setChangelog(null); setChangelogDepth(depth)
+    try {
+      const res = await fetch("/api/changelog", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ owner: analysisA.meta.owner, repo: analysisA.meta.repo, platform: analysisA.meta.platform ?? "GitHub", depth }) })
+      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Failed to fetch changelog") }
+      const data = await res.json()
+      setChangelog(data.changelog)
+    } catch (err) {
+      setChangelogError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setChangelogLoading(false)
+    }
+  }, [analysisA])
+
+  // Reset comparison only when compare mode toggles — not on every individual analysis change
+  useEffect(() => {
+    setComparison(null)
+    setComparisonError(null)
+    comparisonRef.current = null
+  }, [compareMode])
 
   // Auto-trigger comparison as soon as both analyses are ready in compare mode
   useEffect(() => {
@@ -379,7 +414,7 @@ export default function IGititPage() {
     if (analysisA && !compareMode && !changelog && !changelogLoading) {
       loadChangelog(50)
     }
-  }, [analysisA, compareMode])
+  }, [analysisA, compareMode, loadChangelog])
 
   const handleUrlChange = (setter: (v: string) => void, setAnim: (v: boolean) => void) => (val: string) => {
     setter(val)
@@ -463,41 +498,10 @@ export default function IGititPage() {
     await runAnalysis(urlB.trim(), platform, setAnalyzingB, setStepB, setAnalysisB, setErrorB, setFetchedFilePathsB, setFetchedFileOutputsB)
   }
 
-  const loadComparison = useCallback(async () => {
-    if (!analysisA || !analysisB) return
-    setComparisonLoading(true); setComparisonError(null)
-    try {
-      const res = await fetch("/api/compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ analysisA, analysisB }) })
-      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Failed to compare") }
-      const { comparison: data } = await res.json()
-      setComparison(data)
-      comparisonRef.current = data
-    } catch (err) {
-      setComparisonError(err instanceof Error ? err.message : "Something went wrong")
-    } finally {
-      setComparisonLoading(false)
-    }
-  }, [analysisA, analysisB])
-
   const handleTabClick = (tab: Tab) => {
     setActiveTab(tab)
     if (tab === "changelog" && !changelog && !changelogLoading) loadChangelog(changelogDepth)
     if (tab === "comparison" && !comparison && !comparisonLoading) loadComparison()
-  }
-
-  const loadChangelog = async (depth: 10 | 25 | 50) => {
-    if (!analysisA) return
-    setChangelogLoading(true); setChangelogError(null); setChangelog(null); setChangelogDepth(depth)
-    try {
-      const res = await fetch("/api/changelog", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ owner: analysisA.meta.owner, repo: analysisA.meta.repo, platform: analysisA.meta.platform ?? "GitHub", depth }) })
-      if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "Failed to fetch changelog") }
-      const data = await res.json()
-      setChangelog(data.changelog)
-    } catch (err) {
-      setChangelogError(err instanceof Error ? err.message : "Something went wrong")
-    } finally {
-      setChangelogLoading(false)
-    }
   }
 
   const handleCopyLink = async () => {
