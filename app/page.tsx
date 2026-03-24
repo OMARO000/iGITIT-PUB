@@ -409,12 +409,6 @@ export default function IGititPage() {
     }
   }, [analysisA, analysisB, compareMode, loadComparison])
 
-  // Auto-load changelog when a single repo is analyzed
-  useEffect(() => {
-    if (analysisA && !compareMode && !changelog && !changelogLoading) {
-      loadChangelog(50)
-    }
-  }, [analysisA, compareMode, loadChangelog])
 
   const handleUrlChange = (setter: (v: string) => void, setAnim: (v: boolean) => void) => (val: string) => {
     setter(val)
@@ -455,6 +449,19 @@ export default function IGititPage() {
       const { analysis: data, meta } = await analyzeRes.json()
       const full: Analysis = { ...data, meta: { ...meta, platform: platform === "github" ? "GitHub" : "GitLab" } }
       setAnalysis(full)
+
+      // Auto-preload changelog for single-repo mode — fires directly with the
+      // analysis data we just received, bypassing the useEffect/useCallback chain
+      if (setAnalysis === setAnalysisA && !compareMode) {
+        setChangelogLoading(true); setChangelog(null); setChangelogDepth(50)
+        fetch("/api/changelog", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ owner: full.meta.owner, repo: full.meta.repo, platform: full.meta.platform ?? "GitHub", depth: 50 }),
+        }).then(r => r.json()).then(data => {
+          setChangelog(data.changelog ?? [])
+        }).catch(() => {}).finally(() => setChangelogLoading(false))
+      }
 
       // Build outputs from module descriptions — cycle through in order
       const outputs = (repoData.filePaths ?? []).map((_: string, idx: number) => {
