@@ -646,7 +646,7 @@ export default function IGititPage() {
               [ history · {history.length} ]
             </button>
           )}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "rgba(74,158,240,0.6)", letterSpacing: "0.12em", border: "1px solid rgba(74,158,240,0.25)", padding: "6px 14px", borderRadius: "4px", lineHeight: 1.6, fontFamily: "inherit", whiteSpace: "nowrap" }}><span>AN</span><span>OMARO</span><span>PBC</span><span>COMPANY</span></div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "#4A9EF0", letterSpacing: "0.12em", border: "1px solid #4A9EF0", padding: "6px 14px", borderRadius: "4px", lineHeight: 1.6, fontFamily: "inherit", whiteSpace: "nowrap", background: "rgba(74,158,240,0.12)" }}><span>AN</span><span>OMARO</span><span>PBC</span><span>COMPANY</span></div>
         </div>
       </div>
 
