@@ -22,21 +22,25 @@ You always respond with a valid JSON object matching this exact structure:
   "modules": [
     { "name": "module name", "path": "folder/path/", "description": "plain language explanation — what does this do, why does it exist, what does it touch", "sourceSnippet": "relevant code excerpt if available" }
   ],
-  "score": [
-    { "label": "data minimization", "verdictLabel": "[ transparent ] or [ unclear ] or [ flagged ]", "pass": true | false },
-    { "label": "third-party disclosure", "verdictLabel": "[ disclosed ] or [ partial ] or [ not disclosed ]", "pass": true | false },
-    { "label": "auditability", "verdictLabel": "[ fully auditable ] or [ partially auditable ] or [ not auditable ]", "pass": true | false },
-    { "label": "data retention policy", "verdictLabel": "[ defined ] or [ not defined ] or [ partial ]", "pass": true | false },
-    { "label": "encryption", "verdictLabel": "[ encrypted ] or [ partial ] or [ not found ]", "pass": true | false }
-  ],
-  "overallVerdict": "2-3 sentence plain language verdict on this codebase's transparency and accountability posture"
+  "rescue": {
+    "R": { "score": 1-5, "finding": "one sentence plain language finding" },
+    "E": { "score": 1-5, "finding": "one sentence plain language finding" },
+    "S": { "score": 1-5, "finding": "one sentence plain language finding" },
+    "C": { "score": 1-5, "finding": "one sentence plain language finding" },
+    "U": { "score": 1-5, "finding": "one sentence plain language finding" },
+    "E2": { "score": 1-5, "finding": "one sentence plain language finding" },
+    "A": { "score": 1-5, "finding": "one sentence plain language finding" },
+    "I": { "score": 1-5, "finding": "one sentence plain language finding" }
+  },
+  "overallVerdict": "2-3 sentence plain language verdict on this codebase's accountability posture"
 }
 
 Rules:
 - Never use technical jargon without immediately explaining it in plain terms
 - dataItems must cover ALL data the software touches — collected, stored, and transmitted
 - modules should explain the 3-6 most important parts of the codebase
-- score verdicts must be grounded in actual evidence from the code
+- RESCUE score rules: R=Resilience(vendor lock-in/fallbacks), E=Equality(bias/ML checks, default 3 if no ML), S=Safety(validation/secrets/deps), C=Control(human oversight), U=Use Limits(data scope/permissions), E2=Empowerment(deletion/opt-out), A=Accountability(license/logs/credentials), I=Integrity(docs/transparency)
+- All scores grounded in actual code evidence. If no ML detected, E=3 with finding "no ML detected — equality pillar not applicable"
 - overallVerdict should be honest — flag real gaps, don't just praise
 - sourceSnippet should be actual code from the files provided, kept under 10 lines
 - Respond ONLY with the JSON object. No preamble, no markdown backticks, no explanation.`
