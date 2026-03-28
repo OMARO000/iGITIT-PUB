@@ -610,7 +610,7 @@ export default function IGititPage() {
   ]
 
   return (
-    <div style={{ minHeight: "100dvh", background: "#0b0b0c", fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: "rgba(255,255,255,0.92)", padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto" }}>
+    <div suppressHydrationWarning className="scanlines" style={{ minHeight: "100dvh", background: "#0b0b0c", fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: "rgba(255,255,255,0.92)", padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto" }}>
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
@@ -622,6 +622,7 @@ export default function IGititPage() {
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
         @keyframes pulse-btn { 0%,100%{box-shadow:0 0 0 0 rgba(74,158,240,0.4)} 50%{box-shadow:0 0 0 8px rgba(74,158,240,0)} }
+        .scanlines { background-image: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.08) 1px, rgba(255,255,255,0.08) 2px, transparent 2px, transparent 4px); }
         .tab-btn:hover { background: rgba(255,255,255,0.05) !important; }
         .analyze-btn { background: #4A9EF0 !important; color: #0b0b0c !important; border: 1px solid #4A9EF0 !important; }
         .analyze-btn:hover { background: rgba(74,158,240,0.9) !important; }
