@@ -646,7 +646,7 @@ export default function IGititPage() {
               [ history · {history.length} ]
             </button>
           )}
-          <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", border: "1px solid rgba(255,255,255,0.1)", padding: "6px 20px", borderRadius: "4px", whiteSpace: "nowrap" }}>OMARO PBC</div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "rgba(74,158,240,0.6)", letterSpacing: "0.12em", border: "1px solid rgba(74,158,240,0.25)", padding: "6px 14px", borderRadius: "4px", lineHeight: 1.6, fontFamily: "inherit", whiteSpace: "nowrap" }}><span>AN</span><span>OMARO</span><span>PBC</span><span>COMPANY</span></div>
         </div>
       </div>
 
