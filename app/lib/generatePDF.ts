@@ -155,14 +155,15 @@ function helpers(doc: JPDF) {
 export interface OverviewSection { title: string; content: string }
 export interface DataItem { type: "collect"|"store"|"send"; label: string; description: string; sourceLine?: string }
 export interface Module { name: string; path: string; description: string; sourceSnippet?: string }
-export interface ScoreDimension { label: string; verdictLabel: string; pass: boolean; reasoning?: string }
+export interface RescuePillar { score: number; finding: string }
+export interface RescueScore { R: RescuePillar; E: RescuePillar; S: RescuePillar; C: RescuePillar; U: RescuePillar; E2: RescuePillar; A: RescuePillar; I: RescuePillar }
 export interface Analysis {
   meta?: Record<string,unknown>
   overview: OverviewSection[]
   dataItems: DataItem[]
   dataFlowSummary: string
   modules: Module[]
-  score: ScoreDimension[]
+  rescue: RescueScore
   overallVerdict: string
 }
 export interface ChangelogEntry {
@@ -261,22 +262,39 @@ export async function downloadAnalysisPDF(
   y += 5
   h.divider(y); y += 7
 
-  // ── ACCOUNTABILITY SCORE ──────────────────────────────
+  // ── RESCUE SCORE ─────────────────────────────────────
   y = h.checkPage(y, 20)
-  h.sectionLabel(y, "ACCOUNTABILITY SCORE"); y += 8
-
-  for (const dim of analysis.score ?? []) {
-    y = h.checkPage(y, 12)
-    doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
-    doc.text(dim.label, 14, y)
-    // Bar: starts at x=75, width=55 — leaves room for verdict label on right
-    doc.setFillColor(...C.border); doc.rect(75, y-4, 55, 3, "F")
-    doc.setFillColor(...(dim.pass ? C.green : C.red))
-    doc.rect(75, y-4, dim.pass ? 46 : 12, 3, "F")
-    // Verdict: right-aligned with enough left margin
-    doc.setFontSize(8); doc.setTextColor(...(dim.pass ? C.green : C.red))
-    doc.text(dim.verdictLabel, h.W-14, y, {align:"right"})
-    y += 9
+  const rescuePillars = [
+    { key: "R", label: "Resilience & Dependency Prevention" },
+    { key: "E", label: "Equality / Non-Discrimination" },
+    { key: "S", label: "Safety & Robustness" },
+    { key: "C", label: "Control & Human Oversight" },
+    { key: "U", label: "Use Limits & Proportionality" },
+    { key: "E2", label: "Empowerment & Rights" },
+    { key: "A", label: "Accountability & Privacy" },
+    { key: "I", label: "Integrity & Transparency" },
+  ]
+  const rScore = analysis.rescue
+  const totalRaw = rScore ? Object.values(rScore).reduce((s, p) => s + (p as RescuePillar).score, 0) : 0
+  const grade = totalRaw >= 36 ? "A" : totalRaw >= 30 ? "B" : totalRaw >= 24 ? "C" : totalRaw >= 16 ? "D" : "F"
+  h.sectionLabel(y, `RESCUE SCORE · [${grade}] ${totalRaw}/40 · GOVERNED BY OMARO PBC`); y += 8
+  if (rScore) {
+    for (const { key, label } of rescuePillars) {
+      y = h.checkPage(y, 12)
+      const pillar = rScore[key as keyof RescueScore]
+      const pct = (pillar.score / 5) * 55
+      const col = pillar.score >= 4 ? C.green : pillar.score >= 3 ? C.blue : pillar.score >= 2 ? C.amber : C.red
+      doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+      doc.text(`[${key}] ${label}`, 14, y)
+      doc.setFillColor(...C.border); doc.rect(100, y-4, 55, 3, "F")
+      doc.setFillColor(...col); doc.rect(100, y-4, pct, 3, "F")
+      doc.setFontSize(8); doc.setTextColor(...col)
+      doc.text(`${pillar.score}/5`, h.W-14, y, {align:"right"})
+      const findLines = doc.splitTextToSize(pillar.finding, h.TEXT_W - 10)
+      doc.setFontSize(7); doc.setTextColor(...C.muted)
+      doc.text(findLines[0], 14, y+4)
+      y += 12
+    }
   }
   h.divider(y); y += 7
 
@@ -488,19 +506,39 @@ export async function downloadComparePDF(
     ry += 5
     h.divider(ry); ry += 7
 
-    // ACCOUNTABILITY SCORE
+    // RESCUE SCORE
     ry = h.checkPage(ry, 20)
-    h.sectionLabel(ry, "ACCOUNTABILITY SCORE"); ry += 8
-    for (const dim of analysis.score ?? []) {
-      ry = h.checkPage(ry, 12)
-      doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
-      doc.text(dim.label, 14, ry)
-      doc.setFillColor(...C.border); doc.rect(75, ry-4, 55, 3, "F")
-      doc.setFillColor(...(dim.pass ? C.green : C.red))
-      doc.rect(75, ry-4, dim.pass ? 46 : 12, 3, "F")
-      doc.setFontSize(8); doc.setTextColor(...(dim.pass ? C.green : C.red))
-      doc.text(dim.verdictLabel, h.W-14, ry, {align:"right"})
-      ry += 9
+    const wrPillars = [
+      { key: "R", label: "Resilience & Dependency Prevention" },
+      { key: "E", label: "Equality / Non-Discrimination" },
+      { key: "S", label: "Safety & Robustness" },
+      { key: "C", label: "Control & Human Oversight" },
+      { key: "U", label: "Use Limits & Proportionality" },
+      { key: "E2", label: "Empowerment & Rights" },
+      { key: "A", label: "Accountability & Privacy" },
+      { key: "I", label: "Integrity & Transparency" },
+    ]
+    const wrScore = analysis.rescue
+    const wrTotal = wrScore ? Object.values(wrScore).reduce((s, p) => s + (p as RescuePillar).score, 0) : 0
+    const wrGrade = wrTotal >= 36 ? "A" : wrTotal >= 30 ? "B" : wrTotal >= 24 ? "C" : wrTotal >= 16 ? "D" : "F"
+    h.sectionLabel(ry, `RESCUE SCORE · [${wrGrade}] ${wrTotal}/40 · GOVERNED BY OMARO PBC`); ry += 8
+    if (wrScore) {
+      for (const { key, label } of wrPillars) {
+        ry = h.checkPage(ry, 12)
+        const pillar = wrScore[key as keyof RescueScore]
+        const pct = (pillar.score / 5) * 55
+        const col = pillar.score >= 4 ? C.green : pillar.score >= 3 ? C.blue : pillar.score >= 2 ? C.amber : C.red
+        doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
+        doc.text(`[${key}] ${label}`, 14, ry)
+        doc.setFillColor(...C.border); doc.rect(100, ry-4, 55, 3, "F")
+        doc.setFillColor(...col); doc.rect(100, ry-4, pct, 3, "F")
+        doc.setFontSize(8); doc.setTextColor(...col)
+        doc.text(`${pillar.score}/5`, h.W-14, ry, {align:"right"})
+        const findLines = doc.splitTextToSize(pillar.finding, h.TEXT_W - 10)
+        doc.setFontSize(7); doc.setTextColor(...C.muted)
+        doc.text(findLines[0], 14, ry+4)
+        ry += 12
+      }
     }
     h.divider(ry); ry += 7
 

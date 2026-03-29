@@ -92,8 +92,10 @@ function buildTextReport(analysis: Analysis): string {
   }
   L.push("", "DATA FLOW SUMMARY", dataFlowSummary, "", "═══════════════════════════════", "MODULE BREAKDOWN", "═══════════════════════════════")
   for (const mod of modules) { L.push(`\n${mod.name}${mod.path ? ` (${mod.path})` : ""}`, mod.description) }
-  L.push("", "═══════════════════════════════", "ACCOUNTABILITY SCORE", "═══════════════════════════════")
-  for (const [k, v] of Object.entries(rescue)) { L.push(`\n${k}: ${(v as RescuePillar).score}/5 — ${(v as RescuePillar).finding}`) }
+  const totalRaw = Object.values(rescue).reduce((s, p) => s + (p as RescuePillar).score, 0)
+  const grade = totalRaw >= 36 ? "A" : totalRaw >= 30 ? "B" : totalRaw >= 24 ? "C" : totalRaw >= 16 ? "D" : "F"
+  L.push("", "═══════════════════════════════", `RESCUE SCORE · [${grade}] ${totalRaw}/40 · GOVERNED BY OMARO PBC`, "═══════════════════════════════")
+  for (const [k, v] of Object.entries(rescue)) { L.push(`\n[${k}]: ${(v as RescuePillar).score}/5 — ${(v as RescuePillar).finding}`) }
   L.push("", "OVERALL VERDICT", overallVerdict, "", "─────────────────────────────────────────────────────")
   L.push("analysis reflects repository state at time of request · not legal or compliance advice", "igitit.xyz · omaro-pbc.org")
   return L.join("\n")
@@ -215,7 +217,7 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
             RESCUE SCORE · {analysis.meta.owner}/{analysis.meta.repo}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "24px" }}>
-            <div style={{ fontSize: "64px", fontFamily: "inherit", color: gradeColor, fontWeight: 300, lineHeight: 1 }}>{grade}</div>
+            <div style={{ fontSize: "64px", fontFamily: "inherit", color: gradeColor, fontWeight: 300, lineHeight: 1 }}>[{grade}]</div>
             <div>
               <div style={{ fontSize: "24px", color: gradeColor, fontWeight: 300 }}>{totalRaw}/40</div>
               <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", marginTop: "4px" }}>RESCUE SCORE · GOVERNED BY OMARO PBC</div>
