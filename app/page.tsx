@@ -1176,20 +1176,20 @@ export default function IGititPage() {
           </div>
           {/* DOSSIER PANEL */}
           {dossierOpen && analysisA && (
-            <div style={{ width: "300px", minWidth: "300px", background: "#0d1520", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "8px", marginLeft: "16px", marginRight: "-40px", padding: "16px", flexShrink: 0, alignSelf: "flex-start", position: "sticky", top: "20px", boxShadow: "4px 0 24px rgba(74,158,240,0.06)" }}>
-              <div style={{ fontSize: "11px", color: "#4A9EF0", letterSpacing: "0.12em", marginBottom: "14px", paddingBottom: "10px", borderBottom: "1px solid rgba(74,158,240,0.12)" }}>[ dossier ]</div>
+            <div style={{ width: "380px", minWidth: "380px", background: "#0d1520", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "8px", marginLeft: "16px", marginRight: "-140px", padding: "20px", flexShrink: 0, alignSelf: "flex-start", position: "sticky", top: "20px", boxShadow: "4px 0 32px rgba(74,158,240,0.08)" }}>
+              <div style={{ fontSize: "13px", color: "#4A9EF0", letterSpacing: "0.12em", marginBottom: "14px", paddingBottom: "10px", borderBottom: "1px solid rgba(74,158,240,0.12)" }}>[ dossier ]</div>
 
               {/* PLATFORM CONTEXT */}
               <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "7px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>PLATFORM CONTEXT</div>
-                <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>PLATFORM CONTEXT</div>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
                   {analysisA.meta.owner} · {analysisA.meta.description || "no description available"}
                 </div>
               </div>
 
               {/* RESCUE FLAGS */}
               <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "7px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "6px" }}>RESCUE FLAGS</div>
+                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "6px" }}>RESCUE FLAGS</div>
                 {analysisA.rescue && (() => {
                   const pillars = Object.entries(analysisA.rescue) as [string, {score: number; finding: string}][]
                   const lowest = pillars.sort((a, b) => a[1].score - b[1].score).slice(0, 2)
@@ -1202,7 +1202,7 @@ export default function IGititPage() {
                       <div style={{ height: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "1px" }}>
                         <div style={{ height: "2px", width: `${(val.score/5)*100}%`, background: "#E05C5C", borderRadius: "1px" }} />
                       </div>
-                      <div style={{ fontSize: "7px", color: "rgba(255,255,255,0.25)", marginTop: "3px", lineHeight: 1.5 }}>{val.finding}</div>
+                      <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.25)", marginTop: "3px", lineHeight: 1.5 }}>{val.finding}</div>
                     </div>
                   ))
                 })()}
@@ -1210,7 +1210,7 @@ export default function IGititPage() {
 
               {/* LICENSE */}
               <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "7px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>LICENSE</div>
+                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>LICENSE</div>
                 {analysisA.meta.license ? (
                   <>
                     <div style={{ display: "inline-block", fontSize: "7px", padding: "2px 7px", background: "rgba(74,158,240,0.1)", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "3px", color: "#4A9EF0", marginBottom: "5px" }}>{analysisA.meta.license}</div>
@@ -1229,13 +1229,13 @@ export default function IGititPage() {
 
               {/* HF MODEL CARD */}
               <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "7px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>HF MODEL CARD</div>
+                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>HF MODEL CARD</div>
                 <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.15)", fontStyle: "italic", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: "4px", padding: "6px 8px" }}>no ML detected in this repo</div>
               </div>
 
               {/* OMEN RECORD */}
               <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "7px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>OMEN RECORD</div>
+                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>OMEN RECORD</div>
                 <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.15)", fontStyle: "italic", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: "4px", padding: "6px 8px" }}>no entries yet · <span style={{ color: "rgba(74,158,240,0.4)", cursor: "pointer" }}>[ submit a finding ]</span></div>
               </div>
 
