@@ -355,6 +355,8 @@ export default function IGititPage() {
   const [fetchedFilePathsB, setFetchedFilePathsB] = useState<string[]>([])
   const [fetchedFileOutputsB, setFetchedFileOutputsB] = useState<string[]>([])
 
+  const [dossierOpen, setDossierOpen] = useState(false)
+
   // Compare repo
   const [compareMode, setCompareMode] = useState(false)
   const [urlB, setUrlB] = useState("")
@@ -775,7 +777,27 @@ export default function IGititPage() {
             </div>
           )}
 
-          {/* EXPORT + VERIFY + COMPARE BAR */}
+          {/* ROW 1 — TABS + DOSSIER + COMPARE */}
+          <div style={{ display: "flex", gap: "8px", marginBottom: "10px", flexWrap: "wrap", alignItems: "center" }}>
+            {tabs.map(tab => (
+              <button key={tab.id} className="tab-btn" onClick={() => handleTabClick(tab.id)} style={{ padding: "10px 14px", background: activeTab === tab.id ? "rgba(74,158,240,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${activeTab === tab.id ? "#4A9EF0" : "rgba(255,255,255,0.08)"}`, borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: activeTab === tab.id ? "#4A9EF0" : "rgba(255,255,255,0.45)", cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s" }}>
+                {tab.label}
+              </button>
+            ))}
+            <button
+              onClick={() => setDossierOpen(d => !d)}
+              style={{ padding: "10px 14px", background: dossierOpen ? "rgba(74,158,240,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${dossierOpen ? "#4A9EF0" : "rgba(74,158,240,0.25)"}`, borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: dossierOpen ? "#4A9EF0" : "rgba(74,158,240,0.6)", cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s" }}>
+              {dossierOpen ? "[ dossier ✕ ]" : "[ dossier ]"}
+            </button>
+            <button
+              className="compare-btn"
+              onClick={() => { setCompareMode(!compareMode); if (compareMode) { setAnalysisB(null); setUrlB(""); setComparison(null); setActiveTab("overview") } }}
+              style={{ padding: "10px 14px", background: compareMode ? "rgba(74,158,240,0.15)" : "rgba(255,255,255,0.03)", border: `1px solid ${compareMode ? "#4A9EF0" : "rgba(255,255,255,0.15)"}`, borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: compareMode ? "#4A9EF0" : "rgba(255,255,255,0.5)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
+              {compareMode ? "[ × exit compare ]" : "[ + compare ]"}
+            </button>
+          </div>
+
+          {/* ROW 2 — UTILITY ACTIONS */}
           <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap", alignItems: "center" }}>
             {[
               { id: "link", label: copyState === "link" ? "✓ link copied" : "[ copy link ]", action: handleCopyLink },
@@ -808,50 +830,21 @@ export default function IGititPage() {
                 [ download comparison pdf ]
               </button>
             )}
-
             {verifyState === "idle" && (
               <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "rgba(255,255,255,0.3)", cursor: "pointer", letterSpacing: "0.06em" }}>
-                <input
-                  type="checkbox"
-                  checked={includeFullSource}
-                  onChange={e => setIncludeFullSource(e.target.checked)}
-                  style={{ accentColor: "#4A9EF0" }}
-                />
+                <input type="checkbox" checked={includeFullSource} onChange={e => setIncludeFullSource(e.target.checked)} style={{ accentColor: "#4A9EF0" }} />
                 include full source
               </label>
             )}
-
-            {/* VERIFY BUTTON */}
             <button
               onClick={handleVerify}
               disabled={verifyState === "loading" || verifyState === "done"}
-              style={{
-                padding: "8px 16px",
-                background: verifyState === "done" ? "rgba(76,175,125,0.1)" : "rgba(255,255,255,0.03)",
-                border: `1px solid ${verifyState === "done" ? "rgba(76,175,125,0.4)" : verifyState === "error" ? "rgba(224,92,92,0.4)" : "rgba(255,255,255,0.1)"}`,
-                borderRadius: "6px",
-                fontFamily: "inherit",
-                fontSize: "13px",
-                color: verifyState === "done" ? "#4CAF7D" : verifyState === "error" ? "#E05C5C" : verifyState === "loading" ? "rgba(74,158,240,0.6)" : "rgba(255,255,255,0.4)",
-                cursor: verifyState === "loading" || verifyState === "done" ? "default" : "pointer",
-                letterSpacing: "0.06em",
-                transition: "all 0.15s",
-              }}
-            >
+              style={{ padding: "8px 16px", background: verifyState === "done" ? "rgba(76,175,125,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${verifyState === "done" ? "rgba(76,175,125,0.4)" : verifyState === "error" ? "rgba(224,92,92,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: verifyState === "done" ? "#4CAF7D" : verifyState === "error" ? "#E05C5C" : verifyState === "loading" ? "rgba(74,158,240,0.6)" : "rgba(255,255,255,0.4)", cursor: verifyState === "loading" || verifyState === "done" ? "default" : "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
               {verifyState === "idle" && "[ verify & pin ]"}
               {verifyState === "loading" && "[ pinning… ]"}
               {verifyState === "done" && "✓ verified"}
               {verifyState === "error" && "⚠ failed"}
             </button>
-
-            <div style={{ marginLeft: "auto" }}>
-              <button
-                className="compare-btn"
-                onClick={() => { setCompareMode(!compareMode); if (compareMode) { setAnalysisB(null); setUrlB(""); setComparison(null); setActiveTab("overview") } }}
-                style={{ padding: "8px 18px", background: compareMode ? "rgba(74,158,240,0.15)" : "rgba(255,255,255,0.03)", border: `1px solid ${compareMode ? "#4A9EF0" : "rgba(255,255,255,0.15)"}`, borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: compareMode ? "#4A9EF0" : "rgba(255,255,255,0.5)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
-                {compareMode ? "[ × exit compare ]" : "[ + compare ]"}
-              </button>
-            </div>
           </div>
 
           {/* VERIFY RESULT CARD — shows below export bar when pinned */}
@@ -909,15 +902,6 @@ export default function IGititPage() {
               )}
             </div>
           )}
-
-          {/* TABS */}
-          <div style={{ display: "grid", gridTemplateColumns: `repeat(${tabs.length}, 1fr)`, gap: "8px", marginBottom: "20px" }}>
-            {tabs.map(tab => (
-              <button key={tab.id} className="tab-btn" onClick={() => handleTabClick(tab.id)} style={{ padding: "14px 6px", background: activeTab === tab.id ? "rgba(74,158,240,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${activeTab === tab.id ? "#4A9EF0" : "rgba(255,255,255,0.08)"}`, borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: activeTab === tab.id ? "#4A9EF0" : "rgba(255,255,255,0.45)", cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s", textAlign: "center" }}>
-                {tab.label}
-              </button>
-            ))}
-          </div>
 
           {/* TAB CONTENT */}
           <div key={activeTab} style={{ animation: "fadeIn 0.25s ease" }}>
