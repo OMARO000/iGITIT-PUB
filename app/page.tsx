@@ -840,7 +840,7 @@ export default function IGititPage() {
               {verifyState === "error" && "⚠ failed"}
             </button>
             {verifyState === "idle" && (
-              <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "rgba(255,255,255,0.3)", cursor: "pointer", letterSpacing: "0.06em" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "rgba(255,255,255,0.3)", cursor: "pointer", letterSpacing: "0.06em", maxWidth: "80px", flexWrap: "wrap", flexShrink: 0 }}>
                 <input type="checkbox" checked={includeFullSource} onChange={e => setIncludeFullSource(e.target.checked)} style={{ accentColor: "#4A9EF0" }} />
                 include full source
               </label>
