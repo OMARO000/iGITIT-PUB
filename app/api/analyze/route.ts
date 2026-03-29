@@ -32,7 +32,8 @@ You always respond with a valid JSON object matching this exact structure:
     "A": { "score": 1-5, "finding": "one sentence plain language finding" },
     "I": { "score": 1-5, "finding": "one sentence plain language finding" }
   },
-  "overallVerdict": "2-3 sentence plain language verdict on this codebase's accountability posture"
+  "overallVerdict": "2-3 sentence plain language verdict on this codebase's accountability posture",
+  "platformContext": "2-3 sentence plain language description of the ORGANIZATION behind this repo — not the repo itself. Who are they, what is their business model, what are they known for at scale, and why does it matter from an accountability perspective. Be direct and factual."
 }
 
 Rules:
@@ -42,6 +43,7 @@ Rules:
 - RESCUE score rules: R=Resilience(vendor lock-in/fallbacks), E=Equality(bias/ML checks, default 3 if no ML), S=Safety(validation/secrets/deps), C=Control(human oversight), U=Use Limits(data scope/permissions), E2=Empowerment(deletion/opt-out), A=Accountability(license/logs/credentials), I=Integrity(docs/transparency)
 - All scores grounded in actual code evidence. If no ML detected, E=3 with finding "no ML detected — equality pillar not applicable"
 - overallVerdict should be honest — flag real gaps, don't just praise
+- platformContext must describe the ORG not the repo — their scale, business model, known practices, and accountability relevance. For unknown orgs, note they have limited public footprint.
 - sourceSnippet should be actual code from the files provided, kept under 10 lines
 - Respond ONLY with the JSON object. No preamble, no markdown backticks, no explanation.`
 

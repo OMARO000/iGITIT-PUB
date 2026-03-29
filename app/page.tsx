@@ -1183,7 +1183,7 @@ export default function IGititPage() {
               <div style={{ marginBottom: "14px" }}>
                 <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>PLATFORM CONTEXT</div>
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
-                  {analysisA.meta.owner} · {analysisA.meta.description || "no description available"}
+                  {(analysisA as any).platformContext || `${analysisA.meta.owner} · ${analysisA.meta.stars?.toLocaleString()} stars on ${analysisA.meta.platform ?? "GitHub"}`}
                 </div>
               </div>
 
