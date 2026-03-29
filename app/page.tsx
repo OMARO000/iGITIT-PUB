@@ -1176,7 +1176,7 @@ export default function IGititPage() {
           </div>
           {/* DOSSIER PANEL */}
           {dossierOpen && analysisA && (
-            <div style={{ width: "260px", minWidth: "260px", background: "#0d1520", border: "1px solid rgba(74,158,240,0.15)", borderRadius: "8px", marginLeft: "16px", padding: "16px", flexShrink: 0, alignSelf: "flex-start", position: "sticky", top: "20px" }}>
+            <div style={{ width: "300px", minWidth: "300px", background: "#0d1520", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "8px", marginLeft: "16px", marginRight: "-40px", padding: "16px", flexShrink: 0, alignSelf: "flex-start", position: "sticky", top: "20px", boxShadow: "4px 0 24px rgba(74,158,240,0.06)" }}>
               <div style={{ fontSize: "11px", color: "#4A9EF0", letterSpacing: "0.12em", marginBottom: "14px", paddingBottom: "10px", borderBottom: "1px solid rgba(74,158,240,0.12)" }}>[ dossier ]</div>
 
               {/* PLATFORM CONTEXT */}
