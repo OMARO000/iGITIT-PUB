@@ -830,23 +830,21 @@ export default function IGititPage() {
                 [ download comparison pdf ]
               </button>
             )}
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <button
-                onClick={handleVerify}
-                disabled={verifyState === "loading" || verifyState === "done"}
-                style={{ padding: "8px 16px", background: verifyState === "done" ? "rgba(76,175,125,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${verifyState === "done" ? "rgba(76,175,125,0.4)" : verifyState === "error" ? "rgba(224,92,92,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: verifyState === "done" ? "#4CAF7D" : verifyState === "error" ? "#E05C5C" : verifyState === "loading" ? "rgba(74,158,240,0.6)" : "rgba(255,255,255,0.4)", cursor: verifyState === "loading" || verifyState === "done" ? "default" : "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
-                {verifyState === "idle" && "[ verify & pin ]"}
-                {verifyState === "loading" && "[ pinning… ]"}
-                {verifyState === "done" && "✓ verified"}
-                {verifyState === "error" && "⚠ failed"}
-              </button>
-              {verifyState === "idle" && (
-                <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "rgba(255,255,255,0.3)", cursor: "pointer", letterSpacing: "0.06em" }}>
-                  <input type="checkbox" checked={includeFullSource} onChange={e => setIncludeFullSource(e.target.checked)} style={{ accentColor: "#4A9EF0" }} />
-                  include full source
-                </label>
-              )}
-            </div>
+            <button
+              onClick={handleVerify}
+              disabled={verifyState === "loading" || verifyState === "done"}
+              style={{ padding: "8px 16px", background: verifyState === "done" ? "rgba(76,175,125,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${verifyState === "done" ? "rgba(76,175,125,0.4)" : verifyState === "error" ? "rgba(224,92,92,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: verifyState === "done" ? "#4CAF7D" : verifyState === "error" ? "#E05C5C" : verifyState === "loading" ? "rgba(74,158,240,0.6)" : "rgba(255,255,255,0.4)", cursor: verifyState === "loading" || verifyState === "done" ? "default" : "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
+              {verifyState === "idle" && "[ verify & pin ]"}
+              {verifyState === "loading" && "[ pinning… ]"}
+              {verifyState === "done" && "✓ verified"}
+              {verifyState === "error" && "⚠ failed"}
+            </button>
+            {verifyState === "idle" && (
+              <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "rgba(255,255,255,0.3)", cursor: "pointer", letterSpacing: "0.06em" }}>
+                <input type="checkbox" checked={includeFullSource} onChange={e => setIncludeFullSource(e.target.checked)} style={{ accentColor: "#4A9EF0" }} />
+                include full source
+              </label>
+            )}
           </div>
 
           {/* VERIFY RESULT CARD — shows below export bar when pinned */}
