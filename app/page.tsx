@@ -1189,20 +1189,24 @@ export default function IGititPage() {
 
               {/* RESCUE FLAGS */}
               <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "6px" }}>RESCUE FLAGS</div>
+                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "4px" }}>RESCUE FLAGS · LOWEST SCORING PILLARS ≤2</div>
+                <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.2)", lineHeight: 1.5, marginBottom: "8px" }}>RESCUE AI is OMARO's governance framework. Pillars scored 1–5 across resilience, equality, safety, control, use limits, empowerment, accountability, and integrity.</div>
                 {analysisA.rescue && (() => {
                   const pillars = Object.entries(analysisA.rescue) as [string, {score: number; finding: string}][]
-                  const lowest = pillars.sort((a, b) => a[1].score - b[1].score).slice(0, 2)
-                  return lowest.map(([key, val]) => (
-                    <div key={key} style={{ marginBottom: "8px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "8px", marginBottom: "3px" }}>
-                        <span style={{ color: "rgba(255,255,255,0.4)" }}>[{key}]</span>
-                        <span style={{ color: "#E05C5C" }}>{val.score}/5</span>
+                  const flagged = pillars.filter(([, val]) => val.score <= 2).sort((a, b) => a[1].score - b[1].score).slice(0, 3)
+                  if (flagged.length === 0) return (
+                    <div style={{ fontSize: "9px", color: "#4CAF7D", border: "1px solid rgba(76,175,125,0.2)", borderRadius: "4px", padding: "6px 8px" }}>[ no major flags detected ]</div>
+                  )
+                  return flagged.map(([key, val]) => (
+                    <div key={key} style={{ marginBottom: "10px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", marginBottom: "3px" }}>
+                        <span style={{ color: "rgba(255,255,255,0.5)" }}>[{key}]</span>
+                        <span style={{ color: val.score >= 4 ? "#4CAF7D" : val.score >= 3 ? "#4A9EF0" : val.score >= 2 ? "#F0A04A" : "#E05C5C" }}>{val.score}/5</span>
                       </div>
-                      <div style={{ height: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "1px" }}>
-                        <div style={{ height: "2px", width: `${(val.score/5)*100}%`, background: "#E05C5C", borderRadius: "1px" }} />
+                      <div style={{ height: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "1px", marginBottom: "4px" }}>
+                        <div style={{ height: "2px", width: `${(val.score/5)*100}%`, background: val.score >= 4 ? "#4CAF7D" : val.score >= 3 ? "#4A9EF0" : val.score >= 2 ? "#F0A04A" : "#E05C5C", borderRadius: "1px" }} />
                       </div>
-                      <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.25)", marginTop: "3px", lineHeight: 1.5 }}>{val.finding}</div>
+                      <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", lineHeight: 1.5 }}>{val.finding}</div>
                     </div>
                   ))
                 })()}
