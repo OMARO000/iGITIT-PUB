@@ -1200,7 +1200,7 @@ export default function IGititPage() {
                   return flagged.map(([key, val]) => (
                     <div key={key} style={{ marginBottom: "10px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", marginBottom: "3px" }}>
-                        <span style={{ color: "rgba(255,255,255,0.5)" }}>[{key}]</span>
+                        <span style={{ color: "rgba(255,255,255,0.5)" }}>[{key}] {({'R':'Resilience & Dependency Prevention','E':'Equality / Non-Discrimination','S':'Safety & Robustness','C':'Control & Human Oversight','U':'Use Limits & Proportionality','E2':'Empowerment & Rights','A':'Accountability & Privacy','I':'Integrity & Transparency'} as Record<string,string>)[key]}</span>
                         <span style={{ color: val.score >= 4 ? "#4CAF7D" : val.score >= 3 ? "#4A9EF0" : val.score >= 2 ? "#F0A04A" : "#E05C5C" }}>{val.score}/5</span>
                       </div>
                       <div style={{ height: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "1px", marginBottom: "4px" }}>
