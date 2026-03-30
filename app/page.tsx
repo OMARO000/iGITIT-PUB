@@ -9,7 +9,7 @@ import { downloadAnalysisPDF, downloadComparePDF } from "@/app/lib/generatePDF"
 // TYPES
 // ─────────────────────────────────────────────
 
-type Tab = "overview" | "data" | "modules" | "rescue" | "changelog" | "comparison"
+type Tab = "overview" | "data" | "modules" | "hai" | "changelog" | "comparison"
 
 interface RepoMeta {
   owner: string; repo: string; description: string; language: string
@@ -94,7 +94,7 @@ function buildTextReport(analysis: Analysis): string {
   for (const mod of modules) { L.push(`\n${mod.name}${mod.path ? ` (${mod.path})` : ""}`, mod.description) }
   const totalRaw = Object.values(rescue).reduce((s, p) => s + (p as RescuePillar).score, 0)
   const grade = totalRaw >= 36 ? "A" : totalRaw >= 30 ? "B" : totalRaw >= 24 ? "C" : totalRaw >= 16 ? "D" : "F"
-  L.push("", "═══════════════════════════════", `RESCUE SCORE · [${grade}] ${totalRaw}/40 · GOVERNED BY OMARO PBC`, "═══════════════════════════════")
+  L.push("", "═══════════════════════════════", `HAI SCORE · [${grade}] ${totalRaw}/40 · GOVERNED BY OMARO PBC`, "═══════════════════════════════")
   for (const [k, v] of Object.entries(rescue)) { L.push(`\n[${k}]: ${(v as RescuePillar).score}/5 — ${(v as RescuePillar).finding}`) }
   L.push("", "OVERALL VERDICT", overallVerdict, "", "─────────────────────────────────────────────────────")
   L.push("analysis reflects repository state at time of request · not legal or compliance advice", "igitit.xyz · omaro-pbc.org")
@@ -194,7 +194,7 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
     </div>
   )
 
-  if (activeTab === "rescue") {
+  if (activeTab === "hai") {
     const pillars = [
       { key: "R", label: "Resilience & Dependency Prevention" },
       { key: "E", label: "Equality / Non-Discrimination" },
@@ -214,13 +214,13 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
       <div>
         {card(<>
           <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>
-            RESCUE SCORE · {analysis.meta.owner}/{analysis.meta.repo}
+            HAI SCORE · {analysis.meta.owner}/{analysis.meta.repo}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "24px" }}>
             <div style={{ fontSize: "64px", fontFamily: "inherit", color: gradeColor, fontWeight: 300, lineHeight: 1 }}>[{grade}]</div>
             <div>
               <div style={{ fontSize: "24px", color: gradeColor, fontWeight: 300 }}>{totalRaw}/40</div>
-              <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", marginTop: "4px" }}>RESCUE SCORE · GOVERNED BY OMARO PBC</div>
+              <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", marginTop: "4px" }}>HAI SCORE · GOVERNED BY OMARO PBC</div>
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -640,7 +640,7 @@ export default function IGititPage() {
     { id: "overview", label: "[ overview ]" },
     { id: "data", label: "[ data narrative ]" },
     { id: "modules", label: "[ module breakdown ]" },
-    { id: "rescue", label: "[ rescue score ]" },
+    { id: "hai", label: "[ hai score ]" },
     ...(!compareMode ? [{ id: "changelog" as Tab, label: "[ change log ]" }] : []),
     ...(bothLoaded ? [{ id: "comparison" as Tab, label: "[ comparison ]" }] : []),
   ]
@@ -908,7 +908,7 @@ export default function IGititPage() {
           <div key={activeTab} style={{ animation: "fadeIn 0.25s ease", flex: 1, minWidth: 0 }}>
 
             {/* SIDE BY SIDE (overview/data/modules/score in compare mode) */}
-            {compareMode && ["overview", "data", "modules", "rescue"].includes(activeTab) && (
+            {compareMode && ["overview", "data", "modules", "hai"].includes(activeTab) && (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
                 <div>
                   <div style={{ fontSize: "12px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.25)", marginBottom: "12px", padding: "6px 12px", background: "rgba(255,255,255,0.03)", borderRadius: "4px", display: "inline-block" }}>
@@ -999,7 +999,7 @@ export default function IGititPage() {
               </div>
             )}
 
-            {!compareMode && activeTab === "rescue" && (
+            {!compareMode && activeTab === "hai" && (
               <RepoColumn analysis={analysisA} activeTab={activeTab} side="left" />
             )}
 
@@ -1189,8 +1189,8 @@ export default function IGititPage() {
 
               {/* RESCUE FLAGS */}
               <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "4px" }}>RESCUE FLAGS · LOWEST SCORING PILLARS ≤2</div>
-                <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.2)", lineHeight: 1.5, marginBottom: "8px" }}>RESCUE AI is OMARO's governance framework. Pillars scored 1–5 across resilience, equality, safety, control, use limits, empowerment, accountability, and integrity.</div>
+                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "4px" }}>HAI FLAGS · LOWEST SCORING PILLARS ≤2</div>
+                <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.2)", lineHeight: 1.5, marginBottom: "8px" }}>The HAI Standard is OMARO's governance framework for honorable AI. Pillars scored 1–5 across integrity, accountability, safety, equality, human override, use limits, data sovereignty, and independent audit.</div>
                 {analysisA.rescue && (() => {
                   const pillars = Object.entries(analysisA.rescue) as [string, {score: number; finding: string}][]
                   const flagged = pillars.filter(([, val]) => val.score <= 2).sort((a, b) => a[1].score - b[1].score).slice(0, 3)
@@ -1256,7 +1256,7 @@ export default function IGititPage() {
                 <option value="overview">overview</option>
                 <option value="data">data narrative</option>
                 <option value="modules">module breakdown</option>
-                <option value="rescue">rescue score</option>
+                <option value="hai">hai score</option>
               </select>
               <button style={{ width: "52px", height: "44px", borderRadius: "8px", background: "#4A9EF0", border: "none", fontFamily: "inherit", fontSize: "13px", color: "#0b0b0c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>▶</button>
             </div>

@@ -277,7 +277,7 @@ export async function downloadAnalysisPDF(
   const rScore = analysis.rescue
   const totalRaw = rScore ? Object.values(rScore).reduce((s, p) => s + (p as RescuePillar).score, 0) : 0
   const grade = totalRaw >= 36 ? "A" : totalRaw >= 30 ? "B" : totalRaw >= 24 ? "C" : totalRaw >= 16 ? "D" : "F"
-  h.sectionLabel(y, `RESCUE SCORE · [${grade}] ${totalRaw}/40 · GOVERNED BY OMARO PBC`); y += 8
+  h.sectionLabel(y, `HAI SCORE · [${grade}] ${totalRaw}/40 · GOVERNED BY OMARO PBC`); y += 8
   if (rScore) {
     for (const { key, label } of rescuePillars) {
       y = h.checkPage(y, 12)
@@ -521,7 +521,7 @@ export async function downloadComparePDF(
     const wrScore = analysis.rescue
     const wrTotal = wrScore ? Object.values(wrScore).reduce((s, p) => s + (p as RescuePillar).score, 0) : 0
     const wrGrade = wrTotal >= 36 ? "A" : wrTotal >= 30 ? "B" : wrTotal >= 24 ? "C" : wrTotal >= 16 ? "D" : "F"
-    h.sectionLabel(ry, `RESCUE SCORE · [${wrGrade}] ${wrTotal}/40 · GOVERNED BY OMARO PBC`); ry += 8
+    h.sectionLabel(ry, `HAI SCORE · [${wrGrade}] ${wrTotal}/40 · GOVERNED BY OMARO PBC`); ry += 8
     if (wrScore) {
       for (const { key, label } of wrPillars) {
         ry = h.checkPage(ry, 12)
