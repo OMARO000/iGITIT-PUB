@@ -375,8 +375,22 @@ export default function IGititPage() {
 
   // Shared state
   const [activeTab, setActiveTab] = useState<Tab>("overview")
-  const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [history, setHistory] = useState<HistoryEntry[]>(() => {
+    if (typeof window === "undefined") return []
+    try {
+      const saved = localStorage.getItem("igitit_history")
+      if (!saved) return []
+      const parsed = JSON.parse(saved)
+      return parsed.map((e: HistoryEntry) => ({ ...e, analyzedAt: new Date(e.analyzedAt) }))
+    } catch { return [] }
+  })
   const [showHistory, setShowHistory] = useState(false)
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      localStorage.setItem("igitit_history", JSON.stringify(history))
+    } catch {}
+  }, [history])
   const [copyState, setCopyState] = useState<"idle" | "link" | "report">("idle")
 
   const [includeFullSource, setIncludeFullSource] = useState(false)
