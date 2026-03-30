@@ -265,14 +265,14 @@ export async function downloadAnalysisPDF(
   // ── RESCUE SCORE ─────────────────────────────────────
   y = h.checkPage(y, 20)
   const rescuePillars = [
-    { key: "R", label: "Resilience & Dependency Prevention" },
-    { key: "E", label: "Equality / Non-Discrimination" },
-    { key: "S", label: "Safety & Robustness" },
-    { key: "C", label: "Control & Human Oversight" },
-    { key: "U", label: "Use Limits & Proportionality" },
-    { key: "E2", label: "Empowerment & Rights" },
-    { key: "A", label: "Accountability & Privacy" },
     { key: "I", label: "Integrity & Transparency" },
+    { key: "A", label: "Accountability & Privacy" },
+    { key: "S", label: "Safety & Robustness" },
+    { key: "E", label: "Equality & Non-Discrimination" },
+    { key: "C", label: "Human Override & Control" },
+    { key: "U", label: "Use Limits & Proportionality" },
+    { key: "E2", label: "Data Sovereignty & Empowerment" },
+    { key: "R", label: "Resilience & Dependency Prevention" },
   ]
   const rScore = analysis.rescue
   const totalRaw = rScore ? Object.values(rScore).reduce((s, p) => s + (p as RescuePillar).score, 0) : 0

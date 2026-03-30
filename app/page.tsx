@@ -95,7 +95,7 @@ function buildTextReport(analysis: Analysis): string {
   const totalRaw = Object.values(rescue).reduce((s, p) => s + (p as RescuePillar).score, 0)
   const grade = totalRaw >= 36 ? "A" : totalRaw >= 30 ? "B" : totalRaw >= 24 ? "C" : totalRaw >= 16 ? "D" : "F"
   L.push("", "═══════════════════════════════", `HAI SCORE · [${grade}] ${totalRaw}/40 · GOVERNED BY OMARO PBC`, "═══════════════════════════════")
-  for (const [k, v] of Object.entries(rescue)) { L.push(`\n[${k}]: ${(v as RescuePillar).score}/5 — ${(v as RescuePillar).finding}`) }
+  for (const k of ["I","A","S","E","C","U","E2","R"]) { const v = (rescue as any)[k]; if (v) L.push(`\n[${k}]: ${(v as RescuePillar).score}/5 — ${(v as RescuePillar).finding}`) }
   L.push("", "OVERALL VERDICT", overallVerdict, "", "─────────────────────────────────────────────────────")
   L.push("analysis reflects repository state at time of request · not legal or compliance advice", "igitit.xyz · omaro-pbc.org")
   return L.join("\n")
@@ -196,14 +196,14 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
 
   if (activeTab === "hai") {
     const pillars = [
-      { key: "R", label: "Resilience & Dependency Prevention" },
-      { key: "E", label: "Equality / Non-Discrimination" },
-      { key: "S", label: "Safety & Robustness" },
-      { key: "C", label: "Control & Human Oversight" },
-      { key: "U", label: "Use Limits & Proportionality" },
-      { key: "E2", label: "Empowerment & Rights" },
-      { key: "A", label: "Accountability & Privacy" },
       { key: "I", label: "Integrity & Transparency" },
+      { key: "A", label: "Accountability & Privacy" },
+      { key: "S", label: "Safety & Robustness" },
+      { key: "E", label: "Equality & Non-Discrimination" },
+      { key: "C", label: "Human Override & Control" },
+      { key: "U", label: "Use Limits & Proportionality" },
+      { key: "E2", label: "Data Sovereignty & Empowerment" },
+      { key: "R", label: "Resilience & Dependency Prevention" },
     ]
     const r = analysis.rescue
     const total = Math.round((r.R.score + r.E.score + r.S.score + r.C.score + r.U.score + r.E2.score + r.A.score + r.I.score) / 8 * 8)
@@ -1214,7 +1214,7 @@ export default function IGititPage() {
                   return flagged.map(([key, val]) => (
                     <div key={key} style={{ marginBottom: "10px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", marginBottom: "3px" }}>
-                        <span style={{ color: "rgba(255,255,255,0.5)" }}>[{key}] {({'R':'Resilience & Dependency Prevention','E':'Equality / Non-Discrimination','S':'Safety & Robustness','C':'Control & Human Oversight','U':'Use Limits & Proportionality','E2':'Empowerment & Rights','A':'Accountability & Privacy','I':'Integrity & Transparency'} as Record<string,string>)[key]}</span>
+                        <span style={{ color: "rgba(255,255,255,0.5)" }}>[{key}] {({'I':'Integrity & Transparency','A':'Accountability & Privacy','S':'Safety & Robustness','E':'Equality & Non-Discrimination','C':'Human Override & Control','U':'Use Limits & Proportionality','E2':'Data Sovereignty & Empowerment','R':'Resilience & Dependency Prevention'} as Record<string,string>)[key]}</span>
                         <span style={{ color: val.score >= 4 ? "#4CAF7D" : val.score >= 3 ? "#4A9EF0" : val.score >= 2 ? "#F0A04A" : "#E05C5C" }}>{val.score}/5</span>
                       </div>
                       <div style={{ height: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "1px", marginBottom: "4px" }}>
