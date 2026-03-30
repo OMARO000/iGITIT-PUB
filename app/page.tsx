@@ -691,7 +691,7 @@ export default function IGititPage() {
           <div style={{ fontSize: "22px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          {history.length > 0 && (
+          {mounted && history.length > 0 && (
             <button onClick={() => setShowHistory(!showHistory)} style={{ fontSize: "13px", color: showHistory ? "#4A9EF0" : "rgba(255,255,255,0.4)", letterSpacing: "0.08em", border: `1px solid ${showHistory ? "rgba(74,158,240,0.4)" : "rgba(255,255,255,0.1)"}`, padding: "6px 14px", borderRadius: "4px", background: "transparent", fontFamily: "inherit", cursor: "pointer", transition: "all 0.15s" }}>
               [ history · {history.length} ]
             </button>
