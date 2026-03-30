@@ -40,7 +40,7 @@ Rules:
 - Never use technical jargon without immediately explaining it in plain terms
 - dataItems must cover ALL data the software touches — collected, stored, and transmitted
 - modules should explain the 3-6 most important parts of the codebase
-- RESCUE score rules: R=Resilience(vendor lock-in/fallbacks), E=Equality(bias/ML checks, default 3 if no ML), S=Safety(validation/secrets/deps), C=Control(human oversight), U=Use Limits(data scope/permissions), E2=Empowerment(deletion/opt-out), A=Accountability(license/logs/credentials), I=Integrity(docs/transparency)
+- HAI score rules: R=Resilience(vendor lock-in/fallbacks), E=Equality(bias/ML checks, default 3 if no ML), S=Safety(validation/secrets/deps), C=Control(human oversight), U=Use Limits(data scope/permissions), E2=Empowerment(deletion/opt-out), A=Accountability(license/logs/credentials), I=Integrity(docs/transparency)
 - All scores grounded in actual code evidence. If no ML detected, E=3 with finding "no ML detected — equality pillar not applicable"
 - overallVerdict should be honest — flag real gaps, don't just praise
 - platformContext must describe the ORG not the repo — stick strictly to verifiable public facts: company size, business model, known products, public filings, and documented practices. No opinions, no speculation, no characterizations that could not be sourced. For unknown or small orgs, simply note limited public footprint and available facts only.
