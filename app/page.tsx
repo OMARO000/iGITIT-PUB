@@ -548,7 +548,7 @@ export default function IGititPage() {
     params.set("repo", encodeURIComponent(urlA.trim()))
     if (urlB.trim()) params.set("compare", encodeURIComponent(urlB.trim()))
     window.history.replaceState(null, "", `?${params.toString()}`)
-    await runAnalysis(urlA.trim(), platform, setAnalyzingA, setStepA, setAnalysisA, setErrorA)
+    await runAnalysis(urlA.trim(), platform as "github" | "gitlab", setAnalyzingA, setStepA, setAnalysisA, setErrorA)
   }
 
   const handleAnalyzeB = async () => {
@@ -560,7 +560,7 @@ export default function IGititPage() {
     if (urlA.trim()) params.set("repo", encodeURIComponent(urlA.trim()))
     params.set("compare", encodeURIComponent(urlB.trim()))
     window.history.replaceState(null, "", `?${params.toString()}`)
-    await runAnalysis(urlB.trim(), platform, setAnalyzingB, setStepB, setAnalysisB, setErrorB, setFetchedFilePathsB, setFetchedFileOutputsB)
+    await runAnalysis(urlB.trim(), platform as "github" | "gitlab", setAnalyzingB, setStepB, setAnalysisB, setErrorB, setFetchedFilePathsB, setFetchedFileOutputsB)
   }
 
   const handleTabClick = (tab: Tab) => {
@@ -825,7 +825,7 @@ export default function IGititPage() {
             {!compareMode ? (
               <button
                 className="export-btn"
-                onClick={() => downloadAnalysisPDF(analysisA, analysisA.meta, changelogRef.current && changelogRef.current.length > 0 ? changelogRef.current : undefined, !!verifyResult?.cid, verifyResult?.cid ?? undefined)}
+                onClick={() => downloadAnalysisPDF(analysisA as any, analysisA.meta as any, changelogRef.current && changelogRef.current.length > 0 ? changelogRef.current : undefined, !!verifyResult?.cid, verifyResult?.cid ?? undefined)}
                 style={{ padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}
               >
                 [ download pdf ]
@@ -836,7 +836,7 @@ export default function IGititPage() {
                 onClick={async () => {
                   if (!comparisonRef.current) await loadComparison()
                   if (comparisonRef.current) {
-                    downloadComparePDF(analysisA, analysisA.meta, analysisB!, analysisB!.meta, comparisonRef.current)
+                    downloadComparePDF(analysisA as any, analysisA.meta as any, analysisB! as any, (analysisB! as any).meta, comparisonRef.current)
                   }
                 }}
                 style={{ padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}
@@ -1174,7 +1174,7 @@ export default function IGititPage() {
                           onClick={async () => {
                             if (!comparisonRef.current) await loadComparison()
                             if (comparisonRef.current) {
-                              downloadComparePDF(analysisA, analysisA.meta, analysisB!, analysisB!.meta, comparisonRef.current)
+                              downloadComparePDF(analysisA as any, analysisA.meta as any, analysisB! as any, (analysisB! as any).meta, comparisonRef.current)
                             }
                           }}
                           style={{ padding: "8px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.4)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}
