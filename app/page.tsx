@@ -335,6 +335,107 @@ function RepoInputPanel({
 }
 
 // ─────────────────────────────────────────────
+// WELCOME GROUP
+// ─────────────────────────────────────────────
+
+function WelcomeGroup({ onInteractiveMode }: { onInteractiveMode: () => void }) {
+  const messages = [
+    "welcome to iGITit.",
+    "plain-language analysis of any open source codebase.",
+    "have a repo URL? paste it in the box above.",
+    "not sure where to start? let GitByte guide you.",
+  ]
+  const [current, setCurrent] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setCurrent(prev => (prev + 1) % messages.length)
+        setVisible(true)
+      }, 400)
+    }, 7000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "24px",
+      padding: "40px 0",
+    }}>
+      <div style={{
+        border: "1px solid rgba(0,200,150,0.2)",
+        borderRadius: "8px",
+        padding: "24px 32px",
+        maxWidth: "480px",
+        width: "100%",
+        background: "rgba(0,200,150,0.03)",
+        textAlign: "center",
+      }}>
+        <p style={{
+          fontFamily: "inherit",
+          fontSize: "14px",
+          color: "rgba(255,255,255,0.75)",
+          lineHeight: 1.65,
+          margin: "0 0 20px 0",
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.4s ease",
+          minHeight: "24px",
+        }}>
+          {messages[current]}
+        </p>
+        <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginBottom: "20px" }}>
+          {messages.map((_, i) => (
+            <div key={i} style={{
+              width: "5px",
+              height: "5px",
+              borderRadius: "50%",
+              background: i === current ? "#00C896" : "rgba(255,255,255,0.15)",
+              transition: "background 0.3s ease",
+            }}/>
+          ))}
+        </div>
+        <div
+          onClick={onInteractiveMode}
+          style={{
+            border: "1px solid rgba(0,200,150,0.4)",
+            borderRadius: "6px",
+            padding: "12px 24px",
+            cursor: "pointer",
+            background: "rgba(0,200,150,0.08)",
+            animation: "igitPulse 2s ease-in-out infinite",
+          }}
+        >
+          <p style={{
+            fontFamily: "inherit",
+            fontSize: "12px",
+            color: "#00C896",
+            letterSpacing: "0.1em",
+            margin: "0 0 3px 0",
+          }}>
+            [ interactive mode ]
+          </p>
+          <p style={{
+            fontFamily: "inherit",
+            fontSize: "10px",
+            color: "rgba(0,200,150,0.5)",
+            letterSpacing: "0.06em",
+            margin: 0,
+          }}>
+            let GitByte guide you
+          </p>
+        </div>
+      </div>
+      <GitByte />
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────
 // MAIN PAGE
 // ─────────────────────────────────────────────
 
@@ -356,6 +457,7 @@ export default function IGititPage() {
   const [fetchedFileOutputsB, setFetchedFileOutputsB] = useState<string[]>([])
 
   const [dossierOpen, setDossierOpen] = useState(false)
+  const [interactiveMode, setInteractiveMode] = useState(false)
 
   // Compare repo
   const [compareMode, setCompareMode] = useState(false)
@@ -1303,8 +1405,8 @@ export default function IGititPage() {
         <a href="/docs" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>api docs</a>
       </div>
 
-      {/* GITBYTE */}
-      {!analyzingA && !analysisA && <GitByte />}
+      {/* WELCOME GROUP */}
+      {!analyzingA && !analysisA && <WelcomeGroup onInteractiveMode={() => setInteractiveMode(true)} />}
     </div>
   )
 }
