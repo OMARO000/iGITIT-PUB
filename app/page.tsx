@@ -1007,16 +1007,12 @@ export default function IGititPage() {
           {errorA && !analyzingA && (
             <div style={{ marginTop: "10px", padding: "12px 16px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "6px", fontSize: "13px", color: "#E05C5C" }}>⚠ {errorA}</div>
           )}
-          {analyzingA && (
-            <div>
-              <CommitGraphLoader step={stepA} />
-              <GitByte
-                files={fetchedFileSnippets.length > 0 ? fetchedFileSnippets : fetchedFilePaths}
-                outputs={fetchedFileOutputs.length > 0 ? fetchedFileOutputs : undefined}
-                active={true}
-              />
-            </div>
-          )}
+          {analyzingA && <CommitGraphLoader step={stepA} />}
+          <GitByte
+            files={fetchedFileSnippets.length > 0 ? fetchedFileSnippets : fetchedFilePaths.length > 0 ? fetchedFilePaths : undefined}
+            outputs={fetchedFileOutputs.length > 0 ? fetchedFileOutputs : undefined}
+            active={analyzingA || !!analysisA}
+          />
         </div>
       ) : (
         /* COMPARE: TWO INPUTS SIDE BY SIDE */
