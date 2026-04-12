@@ -353,12 +353,15 @@ function WelcomeGroup({
     "have a repo URL? paste it in the box below.",
     "not sure where to start? let GitByte guide you.",
   ]
+  const [mounted, setMounted] = useState(false)
   const [current, setCurrent] = useState(0)
   const [visible, setVisible] = useState(true)
   const [mode, setMode] = useState<"idle" | "searching" | "results" | "notfound">("idle")
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<{name: string; url: string; description?: string}[]>([])
   const [searching, setSearching] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   useEffect(() => {
     if (mode !== "idle") return
@@ -371,6 +374,8 @@ function WelcomeGroup({
     }, 7000)
     return () => clearInterval(interval)
   }, [mode])
+
+  if (!mounted) return <div style={{ width: "100%", height: "120px", border: "1px solid rgba(0,200,150,0.2)", borderRadius: "8px", marginBottom: "16px" }} />
 
   const handleSearch = async () => {
     if (!query.trim()) return
