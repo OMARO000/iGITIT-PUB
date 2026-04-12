@@ -980,7 +980,7 @@ export default function IGititPage() {
       )}
 
       {/* WELCOME GROUP */}
-      {!analyzingA && !analysisA && <WelcomeGroup onInteractiveMode={() => setInteractiveMode(true)} />}
+      {!analysisA && <WelcomeGroup onInteractiveMode={() => {}} onUrlChange={url => setUrlA(url)} onAnalyze={handleAnalyzeA} />}
 
       {/* INPUT AREA */}
       {!compareMode ? (
