@@ -458,6 +458,10 @@ export default function IGititPage() {
 
   const [dossierOpen, setDossierOpen] = useState(false)
   const [interactiveMode, setInteractiveMode] = useState(false)
+  const [interactiveQuery, setInteractiveQuery] = useState("")
+  const [interactiveResults, setInteractiveResults] = useState<{name: string; url: string; description?: string}[]>([])
+  const [interactiveSearching, setInteractiveSearching] = useState(false)
+  const [interactiveNotFound, setInteractiveNotFound] = useState(false)
 
   // Compare repo
   const [compareMode, setCompareMode] = useState(false)
@@ -550,6 +554,25 @@ export default function IGititPage() {
       setChangelogLoading(false)
     }
   }, [analysisA])
+
+  const handleInteractiveSearch = async () => {
+    if (!interactiveQuery.trim()) return
+    setInteractiveSearching(true)
+    setInteractiveNotFound(false)
+    try {
+      const res = await fetch(`/api/search-repos?q=${encodeURIComponent(interactiveQuery)}`)
+      const data = await res.json()
+      if (data.repos && data.repos.length > 0) {
+        setInteractiveResults(data.repos)
+      } else {
+        setInteractiveNotFound(true)
+      }
+    } catch {
+      setInteractiveNotFound(true)
+    } finally {
+      setInteractiveSearching(false)
+    }
+  }
 
   // Reset comparison only when compare mode toggles — not on every individual analysis change
   useEffect(() => {
@@ -1395,6 +1418,165 @@ export default function IGititPage() {
               <button style={{ width: "52px", height: "44px", borderRadius: "8px", background: "#4A9EF0", border: "none", fontFamily: "inherit", fontSize: "13px", color: "#0b0b0c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>▶</button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* INTERACTIVE MODE OVERLAY */}
+      {interactiveMode && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 50,
+          background: "rgba(0,0,0,0.7)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+          onClick={() => setInteractiveMode(false)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: "#0a0a0b",
+              border: "1px solid rgba(0,200,150,0.2)",
+              borderRadius: "12px",
+              padding: "32px",
+              width: "560px",
+              maxWidth: "90vw",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <p style={{ fontFamily: "inherit", fontSize: "11px", color: "#00C896", letterSpacing: "0.1em", margin: 0 }}>
+                GITBYTE — INTERACTIVE MODE
+              </p>
+              <button
+                onClick={() => setInteractiveMode(false)}
+                style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.3)", cursor: "pointer", fontFamily: "inherit", fontSize: "14px" }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{
+              background: "rgba(0,200,150,0.05)",
+              border: "1px solid rgba(0,200,150,0.15)",
+              borderRadius: "8px",
+              padding: "16px",
+              marginBottom: "20px",
+            }}>
+              <p style={{ fontFamily: "inherit", fontSize: "11px", color: "rgba(0,200,150,0.5)", letterSpacing: "0.08em", margin: "0 0 6px 0" }}>
+                GitByte says:
+              </p>
+              <p style={{ fontFamily: "inherit", fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.65, margin: 0 }}>
+                {interactiveResults.length > 0
+                  ? "found some repos — which one do you want to analyze?"
+                  : interactiveSearching
+                  ? "searching for public repos..."
+                  : "what company or product do you want to analyze? i'll find their open source repo."}
+              </p>
+            </div>
+
+            {interactiveResults.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "20px" }}>
+                {interactiveResults.map((r, i) => (
+                  <div
+                    key={i}
+                    onClick={() => {
+                      setUrlA(r.url)
+                      setInteractiveMode(false)
+                      handleAnalyzeA()
+                    }}
+                    style={{
+                      border: "1px solid rgba(0,200,150,0.2)",
+                      borderRadius: "6px",
+                      padding: "12px 16px",
+                      cursor: "pointer",
+                      background: "rgba(0,200,150,0.04)",
+                    }}
+                  >
+                    <p style={{ fontFamily: "inherit", fontSize: "12px", color: "#00C896", margin: "0 0 3px 0" }}>{r.name}</p>
+                    <p style={{ fontFamily: "inherit", fontSize: "11px", color: "rgba(255,255,255,0.35)", margin: 0 }}>{r.url}</p>
+                    {r.description && <p style={{ fontFamily: "inherit", fontSize: "11px", color: "rgba(255,255,255,0.25)", margin: "4px 0 0 0" }}>{r.description}</p>}
+                  </div>
+                ))}
+                <p style={{ fontFamily: "inherit", fontSize: "10px", color: "rgba(255,255,255,0.2)", margin: "4px 0 0 0" }}>
+                  click a repo to analyze it
+                </p>
+              </div>
+            )}
+
+            {interactiveNotFound && (
+              <div style={{
+                border: "1px solid rgba(224,92,92,0.2)",
+                borderRadius: "6px",
+                padding: "12px 16px",
+                marginBottom: "20px",
+                background: "rgba(224,92,92,0.04)",
+              }}>
+                <p style={{ fontFamily: "inherit", fontSize: "12px", color: "rgba(224,92,92,0.7)", margin: 0 }}>
+                  no public repos found — this product may not be open source.
+                </p>
+              </div>
+            )}
+
+            {interactiveResults.length === 0 && !interactiveNotFound && (
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input
+                  type="text"
+                  value={interactiveQuery}
+                  onChange={e => setInteractiveQuery(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleInteractiveSearch()}
+                  placeholder='e.g. "Stripe" or "Next.js" or "VS Code"'
+                  style={{
+                    flex: 1,
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(0,200,150,0.2)",
+                    borderRadius: "4px",
+                    padding: "10px 12px",
+                    fontFamily: "inherit",
+                    fontSize: "12px",
+                    color: "rgba(255,255,255,0.8)",
+                    outline: "none",
+                  }}
+                />
+                <button
+                  onClick={handleInteractiveSearch}
+                  disabled={interactiveSearching}
+                  style={{
+                    background: "rgba(0,200,150,0.15)",
+                    border: "1px solid rgba(0,200,150,0.4)",
+                    color: "#00C896",
+                    fontFamily: "inherit",
+                    fontSize: "11px",
+                    padding: "10px 16px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  {interactiveSearching ? "..." : "[ go ]"}
+                </button>
+              </div>
+            )}
+
+            {interactiveResults.length > 0 && (
+              <button
+                onClick={() => { setInteractiveResults([]); setInteractiveQuery("") }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "rgba(255,255,255,0.25)",
+                  fontFamily: "inherit",
+                  fontSize: "11px",
+                  cursor: "pointer",
+                  padding: "8px 0 0 0",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                ← search again
+              </button>
+            )}
+          </div>
         </div>
       )}
 
