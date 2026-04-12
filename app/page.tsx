@@ -696,6 +696,24 @@ export default function IGititPage() {
               [ history · {history.length} ]
             </button>
           )}
+          <a
+            href="https://haiproject.xyz"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontFamily: "inherit",
+              fontSize: "10px",
+              color: "#00C896",
+              border: "1px solid rgba(0,200,150,0.3)",
+              padding: "4px 10px",
+              borderRadius: "4px",
+              textDecoration: "none",
+              letterSpacing: "0.1em",
+              whiteSpace: "nowrap",
+            }}
+          >
+            SUPPORT THE HAI PROJECT →
+          </a>
           <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "#4A9EF0", letterSpacing: "0.12em", border: "1px solid #4A9EF0", padding: "6px 14px", borderRadius: "4px", lineHeight: 1.6, fontFamily: "inherit", whiteSpace: "nowrap", background: "rgba(74,158,240,0.12)" }}><span>AN</span><span>OMARO</span><span>COMPANY</span></div></a>
         </div>
       </div>
