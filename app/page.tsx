@@ -816,11 +816,6 @@ export default function IGititPage() {
           <div style={{ fontSize: "22px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          {mounted && history.length > 0 && (
-            <button onClick={() => setShowHistory(!showHistory)} style={{ fontSize: "13px", color: showHistory ? "#4A9EF0" : "rgba(255,255,255,0.4)", letterSpacing: "0.08em", border: `1px solid ${showHistory ? "rgba(74,158,240,0.4)" : "rgba(255,255,255,0.1)"}`, padding: "6px 14px", borderRadius: "4px", background: "transparent", fontFamily: "inherit", cursor: "pointer", transition: "all 0.15s" }}>
-              [ history · {history.length} ]
-            </button>
-          )}
           <a
             href="https://haiproject.xyz"
             target="_blank"
@@ -839,6 +834,23 @@ export default function IGititPage() {
           >
             SUPPORT THE HAI PROJECT →
           </a>
+          {mounted && history.length > 0 && (
+            <div onClick={() => setShowHistory(!showHistory)} style={{
+              fontFamily: "inherit",
+              fontSize: "11px",
+              color: "#4A9EFF",
+              border: "1px solid rgba(74,158,255,0.35)",
+              background: "rgba(74,158,255,0.08)",
+              borderRadius: "4px",
+              padding: "6px 12px",
+              textAlign: "center",
+              lineHeight: 1.4,
+              cursor: "pointer",
+            }}>
+              <div style={{ letterSpacing: "0.08em" }}>[history]</div>
+              <div style={{ fontSize: "13px", fontWeight: 500 }}>{history.length}</div>
+            </div>
+          )}
           <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "#4A9EF0", letterSpacing: "0.12em", border: "1px solid #4A9EF0", padding: "6px 14px", borderRadius: "4px", lineHeight: 1.6, fontFamily: "inherit", whiteSpace: "nowrap", background: "rgba(74,158,240,0.12)" }}><span>AN</span><span>OMARO</span><span>COMPANY</span></div></a>
         </div>
       </div>
