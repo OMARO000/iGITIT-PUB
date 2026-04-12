@@ -857,6 +857,9 @@ export default function IGititPage() {
         </div>
       )}
 
+      {/* WELCOME GROUP */}
+      {!analyzingA && !analysisA && <WelcomeGroup onInteractiveMode={() => setInteractiveMode(true)} />}
+
       {/* INPUT AREA */}
       {!compareMode ? (
         /* SINGLE INPUT */
@@ -1587,8 +1590,6 @@ export default function IGititPage() {
         <a href="/docs" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>api docs</a>
       </div>
 
-      {/* WELCOME GROUP */}
-      {!analyzingA && !analysisA && <WelcomeGroup onInteractiveMode={() => setInteractiveMode(true)} />}
     </div>
   )
 }
