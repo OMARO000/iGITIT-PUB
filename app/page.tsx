@@ -1016,7 +1016,7 @@ export default function IGititPage() {
           <GitByte
             files={fetchedFileSnippets.length > 0 ? fetchedFileSnippets : fetchedFilePaths.length > 0 ? fetchedFilePaths : undefined}
             outputs={fetchedFileOutputs.length > 0 ? fetchedFileOutputs : undefined}
-            active={analyzingA || !!analysisA}
+            active={analyzingA}
           />
         </div>
       ) : (
