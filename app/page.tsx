@@ -310,7 +310,7 @@ function RepoInputPanel({
         </div>
       )}
       {isAnalyzing && (
-        <div style={{ padding: "20px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px" }}>
+        <div style={{ padding: "20px", background: "rgba(74,158,255,0.04)", border: "1px solid rgba(74,158,255,0.2)", borderRadius: "8px" }}>
           {STEPS.map((msg, i) => (
             <div key={i} style={{ fontSize: "12px", color: i < analyzeStep ? "rgba(255,255,255,0.25)" : i === analyzeStep ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.2)", marginBottom: "8px", display: "flex", gap: "8px", alignItems: "center" }}>
               <span style={{ color: i < analyzeStep ? "#4CAF7D" : i === analyzeStep ? "#4A9EF0" : "rgba(255,255,255,0.15)", fontSize: "11px" }}>
