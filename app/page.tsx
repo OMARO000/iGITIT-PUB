@@ -375,7 +375,7 @@ function WelcomeGroup({
     return () => clearInterval(interval)
   }, [mode])
 
-  if (!mounted) return <div style={{ width: "100%", height: "120px", border: "1px solid rgba(0,200,150,0.2)", borderRadius: "8px", marginBottom: "16px" }} />
+  if (!mounted) return null
 
   const handleSearch = async () => {
     if (!query.trim()) return
@@ -411,7 +411,7 @@ function WelcomeGroup({
   }
 
   return (
-    <div style={{
+    <div suppressHydrationWarning style={{
       width: "100%",
       border: "1px solid rgba(0,200,150,0.2)",
       borderRadius: "8px",
