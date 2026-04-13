@@ -990,7 +990,7 @@ export default function IGititPage() {
       {/* INPUT AREA */}
       {!compareMode ? (
         /* SINGLE INPUT */
-        <div style={{ marginBottom: "32px" }}>
+        <div style={{ marginBottom: "32px", background: analyzingA ? "rgba(74,158,255,0.04)" : "transparent", border: analyzingA ? "1px solid rgba(74,158,255,0.25)" : "1px solid transparent", borderRadius: "8px", padding: analyzingA ? "16px" : "0", transition: "all 0.3s ease" }}>
           <div suppressHydrationWarning style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>paste a github, gitlab or radicle repository url</div>
           <div style={{ display: "flex", gap: "10px" }}>
             <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", border: `1px solid ${animatingA ? "rgba(74,158,240,0.4)" : "rgba(255,255,255,0.1)"}`, borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s" }}>
