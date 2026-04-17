@@ -604,6 +604,8 @@ export default function IGititPage() {
 
   const [dossierOpen, setDossierOpen] = useState(false)
   const [lightMode, setLightMode] = useState(false)
+  const [repoChat, setRepoChat] = useState("")
+  const [omenNote, setOmenNote] = useState(false)
 
   // Theme helper
   const T = lightMode ? {
@@ -926,6 +928,38 @@ export default function IGititPage() {
       setVerifyError(err instanceof Error ? err.message : "Something went wrong")
       setVerifyState("error")
     }
+  }
+
+  // Orgs known to have OMEN accountability ledger entries
+  const OMEN_ORGS = ["twitter", "facebook", "meta", "tiktok", "bytedance", "snap", "snapchat", "instagram", "whatsapp", "cambridge", "palantir", "clearview"]
+
+  const handleRepoChatSubmit = () => {
+    if (!repoChat.trim() || !analysisA) return
+    const q = repoChat.toLowerCase()
+    setOmenNote(false)
+
+    if (/(ethic|values|privacy|trust|govern|bias|fair|discriminat|hai|score|accountability|transparen|honorable)/i.test(q)) {
+      setActiveTab("hai")
+    } else if (/(what does|what is|overview|purpose|product|does it do|explain|about|describe|who built|who made)/i.test(q)) {
+      setActiveTab("overview")
+    } else if (/(data|collect|store|send|transmit|track|share|personal|user info)/i.test(q)) {
+      setActiveTab("data")
+    } else if (/(code|tech|stack|module|component|architect|how is it built|built with|language|framework)/i.test(q)) {
+      setActiveTab("modules")
+    } else if (/(commit|change|update|history|version|recent|release|changelog)/i.test(q)) {
+      setActiveTab("changelog")
+      if (!changelog && !changelogLoading) loadChangelog(changelogDepth)
+    } else if (/(legal|lawsuit|violation|fine|regulat|compliance|dossier|accountab|scandal|investig)/i.test(q)) {
+      setDossierOpen(true)
+    }
+
+    // OMEN check — surface note if org has known ledger entries
+    const owner = (analysisA.meta.owner ?? "").toLowerCase()
+    if (OMEN_ORGS.some(org => owner.includes(org))) {
+      setOmenNote(true)
+    }
+
+    setRepoChat("")
   }
 
   const bothLoaded = !!analysisA && !!analysisB && compareMode
@@ -1576,6 +1610,34 @@ export default function IGititPage() {
             </div>
           )}
           </div>
+
+          {/* REPO CHAT */}
+          {!compareMode && (
+            <div style={{ marginTop: "20px", padding: "16px 20px", background: T.card, border: `1px solid ${T.border}`, borderRadius: "8px" }}>
+              <div style={{ fontSize: "11px", letterSpacing: "0.1em", color: T.textFaint, marginBottom: "10px" }}>ask about this repo</div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input
+                  type="text"
+                  value={repoChat}
+                  onChange={e => { setRepoChat(e.target.value); setOmenNote(false) }}
+                  onKeyDown={e => e.key === "Enter" && handleRepoChatSubmit()}
+                  placeholder="e.g. what data does it collect? · who governs this? · show me the code modules"
+                  style={{ flex: 1, background: T.inputBg, border: `1px solid ${T.borderMid}`, borderRadius: "4px", padding: "10px 14px", fontFamily: "inherit", fontSize: "13px", color: T.text, outline: "none" }}
+                />
+                <button
+                  onClick={handleRepoChatSubmit}
+                  style={{ background: "rgba(74,158,240,0.12)", border: "1px solid rgba(74,158,240,0.35)", borderRadius: "4px", padding: "10px 16px", fontFamily: "inherit", fontSize: "13px", color: "#4A9EF0", cursor: "pointer", letterSpacing: "0.06em", whiteSpace: "nowrap" }}
+                >
+                  [ → ]
+                </button>
+              </div>
+              {omenNote && (
+                <div style={{ marginTop: "10px", padding: "8px 12px", background: "rgba(224,92,92,0.06)", border: "1px solid rgba(224,92,92,0.2)", borderRadius: "4px", fontSize: "11px", color: "rgba(224,92,92,0.7)", lineHeight: 1.5 }}>
+                  ⚠ This organisation has entries in the OMEN accountability ledger. See dossier for details.
+                </div>
+              )}
+            </div>
+          )}
 
           {/* LISTEN BAR */}
           {!compareMode && (
