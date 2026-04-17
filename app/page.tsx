@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { IGititLogo, CommitGraphLoader } from "@/app/components/igitit-logo-loader"
 import GitByte from "@/app/components/GitByte"
+import GitByteF from "@/app/components/GitByteF"
 import { downloadAnalysisPDF, downloadComparePDF } from "@/app/lib/generatePDF"
 
 // ─────────────────────────────────────────────
@@ -1637,6 +1638,20 @@ export default function IGititPage() {
                 </div>
               )}
             </div>
+          )}
+
+          {/* GITBYTE F — post-analysis guide */}
+          {!compareMode && analysisA && (
+            <GitByteF
+              files={analysisA.modules.length > 0
+                ? analysisA.modules.map(m => m.path || m.name)
+                : undefined}
+              outputs={analysisA.modules.length > 0
+                ? analysisA.modules.map(m => m.description)
+                : undefined}
+              active={true}
+              speed={1}
+            />
           )}
 
           {/* LISTEN BAR */}
