@@ -358,7 +358,7 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
         {femResponse && (
           <div style={{
             position: "absolute",
-            top: "24px",
+            top: "100px",
             left: "50%",
             transform: "translateX(-50%)",
             background: "rgba(0,0,0,0.55)",
