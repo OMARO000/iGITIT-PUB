@@ -34,10 +34,10 @@ export function IGititLogo({ onClick }: { onClick?: () => void }) {
       >
         <div style={{
           border: "1px solid rgba(74,158,240,0.4)",
-          padding: "3px 7px",
-          fontSize: "8px",
+          padding: "5px 9px",
+          fontSize: "10px",
           color: "rgba(74,158,240,0.9)",
-          letterSpacing: "1px",
+          letterSpacing: "1.5px",
           lineHeight: 1.4,
           textAlign: "center",
           fontFamily: "'IBM Plex Mono', monospace",
