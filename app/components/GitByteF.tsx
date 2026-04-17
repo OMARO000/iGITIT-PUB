@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { type ReactNode, useEffect, useRef, useState } from "react"
 
 interface GitByteFProps {
   files?: string[]
   outputs?: string[]
   active?: boolean
   speed?: number
+  children?: ReactNode
 }
 
 const DEMO_FILES = [
@@ -25,7 +26,7 @@ const DEMO_OUTPUTS = [
 const W = 1100
 const H = 400
 
-export default function GitByteF({ files = DEMO_FILES, outputs, active = false, speed = 1 }: GitByteFProps) {
+export default function GitByteF({ files = DEMO_FILES, outputs, active = false, speed = 1, children }: GitByteFProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef({
     gitbyte: { x: 550, y: H / 2, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
@@ -168,23 +169,23 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
         ctx.beginPath(); ctx.arc(gx + gw / 2, gy + 2, 3, 0, Math.PI); ctx.stroke()
       }
 
-      // ── BOW (distinguishing feature) ──
-      const bowX = gx + gw / 2 - 10
-      const bowY = gy - gh / 2 - 7
-      // Left loop
-      ctx.fillStyle = "#E05C5C"
-      ctx.beginPath()
-      ctx.ellipse(bowX - 5, bowY, 5, 3.5, -0.4, 0, Math.PI * 2)
-      ctx.fill()
-      // Right loop
-      ctx.beginPath()
-      ctx.ellipse(bowX + 5, bowY, 5, 3.5, 0.4, 0, Math.PI * 2)
-      ctx.fill()
-      // Center knot
-      ctx.fillStyle = "#F07878"
-      ctx.beginPath()
-      ctx.arc(bowX, bowY, 2.5, 0, Math.PI * 2)
-      ctx.fill()
+      // ── FLOWER (distinguishing feature — same blue family, pixel art) ──
+      const fx = gx + gw / 2 - 10
+      const fy = gy - gh / 2 - 9
+      // 5 petals, light blue
+      ctx.fillStyle = "rgba(140,200,255,0.88)"
+      for (let i = 0; i < 5; i++) {
+        const angle = (i / 5) * Math.PI * 2 - Math.PI / 2
+        ctx.beginPath()
+        ctx.ellipse(fx + Math.cos(angle) * 5.5, fy + Math.sin(angle) * 5.5, 3.5, 2.4, angle, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      // Outer ring of center
+      ctx.fillStyle = "#C8E8FF"
+      ctx.beginPath(); ctx.arc(fx, fy, 3.2, 0, Math.PI * 2); ctx.fill()
+      // Inner dot
+      ctx.fillStyle = "#4A9EF0"
+      ctx.beginPath(); ctx.arc(fx, fy, 1.6, 0, Math.PI * 2); ctx.fill()
     }
 
     const drawFood = () => {
@@ -236,9 +237,10 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
     const drawLabel = () => {
       ctx.font = "15px 'IBM Plex Mono', monospace"
       ctx.fillStyle = "rgba(255,255,255,0.08)"
-      ctx.fillText("gitbyte", 10, 24)
-      ctx.fillStyle = "#4A9EF0"
-      ctx.beginPath(); ctx.arc(79, 17, 4, 0, Math.PI * 2); ctx.fill()
+      ctx.fillText("fem gitbyte", 10, 24)
+      // Teal dot to signal interactive mode
+      ctx.fillStyle = "rgba(0,200,150,0.7)"
+      ctx.beginPath(); ctx.arc(110, 17, 4, 0, Math.PI * 2); ctx.fill()
     }
 
     const loop = () => {
@@ -283,6 +285,7 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
         }
       }
 
+      // Only auto-feed when explicitly active
       if (active) {
         s.autoFeedTimer++
         if (s.autoFeedTimer > Math.floor(80 / s.speed) && !s.food) {
@@ -314,7 +317,10 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
     }
 
     rafRef.current = requestAnimationFrame(loop)
-    setTimeout(() => spawnFood(stateRef.current.fileList[0] ?? "auth.ts"), 800)
+    // Only spawn initial food if actively feeding
+    if (active) {
+      setTimeout(() => spawnFood(stateRef.current.fileList[0] ?? "auth.ts"), 800)
+    }
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
   }, [active, mounted])
 
@@ -330,10 +336,10 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
   }
 
   return (
-    <div style={{ marginTop: "32px", border: "1px solid rgba(74,158,255,0.2)", borderRadius: "8px", overflow: "hidden", background: "rgba(74,158,255,0.04)" }}>
-      <div style={{ padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace" }}>
-          GITBYTE · open source, open language
+    <div style={{ marginTop: "32px", border: "1px solid rgba(0,200,150,0.25)", borderRadius: "8px", overflow: "hidden", background: "rgba(0,200,150,0.03)" }}>
+      <div style={{ padding: "10px 20px", borderBottom: "1px solid rgba(0,200,150,0.1)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ fontSize: "11px", color: "rgba(0,200,150,0.6)", letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace" }}>
+          FEM GITBYTE · post-analysis guide
         </div>
         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.15)", letterSpacing: "0.06em", fontFamily: "'IBM Plex Mono', monospace" }}>
           files eaten: {score.eaten} · plain language produced: {score.produced}
@@ -346,14 +352,20 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
         style={{ display: "block", width: "100%", height: `${H}px`, cursor: "pointer" }}
         onClick={handleFeed}
       />
-      <div style={{ padding: "10px 20px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ padding: "10px 20px", borderTop: "1px solid rgba(0,200,150,0.1)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div suppressHydrationWarning style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic" }}>
-          {statusText}
+          {statusText || (active ? "" : "click canvas to feed · or ask a question below")}
         </div>
-        <button onClick={handleFeed} style={{ background: "rgba(74,158,240,0.12)", border: "1px solid #4A9EF0", borderRadius: "4px", padding: "7px 18px", fontFamily: "'IBM Plex Mono', monospace", fontSize: "16px", color: "#4A9EF0", cursor: "pointer", letterSpacing: "0.06em", minWidth: "160px", textAlign: "center" }}>
+        <button onClick={handleFeed} style={{ background: "rgba(0,200,150,0.1)", border: "1px solid rgba(0,200,150,0.4)", borderRadius: "4px", padding: "7px 18px", fontFamily: "'IBM Plex Mono', monospace", fontSize: "16px", color: "#00C896", cursor: "pointer", letterSpacing: "0.06em", minWidth: "160px", textAlign: "center" }}>
           [ feed gitbyte ]
         </button>
       </div>
+      {/* Children: embedded interactive content (e.g. ask-about-this-repo input) */}
+      {children && (
+        <div style={{ borderTop: "1px solid rgba(0,200,150,0.12)", padding: "16px 20px", background: "rgba(0,200,150,0.02)" }}>
+          {children}
+        </div>
+      )}
     </div>
   )
 }
