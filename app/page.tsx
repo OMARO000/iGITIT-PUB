@@ -22,9 +22,12 @@ interface DataItem { type: "collect" | "store" | "send"; label: string; descript
 interface Module { name: string; path: string; description: string; sourceSnippet?: string }
 interface RescuePillar { score: number; finding: string }
 interface RescueScore { R: RescuePillar; E: RescuePillar; S: RescuePillar; C: RescuePillar; U: RescuePillar; E2: RescuePillar; A: RescuePillar; I: RescuePillar }
+interface UXEthicsSignal { pattern: string; description: string; severity: "low" | "medium" | "high" }
+interface UXEthics { signals: UXEthicsSignal[]; summary: string }
 interface Analysis {
   meta: RepoMeta; overview: OverviewSection[]; dataItems: DataItem[]
   dataFlowSummary: string; modules: Module[]; rescue: RescueScore; overallVerdict: string
+  uxEthics?: UXEthics
 }
 interface HistoryEntry {
   id: string; url: string; label: string; platform: "github" | "gitlab"; analyzedAt: Date; analysis: Analysis
@@ -254,6 +257,42 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
           </div>
         </>)}
         {card(<>{label("OVERALL VERDICT")}{body(analysis.overallVerdict)}</>)}
+        {/* UX ETHICS SIGNALS */}
+        {card(<>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+            <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)" }}>UX ETHICS SIGNALS</div>
+            <div style={{ fontSize: "9px", padding: "2px 7px", background: "rgba(240,160,74,0.1)", border: "1px solid rgba(240,160,74,0.25)", borderRadius: "3px", color: "rgba(240,160,74,0.7)", letterSpacing: "0.08em" }}>DARK PATTERN SCAN</div>
+          </div>
+          {(!analysis.uxEthics || analysis.uxEthics.signals.length === 0) ? (
+            <div style={{ fontSize: "12px", color: "rgba(76,175,125,0.7)", border: "1px solid rgba(76,175,125,0.15)", borderRadius: "4px", padding: "8px 12px" }}>
+              no manipulation patterns detected in this codebase
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
+              {analysis.uxEthics.signals.map((sig, i) => {
+                const sevColor = sig.severity === "high" ? "#E05C5C" : sig.severity === "medium" ? "#F0A04A" : "#4A9EF0"
+                const sevBg = sig.severity === "high" ? "rgba(224,92,92,0.06)" : sig.severity === "medium" ? "rgba(240,160,74,0.06)" : "rgba(74,158,240,0.06)"
+                return (
+                  <div key={i} style={{ padding: "10px 14px", background: sevBg, border: `1px solid ${sevColor}28`, borderRadius: "5px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "5px" }}>
+                      <span style={{ fontSize: "10px", fontFamily: "inherit", letterSpacing: "0.08em", color: sevColor, fontWeight: 500 }}>{sig.pattern}</span>
+                      <span style={{ fontSize: "9px", padding: "1px 6px", background: `${sevColor}18`, border: `1px solid ${sevColor}40`, borderRadius: "3px", color: sevColor, letterSpacing: "0.06em" }}>{sig.severity}</span>
+                    </div>
+                    <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>{sig.description}</div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+          {analysis.uxEthics?.summary && (
+            <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", lineHeight: 1.65, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "12px", marginTop: "4px" }}>
+              {analysis.uxEthics.summary}
+            </div>
+          )}
+          <div style={{ marginTop: "10px", fontSize: "9px", color: "rgba(255,255,255,0.15)", letterSpacing: "0.07em" }}>
+            patterns scanned: confirm-shaming · infinite-scroll · pre-checked-consent · hidden-opt-out · fake-urgency · variable-reward-loops · misleading-buttons · cookie-walls
+          </div>
+        </>)}
       </div>
     )
   }
