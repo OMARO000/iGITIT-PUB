@@ -28,6 +28,7 @@ export function IGititLogo({ onClick }: { onClick?: () => void }) {
         href="https://omaro.xyz"
         target="_blank"
         rel="noopener noreferrer"
+        suppressHydrationWarning={true}
         style={{ textDecoration: "none", marginTop: "6px" }}
         onClick={e => e.stopPropagation()}
       >
