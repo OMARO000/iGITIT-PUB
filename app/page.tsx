@@ -655,6 +655,8 @@ export default function IGititPage() {
 
   const [dossierOpen, setDossierOpen] = useState(false)
   const [dossierExpanded, setDossierExpanded] = useState(false)
+  const [listenOpen, setListenOpen] = useState(false)
+  const [listenSection, setListenSection] = useState("overview")
   const [lightMode, setLightMode] = useState(false)
   const [repoChat, setRepoChat] = useState("")
   const [omenNote, setOmenNote] = useState(false)
@@ -1295,6 +1297,31 @@ export default function IGititPage() {
               style={{ padding: "10px 14px", background: compareMode ? "rgba(74,158,240,0.15)" : "rgba(255,255,255,0.03)", border: `1px solid ${compareMode ? "#4A9EF0" : "rgba(255,255,255,0.15)"}`, borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: compareMode ? "#4A9EF0" : "rgba(255,255,255,0.5)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
               {compareMode ? "[ × exit compare ]" : "[ + compare ]"}
             </button>
+            {!compareMode && (
+              <>
+                <button
+                  onClick={() => setListenOpen(o => !o)}
+                  style={{ padding: "10px 14px", background: listenOpen ? "rgba(74,158,240,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${listenOpen ? "#4A9EF0" : "rgba(255,255,255,0.08)"}`, borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: listenOpen ? "#4A9EF0" : "rgba(255,255,255,0.45)", cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s" }}
+                >
+                  [ listen ]
+                </button>
+                {listenOpen && (
+                  <>
+                    <select
+                      value={listenSection}
+                      onChange={e => setListenSection(e.target.value)}
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "6px", padding: "8px 12px", fontFamily: "inherit", fontSize: "12px", color: "rgba(255,255,255,0.6)", outline: "none", cursor: "pointer", height: "38px" }}
+                    >
+                      <option value="overview">overview</option>
+                      <option value="data">data narrative</option>
+                      <option value="modules">module breakdown</option>
+                      <option value="hai">hai score</option>
+                    </select>
+                    <button style={{ padding: "10px 14px", background: "#4A9EF0", border: "1px solid #4A9EF0", borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: "#0b0b0c", cursor: "pointer", letterSpacing: "0.03em" }}>▶</button>
+                  </>
+                )}
+              </>
+            )}
           </div>
 
           {/* ROW 2 — UTILITY ACTIONS */}
@@ -1756,19 +1783,6 @@ export default function IGititPage() {
           )}
           </div>
 
-          {/* LISTEN BAR */}
-          {!compareMode && (
-            <div style={{ marginTop: "24px", padding: "16px 20px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", display: "flex", alignItems: "center", gap: "16px" }}>
-              <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>[ listen to analysis ]</span>
-              <select style={{ flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", padding: "8px 12px", fontFamily: "inherit", fontSize: "14px", color: "rgba(255,255,255,0.6)", outline: "none", cursor: "pointer" }}>
-                <option value="overview">overview</option>
-                <option value="data">data narrative</option>
-                <option value="modules">module breakdown</option>
-                <option value="hai">hai score</option>
-              </select>
-              <button style={{ width: "52px", height: "44px", borderRadius: "8px", background: "#4A9EF0", border: "none", fontFamily: "inherit", fontSize: "13px", color: "#0b0b0c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>▶</button>
-            </div>
-          )}
         </div>
       )}
 
