@@ -236,9 +236,9 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
     const drawLabel = () => {
       ctx.font = "15px 'IBM Plex Mono', monospace"
       ctx.fillStyle = "rgba(255,255,255,0.08)"
-      ctx.fillText("gitbyte f", 10, 24)
-      ctx.fillStyle = "#E05C5C"
-      ctx.beginPath(); ctx.arc(94, 17, 4, 0, Math.PI * 2); ctx.fill()
+      ctx.fillText("gitbyte", 10, 24)
+      ctx.fillStyle = "#4A9EF0"
+      ctx.beginPath(); ctx.arc(79, 17, 4, 0, Math.PI * 2); ctx.fill()
     }
 
     const loop = () => {
@@ -330,10 +330,10 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
   }
 
   return (
-    <div style={{ marginTop: "32px", border: "1px solid rgba(224,92,92,0.2)", borderRadius: "8px", overflow: "hidden", background: "rgba(224,92,92,0.03)" }}>
+    <div style={{ marginTop: "32px", border: "1px solid rgba(74,158,255,0.2)", borderRadius: "8px", overflow: "hidden", background: "rgba(74,158,255,0.04)" }}>
       <div style={{ padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace" }}>
-          GITBYTE F · post-analysis guide
+          GITBYTE · open source, open language
         </div>
         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.15)", letterSpacing: "0.06em", fontFamily: "'IBM Plex Mono', monospace" }}>
           files eaten: {score.eaten} · plain language produced: {score.produced}
@@ -350,8 +350,8 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
         <div suppressHydrationWarning style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic" }}>
           {statusText}
         </div>
-        <button onClick={handleFeed} style={{ background: "rgba(224,92,92,0.12)", border: "1px solid #E05C5C", borderRadius: "4px", padding: "7px 18px", fontFamily: "'IBM Plex Mono', monospace", fontSize: "16px", color: "#E05C5C", cursor: "pointer", letterSpacing: "0.06em" }}>
-          [ feed gitbyte f ]
+        <button onClick={handleFeed} style={{ background: "rgba(74,158,240,0.12)", border: "1px solid #4A9EF0", borderRadius: "4px", padding: "7px 18px", fontFamily: "'IBM Plex Mono', monospace", fontSize: "16px", color: "#4A9EF0", cursor: "pointer", letterSpacing: "0.06em", minWidth: "160px", textAlign: "center" }}>
+          [ feed gitbyte ]
         </button>
       </div>
     </div>
