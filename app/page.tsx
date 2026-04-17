@@ -663,7 +663,7 @@ export default function IGititPage() {
 
   // Theme helper
   const T = lightMode ? {
-    bg: "#F2F2F2",
+    bg: "#EEEEEA",
     text: "rgba(0,0,0,0.88)",
     textDim: "rgba(0,0,0,0.4)",
     textFaint: "rgba(0,0,0,0.2)",
@@ -1074,7 +1074,7 @@ export default function IGititPage() {
   ]
 
   return (
-    <div suppressHydrationWarning className={`scanlines igitit-wrap`} style={{ minHeight: "100dvh", background: T.bg, fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: T.text, padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto", transition: "background 0.3s ease, color 0.3s ease" }}>
+    <div suppressHydrationWarning className={`scanlines igitit-wrap`} style={{ minHeight: "100dvh", backgroundColor: T.bg, fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: T.text, padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto", transition: "background-color 0.3s ease, color 0.3s ease" }}>
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
@@ -1086,7 +1086,7 @@ export default function IGititPage() {
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
         @keyframes pulse-btn { 0%,100%{box-shadow:0 0 0 0 rgba(74,158,240,0.4)} 50%{box-shadow:0 0 0 8px rgba(74,158,240,0)} }
-        .scanlines { background-image: repeating-linear-gradient(0deg, transparent, transparent 1px, ${T.scanlines} 1px, ${T.scanlines} 2px, transparent 2px, transparent 4px); }
+        .scanlines { background-image: repeating-linear-gradient(0deg, transparent, transparent 1px, ${T.scanlines} 1px, ${T.scanlines} 2px, transparent 2px, transparent 4px), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C%2Fsvg%3E"); background-size: auto, 200px 200px; }
         .tab-btn:hover { background: ${T.hoverBg} !important; }
         .analyze-btn { background: #4A9EF0 !important; color: #0b0b0c !important; border: 1px solid #4A9EF0 !important; }
         .analyze-btn:hover { background: rgba(74,158,240,0.9) !important; }
