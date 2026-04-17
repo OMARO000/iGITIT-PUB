@@ -1646,24 +1646,29 @@ export default function IGititPage() {
 
           {/* REPO CHAT */}
           {!compareMode && (
-            <div style={{ marginTop: "20px", padding: "16px 20px", background: T.card, border: `1px solid ${T.border}`, borderRadius: "8px" }}>
-              <div style={{ fontSize: "11px", letterSpacing: "0.1em", color: T.textFaint, marginBottom: "10px" }}>ask about this repo</div>
+            <div style={{ marginTop: "20px", border: "1px solid rgba(74,158,240,0.25)", borderRadius: "8px", background: "rgba(74,158,240,0.03)", padding: "20px 24px", boxShadow: "0 0 0 1px rgba(74,158,240,0.06), 0 0 24px rgba(74,158,240,0.05)" }}>
+              <div style={{ fontSize: "10px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.6)", marginBottom: "12px" }}>ASK ABOUT THIS REPO</div>
               <div style={{ display: "flex", gap: "8px" }}>
                 <input
                   type="text"
                   value={repoChat}
-                  onChange={e => { setRepoChat(e.target.value); setOmenNote(false) }}
+                  onChange={e => { setRepoChat(e.target.value); setOmenNote(false); setRepoChatResponse("") }}
                   onKeyDown={e => e.key === "Enter" && handleRepoChatSubmit()}
                   placeholder="e.g. what data does it collect? · who governs this? · show me the code modules"
-                  style={{ flex: 1, background: T.inputBg, border: `1px solid ${T.borderMid}`, borderRadius: "4px", padding: "10px 14px", fontFamily: "inherit", fontSize: "13px", color: T.text, outline: "none" }}
+                  style={{ flex: 1, background: "rgba(74,158,240,0.04)", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "5px", padding: "12px 16px", fontFamily: "inherit", fontSize: "14px", color: "rgba(255,255,255,0.88)", outline: "none", letterSpacing: "0.02em" }}
                 />
                 <button
                   onClick={handleRepoChatSubmit}
-                  style={{ background: "rgba(74,158,240,0.12)", border: "1px solid rgba(74,158,240,0.35)", borderRadius: "4px", padding: "10px 16px", fontFamily: "inherit", fontSize: "13px", color: "#4A9EF0", cursor: "pointer", letterSpacing: "0.06em", whiteSpace: "nowrap" }}
+                  style={{ background: "rgba(74,158,240,0.15)", border: "1px solid rgba(74,158,240,0.45)", borderRadius: "5px", padding: "12px 20px", fontFamily: "inherit", fontSize: "14px", color: "#4A9EF0", cursor: "pointer", letterSpacing: "0.08em", whiteSpace: "nowrap" }}
                 >
                   [ → ]
                 </button>
               </div>
+              {repoChatResponse && (
+                <div style={{ marginTop: "10px", fontSize: "11px", color: "rgba(74,158,240,0.65)", letterSpacing: "0.04em", fontStyle: "italic" }}>
+                  → {repoChatResponse}
+                </div>
+              )}
               {omenNote && (
                 <div style={{ marginTop: "10px", padding: "8px 12px", background: "rgba(224,92,92,0.06)", border: "1px solid rgba(224,92,92,0.2)", borderRadius: "4px", fontSize: "11px", color: "rgba(224,92,92,0.7)", lineHeight: 1.5 }}>
                   ⚠ This organisation has entries in the OMEN accountability ledger. See dossier for details.
