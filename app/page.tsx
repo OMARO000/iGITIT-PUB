@@ -1117,11 +1117,20 @@ export default function IGititPage() {
             <div style={{ marginTop: "10px", padding: "12px 16px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "6px", fontSize: "13px", color: "#E05C5C" }}>⚠ {errorA}</div>
           )}
           {analyzingA && <CommitGraphLoader step={stepA} />}
-          <GitByte
-            files={fetchedFileSnippets.length > 0 ? fetchedFileSnippets : fetchedFilePaths.length > 0 ? fetchedFilePaths : undefined}
-            outputs={fetchedFileOutputs.length > 0 ? fetchedFileOutputs : undefined}
-            active={analyzingA}
-          />
+          {/* Original GitByte during analysis; female GitByte once results are in */}
+          {analysisA && !analyzingA ? (
+            <GitByteF
+              files={analysisA.modules.length > 0 ? analysisA.modules.map(m => m.path || m.name) : undefined}
+              outputs={analysisA.modules.length > 0 ? analysisA.modules.map(m => m.description) : undefined}
+              active={true}
+            />
+          ) : (
+            <GitByte
+              files={fetchedFileSnippets.length > 0 ? fetchedFileSnippets : fetchedFilePaths.length > 0 ? fetchedFilePaths : undefined}
+              outputs={fetchedFileOutputs.length > 0 ? fetchedFileOutputs : undefined}
+              active={analyzingA}
+            />
+          )}
         </div>
       ) : (
         /* COMPARE: TWO INPUTS SIDE BY SIDE */
@@ -1661,20 +1670,6 @@ export default function IGititPage() {
                 </div>
               )}
             </div>
-          )}
-
-          {/* GITBYTE F — post-analysis guide */}
-          {!compareMode && analysisA && (
-            <GitByteF
-              files={analysisA.modules.length > 0
-                ? analysisA.modules.map(m => m.path || m.name)
-                : undefined}
-              outputs={analysisA.modules.length > 0
-                ? analysisA.modules.map(m => m.description)
-                : undefined}
-              active={true}
-              speed={1}
-            />
           )}
 
           {/* LISTEN BAR */}
