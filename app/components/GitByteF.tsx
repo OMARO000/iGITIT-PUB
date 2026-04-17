@@ -2,13 +2,16 @@
 
 import { type ReactNode, useEffect, useRef, useState } from "react"
 
+interface FemChatMessage { id: number; text: string }
+
 interface GitByteFProps {
   files?: string[]
   outputs?: string[]
   active?: boolean
   speed?: number
   children?: ReactNode
-  femResponse?: string
+  femChatHistory?: FemChatMessage[]
+  femChatPending?: boolean
 }
 
 const DEMO_FILES = [
@@ -27,7 +30,7 @@ const DEMO_OUTPUTS = [
 const W = 1100
 const H = 400
 
-export default function GitByteF({ files = DEMO_FILES, outputs, active = false, speed = 1, children, femResponse }: GitByteFProps) {
+export default function GitByteF({ files = DEMO_FILES, outputs, active = false, speed = 1, children, femChatHistory = [], femChatPending = false }: GitByteFProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef({
     gitbyte: { x: 550, y: H / 2, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
@@ -354,28 +357,63 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
           style={{ display: "block", width: "100%", height: `${H}px`, cursor: "pointer" }}
           onClick={handleFeed}
         />
-        {/* FEM GITBYTE personality response bubble — static, 9-second visibility */}
-        {femResponse && (
+        {/* FEM GITBYTE multi-turn bubble stack — newest at bottom, older messages faded above */}
+        {(femChatPending || femChatHistory.length > 0) && (
           <div style={{
             position: "absolute",
-            top: "100px",
+            bottom: "245px",
             left: "50%",
             transform: "translateX(-50%)",
-            background: "rgba(0,0,0,0.55)",
-            border: "1px solid rgba(0,200,150,0.5)",
-            borderRadius: "5px",
-            padding: "9px 18px",
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: "12px",
-            color: "rgba(0,200,150,0.95)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "5px",
             maxWidth: "68%",
-            textAlign: "center",
+            alignItems: "center",
             pointerEvents: "none",
-            lineHeight: 1.65,
-            letterSpacing: "0.03em",
-            boxShadow: "0 0 18px rgba(0,200,150,0.12)",
+            width: "68%",
           }}>
-            {femResponse}
+            {/* Oldest messages first (top), newest last (bottom) */}
+            {femChatHistory.map((msg, i) => {
+              const total = femChatHistory.length
+              const posFromNewest = total - 1 - i // 0 = newest
+              const opacity = posFromNewest === 0 ? 1 : posFromNewest === 1 ? 0.55 : 0.28
+              const fontSize = posFromNewest === 0 ? "12px" : "11px"
+              return (
+                <div key={msg.id} style={{
+                  background: "rgba(0,0,0,0.55)",
+                  border: `1px solid rgba(0,200,150,${posFromNewest === 0 ? "0.5" : "0.25"})`,
+                  borderRadius: "5px",
+                  padding: "8px 16px",
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize,
+                  color: `rgba(0,200,150,${opacity})`,
+                  textAlign: "center",
+                  lineHeight: 1.6,
+                  letterSpacing: "0.03em",
+                  boxShadow: posFromNewest === 0 ? "0 0 18px rgba(0,200,150,0.12)" : "none",
+                  width: "100%",
+                  transition: "opacity 0.4s ease",
+                }}>
+                  {msg.text}
+                </div>
+              )
+            })}
+            {/* Pending "..." indicator */}
+            {femChatPending && (
+              <div style={{
+                background: "rgba(0,0,0,0.45)",
+                border: "1px solid rgba(0,200,150,0.3)",
+                borderRadius: "5px",
+                padding: "8px 20px",
+                fontFamily: "'IBM Plex Mono', monospace",
+                fontSize: "14px",
+                color: "rgba(0,200,150,0.7)",
+                letterSpacing: "0.15em",
+                animation: "pulse 0.6s ease-in-out infinite",
+              }}>
+                ...
+              </div>
+            )}
           </div>
         )}
       </div>
