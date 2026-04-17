@@ -220,16 +220,15 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
           <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "16px" }}>
             HAI SCORE · {analysis.meta.owner}/{analysis.meta.repo}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "16px" }}>
+          {/* Grade + score + disclaimer all in one row */}
+          <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "24px", flexWrap: "wrap" }}>
             <div style={{ fontSize: "64px", fontFamily: "inherit", color: gradeColor, fontWeight: 300, lineHeight: 1 }}>[{grade}]</div>
             <div>
               <div style={{ fontSize: "24px", color: gradeColor, fontWeight: 300 }}>{totalRaw}/40</div>
               <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", marginTop: "4px" }}>HAI SCORE · GOVERNED BY OMARO PBC</div>
             </div>
-          </div>
-          {/* Centered disclaimer directly below grade line */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}>
-            <div style={{ border: "1px solid rgba(0,200,150,0.25)", borderRadius: "6px", padding: "10px 24px", background: "rgba(0,200,150,0.05)", textAlign: "center", maxWidth: "380px" }}>
+            {/* Disclaimer: same row, right of score, moderate left margin */}
+            <div style={{ marginLeft: "28px", border: "1px solid rgba(0,200,150,0.25)", borderRadius: "6px", padding: "10px 16px", background: "rgba(0,200,150,0.05)", maxWidth: "210px", flexShrink: 0 }}>
               <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(0,200,150,0.7)", marginBottom: "5px" }}>PRELIMINARY SCORE</div>
               <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", lineHeight: 1.55 }}>
                 Based on repository signals only. For a certified audit, visit{" "}
