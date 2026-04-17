@@ -1052,14 +1052,9 @@ export default function IGititPage() {
 
       {/* HEADER */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
-        {/* LOGO + OMARO badge inline — badge floats to the right of the logotype, above tagline */}
+        {/* LOGO — badge is now rendered inside IGititLogo component */}
         <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: "8px" }}>
-            <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }} />
-            <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" suppressHydrationWarning style={{ marginBottom: "26px", textDecoration: "none", flexShrink: 0, lineHeight: 1 }}>
-              <span style={{ fontSize: "8px", color: "rgba(74,158,240,0.5)", letterSpacing: "0.12em", border: "1px solid rgba(74,158,240,0.2)", padding: "2px 6px", borderRadius: "3px", fontFamily: "'IBM Plex Mono', monospace", whiteSpace: "nowrap", background: "rgba(74,158,240,0.05)", display: "inline-block" }}>AN OMARO COMPANY</span>
-            </a>
-          </div>
+          <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }} />
           <div style={{ fontSize: "22px", color: T.textDim, letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
         </div>
         {/* NAV: HAI link + [history] on one row; toggle directly below */}

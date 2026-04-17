@@ -8,7 +8,11 @@ import { useEffect, useState } from "react"
 
 export function IGititLogo({ onClick }: { onClick?: () => void }) {
   return (
-    <div onClick={onClick} style={{ cursor: onClick ? "pointer" : "default", userSelect: "none", display: "inline-block" }}>
+    <div
+      suppressHydrationWarning
+      onClick={onClick}
+      style={{ cursor: onClick ? "pointer" : "default", userSelect: "none", display: "flex", alignItems: "flex-start", gap: "10px" }}
+    >
       <svg width="630" height="160" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
         <text x="0" y="72" dominantBaseline="auto" style={{ fontFamily: "'IBM Plex Mono','Courier New',monospace", fontSize: "56px", letterSpacing: "-2px" }}>
           <tspan style={{ fontWeight: 500, fill: "rgba(255,255,255,0.92)" }}>ıGIT</tspan>
@@ -19,6 +23,27 @@ export function IGititLogo({ onClick }: { onClick?: () => void }) {
         {/* Blue dot over second ı */}
         <circle cx="147" cy="25" r="5" fill="#4A9EF0" />
       </svg>
+      {/* OMARO badge — top-aligned, sits as companion to the logotype */}
+      <a
+        href="https://omaro.xyz"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ textDecoration: "none", marginTop: "6px" }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{
+          border: "1px solid rgba(74,158,240,0.4)",
+          padding: "3px 7px",
+          fontSize: "8px",
+          color: "rgba(74,158,240,0.9)",
+          letterSpacing: "1px",
+          lineHeight: 1.4,
+          textAlign: "center",
+          fontFamily: "'IBM Plex Mono', monospace",
+        }}>
+          AN<br />OMARO<br />COMPANY
+        </div>
+      </a>
     </div>
   )
 }
