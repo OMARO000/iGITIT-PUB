@@ -649,6 +649,7 @@ export default function IGititPage() {
   const [lightMode, setLightMode] = useState(false)
   const [repoChat, setRepoChat] = useState("")
   const [omenNote, setOmenNote] = useState(false)
+  const [repoChatResponse, setRepoChatResponse] = useState("")
 
   // Theme helper
   const T = lightMode ? {
@@ -980,20 +981,29 @@ export default function IGititPage() {
     if (!repoChat.trim() || !analysisA) return
     const q = repoChat.toLowerCase()
     setOmenNote(false)
+    setRepoChatResponse("")
 
-    if (/(ethic|values|privacy|trust|govern|bias|fair|discriminat|hai|score|accountability|transparen|honorable)/i.test(q)) {
+    if (/(ethic|values|privacy|trust|govern|bias|fair|discriminat|hai|score|accountability|transparen|honorable|dark pattern|ux|manipulat)/i.test(q)) {
       setActiveTab("hai")
+      setRepoChatResponse("showing HAI score — based on repository signals only")
     } else if (/(what does|what is|overview|purpose|product|does it do|explain|about|describe|who built|who made)/i.test(q)) {
       setActiveTab("overview")
+      setRepoChatResponse("showing overview — plain language summary of this codebase")
     } else if (/(data|collect|store|send|transmit|track|share|personal|user info)/i.test(q)) {
       setActiveTab("data")
+      setRepoChatResponse("showing data narrative — what this software collects, stores, and transmits")
     } else if (/(code|tech|stack|module|component|architect|how is it built|built with|language|framework)/i.test(q)) {
       setActiveTab("modules")
+      setRepoChatResponse("showing module breakdown — key components of this codebase")
     } else if (/(commit|change|update|history|version|recent|release|changelog)/i.test(q)) {
       setActiveTab("changelog")
+      setRepoChatResponse("showing commit history — loading recent changes")
       if (!changelog && !changelogLoading) loadChangelog(changelogDepth)
     } else if (/(legal|lawsuit|violation|fine|regulat|compliance|dossier|accountab|scandal|investig)/i.test(q)) {
       setDossierOpen(true)
+      setRepoChatResponse("opening dossier — accountability and legal context")
+    } else {
+      setRepoChatResponse("no specific section matched — try: 'what data does it collect?' or 'show HAI score'")
     }
 
     // OMEN check — surface note if org has known ledger entries
