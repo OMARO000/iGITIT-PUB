@@ -340,7 +340,7 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
   }
 
   return (
-    <div style={{ marginTop: "32px", border: "1px solid rgba(0,200,150,0.25)", borderRadius: "8px", overflow: "hidden", background: "rgba(0,200,150,0.03)" }}>
+    <div className="fem-gitbyte-box" style={{ marginTop: "32px", border: "1px solid rgba(0,200,150,0.25)", borderRadius: "8px", overflow: "hidden", background: "rgba(0,200,150,0.03)" }}>
       <div style={{ padding: "10px 20px", borderBottom: "1px solid rgba(0,200,150,0.1)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ fontSize: "11px", color: "rgba(0,200,150,0.6)", letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace" }}>
           FEM GITBYTE · post-analysis guide

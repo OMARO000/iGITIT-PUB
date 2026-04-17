@@ -131,7 +131,7 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
   const scoreColor = (p: boolean) => p ? "#4CAF7D" : "#E05C5C"
 
   const card = (children: React.ReactNode, key?: number) => (
-    <div key={key} style={{ padding: "28px 32px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", marginBottom: "10px" }}>
+    <div key={key} className="igitit-card" style={{ padding: "28px 32px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", marginBottom: "10px" }}>
       {children}
     </div>
   )
@@ -668,20 +668,19 @@ export default function IGititPage() {
 
   // Theme helper
   const T = lightMode ? {
-    // Light mode: only the page canvas changes to warm grey — content stays dark terminal
     bg: "#E8E8E4",
-    text: "rgba(255,255,255,0.92)",
-    textDim: "rgba(255,255,255,0.4)",
-    textFaint: "rgba(255,255,255,0.2)",
-    textFainter: "rgba(255,255,255,0.15)",
-    border: "rgba(255,255,255,0.07)",
-    borderMid: "rgba(255,255,255,0.1)",
-    card: "rgba(255,255,255,0.02)",
-    inputBg: "rgba(255,255,255,0.03)",
-    scrollbar: "rgba(255,255,255,0.1)",
-    scanlines: "rgba(255,255,255,0.08)",
-    hoverBg: "rgba(255,255,255,0.05)",
-    commitCardHover: "rgba(255,255,255,0.14)",
+    text: "#111111",
+    textDim: "#444444",
+    textFaint: "#777777",
+    textFainter: "#999999",
+    border: "rgba(0,0,0,0.1)",
+    borderMid: "rgba(0,0,0,0.15)",
+    card: "#D8D8D4",
+    inputBg: "#D4D4D0",
+    scrollbar: "rgba(0,0,0,0.2)",
+    scanlines: "rgba(0,0,0,0.04)",
+    hoverBg: "rgba(0,0,0,0.05)",
+    commitCardHover: "rgba(0,0,0,0.08)",
   } : {
     bg: "#0b0b0c",
     text: "rgba(255,255,255,0.92)",
@@ -1144,7 +1143,7 @@ export default function IGititPage() {
   ]
 
   return (
-    <div suppressHydrationWarning className={`scanlines igitit-wrap`} style={{ minHeight: "100dvh", fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: T.text, padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto", transition: "color 0.3s ease" }}>
+    <div suppressHydrationWarning className={`scanlines igitit-wrap`} data-theme={lightMode ? "light" : "dark"} style={{ minHeight: "100dvh", fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: T.text, padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto", transition: "color 0.3s ease, background-color 0.3s ease" }}>
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
@@ -1168,7 +1167,15 @@ export default function IGititPage() {
         .compare-btn:hover { background: rgba(74,158,240,0.15) !important; border-color: rgba(74,158,240,0.5) !important; }
         @keyframes tabPulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,0.5);transform:scale(1)} 50%{box-shadow:0 0 0 7px rgba(0,200,150,0);transform:scale(1.04)} }
         html, body { background-color: ${T.bg}; transition: background-color 0.3s ease; margin: 0; padding: 0; }
-        .igitit-wrap { background-color: #0b0b0c; }
+        .igitit-wrap { background-color: ${T.bg}; transition: background-color 0.3s ease; }
+        [data-theme="light"] * { color: #111111 !important; }
+        [data-theme="light"] [style*="4A9EF0"],[data-theme="light"] [style*="4a9ef0"],[data-theme="light"] [style*="74,158,240"],[data-theme="light"] [style*="74, 158, 240"] { color: #4A9EF0 !important; }
+        [data-theme="light"] [style*="4CAF7D"],[data-theme="light"] [style*="4caf7d"],[data-theme="light"] [style*="76,175,125"],[data-theme="light"] [style*="76, 175, 125"] { color: #4CAF7D !important; }
+        [data-theme="light"] [style*="00C896"],[data-theme="light"] [style*="00c896"],[data-theme="light"] [style*="0,200,150"],[data-theme="light"] [style*="0, 200, 150"] { color: #00C896 !important; }
+        [data-theme="light"] [style*="E05C5C"],[data-theme="light"] [style*="e05c5c"],[data-theme="light"] [style*="224,92,92"],[data-theme="light"] [style*="224, 92, 92"] { color: #E05C5C !important; }
+        [data-theme="light"] [style*="F0A04A"],[data-theme="light"] [style*="f0a04a"],[data-theme="light"] [style*="240,160,74"],[data-theme="light"] [style*="240, 160, 74"] { color: #F0A04A !important; }
+        [data-theme="light"] .igitit-card { background: #D8D8D4 !important; border-color: rgba(0,0,0,0.1) !important; }
+        [data-theme="light"] .fem-gitbyte-box { background: #D0D0CC !important; }
       `}</style>
 
       {/* HEADER */}
