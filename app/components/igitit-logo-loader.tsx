@@ -34,13 +34,18 @@ export function IGititLogo({ onClick }: { onClick?: () => void }) {
       >
         <div style={{
           border: "1px solid rgba(74,158,240,0.4)",
-          padding: "5px 9px",
+          padding: "8px 12px",
           fontSize: "10px",
           color: "rgba(74,158,240,0.9)",
           letterSpacing: "1.5px",
-          lineHeight: 1.4,
+          lineHeight: 1.5,
           textAlign: "center",
           fontFamily: "'IBM Plex Mono', monospace",
+          minHeight: "48px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
         }}>
           AN<br />OMARO<br />COMPANY
         </div>
