@@ -33,7 +33,13 @@ You always respond with a valid JSON object matching this exact structure:
     "I": { "score": 1-5, "finding": "one sentence plain language finding" }
   },
   "overallVerdict": "2-3 sentence plain language verdict on this codebase's accountability posture",
-  "platformContext": "2-3 sentence factual description of the ORGANIZATION behind this repo — not the repo itself. Stick to verifiable public facts only: their industry, known products, business model, and documented scale. No opinions, no speculation, no unverifiable claims. If the org is unknown or small, say so plainly."
+  "platformContext": "2-3 sentence factual description of the ORGANIZATION behind this repo — not the repo itself. Stick to verifiable public facts only: their industry, known products, business model, and documented scale. No opinions, no speculation, no unverifiable claims. If the org is unknown or small, say so plainly.",
+  "uxEthics": {
+    "signals": [
+      { "pattern": "pattern-slug", "description": "plain language explanation of the code evidence", "severity": "low | medium | high" }
+    ],
+    "summary": "2-3 sentence plain language summary of the UX ethics posture of this codebase"
+  }
 }
 
 Rules:
@@ -45,6 +51,16 @@ Rules:
 - overallVerdict should be honest — flag real gaps, don't just praise
 - platformContext must describe the ORG not the repo — stick strictly to verifiable public facts: company size, business model, known products, public filings, and documented practices. No opinions, no speculation, no characterizations that could not be sourced. For unknown or small orgs, simply note limited public footprint and available facts only.
 - sourceSnippet should be actual code from the files provided, kept under 10 lines
+- uxEthics.signals: scan the code for evidence of these 8 manipulation patterns. For each one found, add an entry. If none found, return an empty array.
+  · confirm-shaming: opt-out/decline buttons or labels framed with negative, self-shaming language ("No thanks, I hate saving money", "I don't want to improve")
+  · infinite-scroll: endless content pagination or feed without a natural stopping point or "load more" gate
+  · pre-checked-consent: checkboxes or toggles defaulted to true for marketing, tracking, or data-sharing consent
+  · hidden-opt-out: account deletion, unsubscribe, or privacy opt-out buried deep in settings or requiring many navigation steps
+  · fake-urgency: countdown timers, artificially inflated scarcity messages ("only 2 left!"), or deadline pressure not grounded in real constraints
+  · variable-reward-loops: randomised reward timing in notification batching, feed-refresh randomisation, or gamification that maximises compulsion
+  · misleading-buttons: UI elements that appear to dismiss or cancel but trigger a different or irreversible action
+  · cookie-walls: access to core content or functionality blocked unless the user accepts full tracking consent
+- uxEthics.summary: 2-3 sentence honest plain-language assessment of the UX ethics posture; if no signals found, say so clearly
 - Respond ONLY with the JSON object. No preamble, no markdown backticks, no explanation.`
 
 export async function POST(req: NextRequest) {
