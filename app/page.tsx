@@ -654,6 +654,7 @@ export default function IGititPage() {
   const [fetchedFileOutputsB, setFetchedFileOutputsB] = useState<string[]>([])
 
   const [dossierOpen, setDossierOpen] = useState(false)
+  const [dossierExpanded, setDossierExpanded] = useState(false)
   const [lightMode, setLightMode] = useState(false)
   const [repoChat, setRepoChat] = useState("")
   const [omenNote, setOmenNote] = useState(false)
@@ -1676,7 +1677,13 @@ export default function IGititPage() {
           {/* DOSSIER PANEL */}
           {dossierOpen && analysisA && (
             <div style={{ width: "380px", minWidth: "380px", background: "#0d1520", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "8px", marginLeft: "16px", marginRight: "-140px", padding: "20px", flexShrink: 0, alignSelf: "flex-start", position: "sticky", top: "20px", boxShadow: "4px 0 32px rgba(74,158,240,0.08)" }}>
-              <div style={{ fontSize: "13px", color: "#4A9EF0", letterSpacing: "0.12em", marginBottom: "14px", paddingBottom: "10px", borderBottom: "1px solid rgba(74,158,240,0.12)" }}>[ dossier ]</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", paddingBottom: "10px", borderBottom: "1px solid rgba(74,158,240,0.12)" }}>
+                <div style={{ fontSize: "13px", color: "#4A9EF0", letterSpacing: "0.12em" }}>[ dossier ]</div>
+                <button onClick={() => setDossierExpanded(e => !e)} style={{ padding: "4px 10px", background: "rgba(74,158,240,0.08)", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "4px", fontFamily: "inherit", fontSize: "11px", color: "rgba(74,158,240,0.7)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
+                  {dossierExpanded ? "[ collapse ]" : "[ expand ]"}
+                </button>
+              </div>
+              <div style={{ maxHeight: dossierExpanded ? "1000px" : "200px", overflow: "hidden", transition: "max-height 0.35s ease" }}>
 
               {/* PLATFORM CONTEXT */}
               <div style={{ marginBottom: "14px" }}>
@@ -1742,6 +1749,8 @@ export default function IGititPage() {
                 <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.15)", fontStyle: "italic", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: "4px", padding: "6px 8px" }}>no entries yet · <span style={{ color: "rgba(74,158,240,0.4)", cursor: "pointer" }}>[ submit a finding ]</span></div>
               </div>
 
+              </div>{/* end collapsible content */}
+              {!dossierExpanded && <div style={{ height: "24px", background: "linear-gradient(to bottom, transparent, #0d1520)", marginTop: "-24px", pointerEvents: "none" }} />}
               <div style={{ fontSize: "6px", letterSpacing: "0.08em", color: "rgba(74,158,240,0.2)", marginTop: "10px" }}>GOVERNED BY OMARO PBC</div>
             </div>
           )}
