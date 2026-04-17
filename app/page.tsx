@@ -666,19 +666,20 @@ export default function IGititPage() {
 
   // Theme helper
   const T = lightMode ? {
-    bg: "#EEEEEA",
-    text: "rgba(0,0,0,0.88)",
-    textDim: "rgba(0,0,0,0.4)",
-    textFaint: "rgba(0,0,0,0.2)",
-    textFainter: "rgba(0,0,0,0.12)",
-    border: "rgba(0,0,0,0.08)",
-    borderMid: "rgba(0,0,0,0.1)",
-    card: "rgba(0,0,0,0.025)",
-    inputBg: "rgba(0,0,0,0.03)",
-    scrollbar: "rgba(0,0,0,0.15)",
-    scanlines: "rgba(0,0,0,0.025)",
-    hoverBg: "rgba(0,0,0,0.04)",
-    commitCardHover: "rgba(0,0,0,0.1)",
+    // Light mode: only the page canvas changes to warm grey — content stays dark terminal
+    bg: "#E8E8E4",
+    text: "rgba(255,255,255,0.92)",
+    textDim: "rgba(255,255,255,0.4)",
+    textFaint: "rgba(255,255,255,0.2)",
+    textFainter: "rgba(255,255,255,0.15)",
+    border: "rgba(255,255,255,0.07)",
+    borderMid: "rgba(255,255,255,0.1)",
+    card: "rgba(255,255,255,0.02)",
+    inputBg: "rgba(255,255,255,0.03)",
+    scrollbar: "rgba(255,255,255,0.1)",
+    scanlines: "rgba(255,255,255,0.08)",
+    hoverBg: "rgba(255,255,255,0.05)",
+    commitCardHover: "rgba(255,255,255,0.14)",
   } : {
     bg: "#0b0b0c",
     text: "rgba(255,255,255,0.92)",
@@ -1077,7 +1078,7 @@ export default function IGititPage() {
   ]
 
   return (
-    <div suppressHydrationWarning className={`scanlines igitit-wrap`} style={{ minHeight: "100dvh", backgroundColor: T.bg, fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: T.text, padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto", transition: "background-color 0.3s ease, color 0.3s ease" }}>
+    <div suppressHydrationWarning className={`scanlines igitit-wrap`} style={{ minHeight: "100dvh", fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: T.text, padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto", transition: "color 0.3s ease" }}>
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
@@ -1100,6 +1101,8 @@ export default function IGititPage() {
         .depth-btn:hover { background: ${T.hoverBg} !important; }
         .compare-btn:hover { background: rgba(74,158,240,0.15) !important; border-color: rgba(74,158,240,0.5) !important; }
         @keyframes tabPulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,0.5);transform:scale(1)} 50%{box-shadow:0 0 0 7px rgba(0,200,150,0);transform:scale(1.04)} }
+        html, body { background-color: ${T.bg}; transition: background-color 0.3s ease; margin: 0; padding: 0; }
+        .igitit-wrap { background-color: #0b0b0c; }
       `}</style>
 
       {/* HEADER */}
