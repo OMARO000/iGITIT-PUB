@@ -1001,79 +1001,144 @@ export default function IGititPage() {
     const r = a.rescue
     const totalRaw = Object.values(r).reduce((s, p) => s + (p as RescuePillar).score, 0)
 
-    // Specific pillar question
+    // Hard rules: never use these words
+    // bad, dangerous, unethical, illegal, harmful, corrupt, malicious, evil, suspicious
+    // Always start with "the data shows…" / "according to the analysis…" / "the repository signals indicate…"
+    // Max 3 sentences. No legal characterizations.
+
+    // Named-pillar question — match any pillar name even without a qualifier
     const pillarMap: [RegExp, keyof RescueScore][] = [
-      [/integrit|transparen/i, "I"], [/accountab/i, "A"], [/safe|robust/i, "S"],
-      [/equal|discrimin|bias/i, "E"], [/human|control|override/i, "C"],
-      [/use.?limit|proportional/i, "U"], [/sovereig|deletion|export|opt.out/i, "E2"],
-      [/resilien|depend|vendor|lock/i, "R"],
+      [/integrit|transparen/i, "I"],
+      [/accountab/i, "A"],
+      [/safe|robust/i, "S"],
+      [/equal|discrimin|bias|fairness/i, "E"],
+      [/human.*(control|override)|control.*(human|override)|override/i, "C"],
+      [/use.?limit|proportional|consent|permission/i, "U"],
+      [/sovereig|deletion|export|opt.?out|data.?right/i, "E2"],
+      [/resilien|depend|vendor|lock.?in|fallback/i, "R"],
     ]
     for (const [re, key] of pillarMap) {
-      if (re.test(q) && /(pillar|score|explain|what is|how did|why|detail)/i.test(q)) {
+      if (re.test(q)) {
         const p = r[key] as RescuePillar
-        if (p) return `according to the analysis, ${PILLAR_NAMES[key]} scored ${p.score}/5. the repository signals indicate: ${p.finding}`
+        if (p) return `according to the analysis, the ${PILLAR_NAMES[key]} pillar scored ${p.score}/5. the repository signals indicate: ${p.finding}`
       }
     }
 
-    // HAI / score / ethics
-    if (/(ethic|values|trust|govern|bias|fair|discriminat|hai|score|accountability|transparen|honorable|dark pattern|ux|manipulat)/i.test(q)) {
-      const sorted = (Object.entries(r) as [string, RescuePillar][]).sort((a, b) => a[1].score - b[1].score)
-      const weakest = sorted.slice(0, 2).map(([k, v]) => `${PILLAR_NAMES[k]} ${v.score}/5`).join(" · ")
-      return `the data shows [${grade}] ${totalRaw}/40. according to the analysis, weakest: ${weakest}.`
+    // UX ethics / dark patterns
+    if (/(ux|dark pattern|manipulat|design|nudge|confirm.sham|infinite.scroll|pre.check|opt.out|fake.urgen|variable.reward|cookie.wall|mislead)/i.test(q)) {
+      const signals = a.uxEthics?.signals ?? []
+      if (signals.length === 0) return `the data shows no dark-pattern signals detected in this codebase. ${a.uxEthics?.summary?.slice(0, 100) ?? "no ux ethics concerns found"}…`
+      const top = signals.slice(0, 2).map(s => `${s.pattern} (${s.severity})`).join(", ")
+      return `the repository signals indicate ${signals.length} ux pattern(s) flagged: ${top}. ${a.uxEthics?.summary?.slice(0, 80) ?? ""}…`
     }
 
-    // Overview / what does it do
-    if (/(what does|what is|overview|purpose|product|does it do|explain|about|describe|who built|who made)/i.test(q)) {
-      const desc = a.meta.description || a.overview[0]?.content || "no description available"
-      const topMods = a.modules.slice(0, 3).map(m => m.name).join(", ")
-      return `according to the analysis: ${desc.slice(0, 100)}${desc.length > 100 ? "…" : ""}. top modules: ${topMods}.`
+    // HAI / score / ethics overview
+    if (/(ethic|values|trust|govern|hai|score|hai score|overall score|grade)/i.test(q)) {
+      const sorted = (Object.entries(r) as [string, RescuePillar][]).sort((a, b) => a[1].score - b[1].score)
+      const weakest = sorted.slice(0, 2).map(([k, v]) => `${PILLAR_NAMES[k]} ${v.score}/5`).join(" · ")
+      const strongest = sorted.slice(-1).map(([k, v]) => `${PILLAR_NAMES[k]} ${v.score}/5`).join("")
+      return `the data shows [${grade}] ${totalRaw}/40 for ${a.meta.owner}/${a.meta.repo}. weakest: ${weakest}. strongest: ${strongest}.`
+    }
+
+    // Platform / org context
+    if (/(platform|company|org|organization|who owns|who runs|background|context|about the org)/i.test(q)) {
+      const ctx = a.platformContext?.slice(0, 150) ?? `${a.meta.owner} on ${a.meta.platform ?? "GitHub"}`
+      return `according to the analysis, ${ctx}…`
+    }
+
+    // Overview / what does it do / who serves
+    if (/(what does|what is|overview|purpose|product|does it do|explain|about|describe|who built|who made|who serves|who is it for)/i.test(q)) {
+      const what = a.overview.find(o => o.title.toLowerCase().includes("what"))?.content ?? a.meta.description ?? "no description available"
+      const who = a.overview.find(o => o.title.toLowerCase().includes("who"))?.content
+      const base = `according to the analysis: ${what.slice(0, 100)}${what.length > 100 ? "…" : ""}.`
+      return who ? `${base} the repository signals indicate it serves: ${who.slice(0, 70)}…` : base
+    }
+
+    // Why built
+    if (/(why.*(built|made|created|exist)|reason|motivation)/i.test(q)) {
+      const why = a.overview.find(o => o.title.toLowerCase().includes("why"))?.content ?? a.overallVerdict?.slice(0, 100)
+      if (why) return `according to the analysis, ${why.slice(0, 140)}${why.length > 140 ? "…" : ""}`
+      return `the data shows ${a.meta.stars?.toLocaleString() ?? "unknown"} stars on ${a.meta.platform ?? "GitHub"} — check the overview tab for context.`
     }
 
     // Data / privacy
     if (/(data|collect|store|send|transmit|track|share|personal|user info|privacy)/i.test(q)) {
       const counts = { collect: 0, store: 0, send: 0 }
-      a.dataItems.forEach(d => { counts[d.type]++ })
-      const flow = a.dataFlowSummary?.slice(0, 80) ?? "see data tab for details"
-      return `the repository signals indicate ${counts.collect} collected · ${counts.store} stored · ${counts.send} transmitted. ${flow}…`
+      a.dataItems.forEach(d => { counts[d.type as "collect" | "store" | "send"]++ })
+      const topItems = a.dataItems.slice(0, 3).map(d => d.label).join(", ")
+      const flow = a.dataFlowSummary?.slice(0, 90) ?? "see data tab"
+      return `the repository signals indicate ${counts.collect} items collected · ${counts.store} stored · ${counts.send} transmitted. examples: ${topItems}. ${flow}…`
     }
 
-    // Legal / dossier
-    if (/(legal|lawsuit|violation|fine|regulat|compliance|dossier|scandal|investig)/i.test(q)) {
+    // Specific data item lookup
+    if (/(what data|which data|list data|show data|data item)/i.test(q)) {
+      const items = a.dataItems.slice(0, 5).map(d => `${d.type}: ${d.label}`).join(", ")
+      return `the data shows these items in the analysis: ${items}. for the full list, see the data narrative tab.`
+    }
+
+    // Repo metadata — stars, language, forks
+    if (/(star|fork|language|size|repo.*(size|stat)|how big|how popular|how many)/i.test(q)) {
+      const lang = a.meta.language ?? "unknown"
+      const stars = a.meta.stars?.toLocaleString() ?? "unknown"
+      const platform = a.meta.platform ?? "GitHub"
+      return `the repository signals indicate ${stars} stars, written primarily in ${lang}, hosted on ${platform}.`
+    }
+
+    // License
+    if (/(license|licence|open.?source|mit|apache|gpl|copyright)/i.test(q)) {
       const license = a.meta.license ?? "no license detected"
-      const omenStatus = hasOmen ? "entries found in OMEN ledger" : "no OMEN entries on record"
+      return `according to the analysis, license: ${license}. the ${PILLAR_NAMES["A"]} pillar scored ${(r["A"] as RescuePillar)?.score ?? "?"}/5 based on documented accountability signals.`
+    }
+
+    // OMEN record
+    if (/(omen|ledger|record|legal|lawsuit|violation|fine|regulat|compliance|dossier|scandal|investig)/i.test(q)) {
+      const omenStatus = hasOmen ? "this organization has entries in the OMEN accountability ledger" : "no OMEN accountability ledger entries found for this organization"
+      const license = a.meta.license ?? "no license detected"
       const verdict = a.overallVerdict?.slice(0, 80) ?? ""
-      return `the dossier shows license: ${license}. OMEN record: ${omenStatus}. ${verdict}…`
+      return `the data shows: ${omenStatus}. license on record: ${license}. ${verdict}…`
     }
 
     // Compare
-    if (/(compare|vs|versus|against|difference|which is better)/i.test(q) && aB) {
+    if (/(compare|vs\b|versus|against|difference|which is better|side.by.side)/i.test(q) && aB) {
       const totalB = Object.values(aB.rescue).reduce((s, p) => s + (p as RescuePillar).score, 0)
       const gradeB = totalB >= 36 ? "A" : totalB >= 30 ? "B" : totalB >= 24 ? "C" : totalB >= 16 ? "D" : "F"
       const gaps = (Object.entries(r) as [string, RescuePillar][]).map(([k, v]) => ({
         key: k, diff: Math.abs(v.score - ((aB.rescue[k as keyof RescueScore] as RescuePillar)?.score ?? 3))
       })).sort((a, b) => b.diff - a.diff)
-      return `the data shows: ${a.meta.owner}/${a.meta.repo} scored ${totalRaw}/40 [${grade}] vs ${aB.meta.owner}/${aB.meta.repo} ${totalB}/40 [${gradeB}]. biggest gap: ${PILLAR_NAMES[gaps[0].key]}.`
+      const biggestGap = gaps[0]
+      return `the data shows: ${a.meta.owner}/${a.meta.repo} scored ${totalRaw}/40 [${grade}] vs ${aB.meta.owner}/${aB.meta.repo} ${totalB}/40 [${gradeB}]. biggest gap: ${PILLAR_NAMES[biggestGap.key]} (${biggestGap.diff} point${biggestGap.diff !== 1 ? "s" : ""}).`
     }
 
     // Summary / verdict
-    if (/(summar|verdict|overall|conclusion|tl;dr|tldr)/i.test(q)) {
+    if (/(summar|verdict|overall|conclusion|tl;?dr|bottom line|takeaway)/i.test(q)) {
       const verdict = a.overallVerdict ?? ""
-      return `according to the analysis: "${verdict.slice(0, 130)}${verdict.length > 130 ? "…" : ""}"`
+      return `according to the analysis: "${verdict.slice(0, 150)}${verdict.length > 150 ? "…" : ""}"`
     }
 
-    // Modules / code
-    if (/(code|tech|stack|module|component|architect|built with|language|framework)/i.test(q)) {
+    // Modules / code architecture
+    if (/(code|tech|stack|module|component|architect|built with|language|framework|how is it built)/i.test(q)) {
       const topMods = a.modules.slice(0, 3).map(m => `${m.name}${m.path ? ` (${m.path})` : ""}`).join(", ")
-      return `according to the analysis, top modules: ${topMods}. language: ${a.meta.language}.`
+      const lang = a.meta.language ?? "unknown"
+      return `according to the analysis, top modules: ${topMods}. primary language: ${lang}.`
+    }
+
+    // Specific module lookup
+    if (/(module|component|file|folder|path|directory)/i.test(q)) {
+      const matched = a.modules.find(m => q.toLowerCase().includes(m.name.toLowerCase()) || (m.path && q.toLowerCase().includes(m.path.toLowerCase())))
+      if (matched) return `the repository signals indicate: ${matched.name} — ${matched.description.slice(0, 120)}…`
+      const all = a.modules.map(m => m.name).join(", ")
+      return `according to the analysis, the modules in this repo are: ${all}. ask about a specific one for details.`
     }
 
     // Changelog / history
-    if (/(commit|change|update|history|version|recent|release|changelog)/i.test(q)) {
-      return `the repository signals indicate ${a.meta.stars?.toLocaleString()} stars on ${a.meta.platform ?? "GitHub"}. for recent changes, check the change log tab.`
+    if (/(commit|change|update|history|version|recent|release|changelog|when.*update|last.*update)/i.test(q)) {
+      const stars = a.meta.stars?.toLocaleString() ?? "unknown"
+      const platform = a.meta.platform ?? "GitHub"
+      return `the repository signals indicate ${stars} stars on ${platform}. for a full commit timeline, check the change log tab — it loads the 50 most recent commits.`
     }
 
-    // Default: give the score + a nudge
-    return `the data shows [${grade}] ${totalRaw}/40 for ${a.meta.owner}/${a.meta.repo}. ask about score, data collection, modules, or legal history.`
+    // Fallback: score + nudge
+    return `hmm. i don't have that in the analysis. try asking about the score, modules, data collection, or license.`
   }
 
   const handleRepoChatSubmit = () => {
