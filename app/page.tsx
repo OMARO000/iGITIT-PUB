@@ -1,7 +1,15 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import { IGititLogo, CommitGraphLoader } from "@/app/components/igitit-logo-loader"
+import dynamic from "next/dynamic"
+const IGititLogo = dynamic(
+  () => import("./components/igitit-logo-loader").then(m => ({ default: m.IGititLogo })),
+  { ssr: false }
+)
+const CommitGraphLoader = dynamic(
+  () => import("./components/igitit-logo-loader").then(m => ({ default: m.CommitGraphLoader })),
+  { ssr: false }
+)
 import GitByte from "@/app/components/GitByte"
 import GitByteF from "@/app/components/GitByteF"
 import { downloadAnalysisPDF, downloadComparePDF } from "@/app/lib/generatePDF"
