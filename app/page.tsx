@@ -596,6 +596,38 @@ export default function IGititPage() {
   const [fetchedFileOutputsB, setFetchedFileOutputsB] = useState<string[]>([])
 
   const [dossierOpen, setDossierOpen] = useState(false)
+  const [lightMode, setLightMode] = useState(false)
+
+  // Theme helper
+  const T = lightMode ? {
+    bg: "#F2F2F2",
+    text: "rgba(0,0,0,0.88)",
+    textDim: "rgba(0,0,0,0.4)",
+    textFaint: "rgba(0,0,0,0.2)",
+    textFainter: "rgba(0,0,0,0.12)",
+    border: "rgba(0,0,0,0.08)",
+    borderMid: "rgba(0,0,0,0.1)",
+    card: "rgba(0,0,0,0.025)",
+    inputBg: "rgba(0,0,0,0.03)",
+    scrollbar: "rgba(0,0,0,0.15)",
+    scanlines: "rgba(0,0,0,0.025)",
+    hoverBg: "rgba(0,0,0,0.04)",
+    commitCardHover: "rgba(0,0,0,0.1)",
+  } : {
+    bg: "#0b0b0c",
+    text: "rgba(255,255,255,0.92)",
+    textDim: "rgba(255,255,255,0.4)",
+    textFaint: "rgba(255,255,255,0.2)",
+    textFainter: "rgba(255,255,255,0.15)",
+    border: "rgba(255,255,255,0.07)",
+    borderMid: "rgba(255,255,255,0.1)",
+    card: "rgba(255,255,255,0.02)",
+    inputBg: "rgba(255,255,255,0.03)",
+    scrollbar: "rgba(255,255,255,0.1)",
+    scanlines: "rgba(255,255,255,0.08)",
+    hoverBg: "rgba(255,255,255,0.05)",
+    commitCardHover: "rgba(255,255,255,0.14)",
+  }
 
   // Compare repo
   const [compareMode, setCompareMode] = useState(false)
@@ -900,37 +932,44 @@ export default function IGititPage() {
   ]
 
   return (
-    <div suppressHydrationWarning className="scanlines" style={{ minHeight: "100dvh", background: "#0b0b0c", fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: "rgba(255,255,255,0.92)", padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto" }}>
+    <div suppressHydrationWarning className={`scanlines igitit-wrap`} style={{ minHeight: "100dvh", background: T.bg, fontFamily: "'IBM Plex Mono', 'Courier New', monospace", fontSize: "14px", color: T.text, padding: "48px 40px 120px", maxWidth: compareMode ? "1400px" : "1100px", margin: "0 auto", transition: "background 0.3s ease, color 0.3s ease" }}>
       <style suppressHydrationWarning>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
         ::selection { background: rgba(74,158,240,0.3); }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: ${T.scrollbar}; border-radius: 2px; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
         @keyframes pulse-btn { 0%,100%{box-shadow:0 0 0 0 rgba(74,158,240,0.4)} 50%{box-shadow:0 0 0 8px rgba(74,158,240,0)} }
-        .scanlines { background-image: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.08) 1px, rgba(255,255,255,0.08) 2px, transparent 2px, transparent 4px); }
-        .tab-btn:hover { background: rgba(255,255,255,0.05) !important; }
+        .scanlines { background-image: repeating-linear-gradient(0deg, transparent, transparent 1px, ${T.scanlines} 1px, ${T.scanlines} 2px, transparent 2px, transparent 4px); }
+        .tab-btn:hover { background: ${T.hoverBg} !important; }
         .analyze-btn { background: #4A9EF0 !important; color: #0b0b0c !important; border: 1px solid #4A9EF0 !important; }
         .analyze-btn:hover { background: rgba(74,158,240,0.9) !important; }
-        .analyze-btn[data-analyzing="true"] { background: rgba(255,255,255,0.06) !important; color: rgba(255,255,255,0.3) !important; }
-        .history-item:hover { background: rgba(255,255,255,0.05) !important; }
-        .export-btn:hover { background: rgba(255,255,255,0.08) !important; }
-        .commit-card:hover { border-color: rgba(255,255,255,0.14) !important; }
-        .depth-btn:hover { background: rgba(255,255,255,0.08) !important; }
+        .analyze-btn[data-analyzing="true"] { background: ${T.card} !important; color: ${T.textFaint} !important; }
+        .history-item:hover { background: ${T.hoverBg} !important; }
+        .export-btn:hover { background: ${T.hoverBg} !important; }
+        .commit-card:hover { border-color: ${T.commitCardHover} !important; }
+        .depth-btn:hover { background: ${T.hoverBg} !important; }
         .compare-btn:hover { background: rgba(74,158,240,0.15) !important; border-color: rgba(74,158,240,0.5) !important; }
       `}</style>
 
       {/* HEADER */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
           <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }} />
-          <div style={{ fontSize: "22px", color: "rgba(255,255,255,0.4)", letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
+          <div style={{ fontSize: "22px", color: T.textDim, letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
         </div>
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <button
+            onClick={() => setLightMode(l => !l)}
+            title={lightMode ? "Switch to dark mode" : "Switch to light mode"}
+            style={{ background: "transparent", border: `1px solid ${T.borderMid}`, borderRadius: "4px", padding: "4px 10px", fontFamily: "inherit", fontSize: "13px", color: T.textDim, cursor: "pointer", letterSpacing: "0.06em", whiteSpace: "nowrap", transition: "all 0.2s" }}
+          >
+            {lightMode ? "[ dark ]" : "[ light ]"}
+          </button>
           <a
             href="https://haiproject.xyz"
             target="_blank"
@@ -1548,7 +1587,7 @@ export default function IGititPage() {
       )}
 
       {/* FOOTER */}
-      <div style={{ marginTop: "60px", paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: "14px", color: "rgba(255,255,255,0.2)", lineHeight: 1.7, letterSpacing: "0.04em" }}>
+      <div style={{ marginTop: "60px", paddingTop: "20px", borderTop: `1px solid ${T.border}`, fontSize: "14px", color: T.textFaint, lineHeight: 1.7, letterSpacing: "0.04em" }}>
         <div>iGITit | Governed by OMARO Public Benefit Corporation.</div>
         <div>analysis reflects repository state at time of request · not legal or compliance advice</div>
         <a href="/docs" style={{ color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>api docs</a>
