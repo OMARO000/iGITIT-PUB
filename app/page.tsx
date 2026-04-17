@@ -258,8 +258,7 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
             })}
           </div>
         </>)}
-        {card(<>{label("OVERALL VERDICT")}{body(analysis.overallVerdict)}</>)}
-        {/* UX ETHICS SIGNALS — always visible sub-section in HAI tab */}
+        {/* UX ETHICS SIGNALS — always visible, first thing below pillars */}
         <div style={{ padding: "28px 32px", background: "rgba(240,160,74,0.03)", border: "1px solid rgba(240,160,74,0.15)", borderRadius: "8px", marginBottom: "10px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px" }}>
             <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.5)" }}>UX ETHICS SIGNALS</div>
@@ -295,6 +294,8 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
             patterns scanned: confirm-shaming · infinite-scroll · pre-checked-consent · hidden-opt-out · fake-urgency · variable-reward-loops · misleading-buttons · cookie-walls
           </div>
         </div>
+        {/* Overall verdict — below UX ethics signals */}
+        {card(<>{label("OVERALL VERDICT")}{body(analysis.overallVerdict)}</>)}
       </div>
     )
   }
