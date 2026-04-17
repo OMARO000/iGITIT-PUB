@@ -1116,14 +1116,14 @@ export default function IGititPage() {
     if (hasOmen) setOmenNote(true)
     if (newPulse) { setPulsingTab(newPulse); setTimeout(() => setPulsingTab(""), 3000) }
 
-    // FEM GITBYTE — pending indicator then data-grounded response
+    // FEM GITBYTE — build response eagerly (avoid stale closure), show pending then reveal
     const msgId = ++femMsgIdRef.current
+    const response = buildFemResponse(ql, analysisA, analysisB, grade, hasOmen)
     setFemChatPending(true)
     setTimeout(() => {
       setFemChatPending(false)
-      const response = buildFemResponse(ql, analysisA, analysisB, grade, hasOmen)
       setFemChatHistory(prev => [...prev, { id: msgId, text: response }].slice(-3))
-      // Rolling 9-second auto-clear for this specific message
+      // Per-message 9-second auto-clear
       setTimeout(() => {
         setFemChatHistory(prev => prev.filter(m => m.id !== msgId))
       }, 9000)
