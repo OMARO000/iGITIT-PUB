@@ -32,6 +32,7 @@ interface RescuePillar { score: number; finding: string }
 interface RescueScore { R: RescuePillar; E: RescuePillar; S: RescuePillar; C: RescuePillar; U: RescuePillar; E2: RescuePillar; A: RescuePillar; I: RescuePillar }
 interface UXEthicsSignal { pattern: string; description: string; severity: "low" | "medium" | "high" }
 interface UXEthics { signals: UXEthicsSignal[]; summary: string }
+interface FemChatMessage { id: number; text: string }
 interface Analysis {
   meta: RepoMeta; overview: OverviewSection[]; dataItems: DataItem[]
   dataFlowSummary: string; modules: Module[]; rescue: RescueScore; overallVerdict: string
@@ -660,7 +661,9 @@ export default function IGititPage() {
   const [repoChat, setRepoChat] = useState("")
   const [omenNote, setOmenNote] = useState(false)
   const [repoChatResponse, setRepoChatResponse] = useState("")
-  const [femChatResponse, setFemChatResponse] = useState("")
+  const [femChatHistory, setFemChatHistory] = useState<FemChatMessage[]>([])
+  const [femChatPending, setFemChatPending] = useState(false)
+  const femMsgIdRef = useRef(0)
   const [pulsingTab, setPulsingTab] = useState("")
 
   // Theme helper
@@ -990,78 +993,142 @@ export default function IGititPage() {
   // Orgs known to have OMEN accountability ledger entries
   const OMEN_ORGS = ["twitter", "facebook", "meta", "tiktok", "bytedance", "snap", "snapchat", "instagram", "whatsapp", "cambridge", "palantir", "clearview"]
 
+  const PILLAR_NAMES: Record<string, string> = {
+    I: "Integrity", A: "Accountability", S: "Safety", E: "Equality",
+    C: "Human Override", U: "Use Limits", E2: "Data Sovereignty", R: "Resilience",
+  }
+
+  function buildFemResponse(q: string, a: Analysis, aB: Analysis | null, grade: string, hasOmen: boolean): string {
+    const r = a.rescue
+    const totalRaw = Object.values(r).reduce((s, p) => s + (p as RescuePillar).score, 0)
+
+    // Specific pillar question
+    const pillarMap: [RegExp, keyof RescueScore][] = [
+      [/integrit|transparen/i, "I"], [/accountab/i, "A"], [/safe|robust/i, "S"],
+      [/equal|discrimin|bias/i, "E"], [/human|control|override/i, "C"],
+      [/use.?limit|proportional/i, "U"], [/sovereig|deletion|export|opt.out/i, "E2"],
+      [/resilien|depend|vendor|lock/i, "R"],
+    ]
+    for (const [re, key] of pillarMap) {
+      if (re.test(q) && /(pillar|score|explain|what is|how did|why|detail)/i.test(q)) {
+        const p = r[key] as RescuePillar
+        if (p) return `according to the analysis, ${PILLAR_NAMES[key]} scored ${p.score}/5. the repository signals indicate: ${p.finding}`
+      }
+    }
+
+    // HAI / score / ethics
+    if (/(ethic|values|trust|govern|bias|fair|discriminat|hai|score|accountability|transparen|honorable|dark pattern|ux|manipulat)/i.test(q)) {
+      const sorted = (Object.entries(r) as [string, RescuePillar][]).sort((a, b) => a[1].score - b[1].score)
+      const weakest = sorted.slice(0, 2).map(([k, v]) => `${PILLAR_NAMES[k]} ${v.score}/5`).join(" · ")
+      return `the data shows [${grade}] ${totalRaw}/40. according to the analysis, weakest: ${weakest}.`
+    }
+
+    // Overview / what does it do
+    if (/(what does|what is|overview|purpose|product|does it do|explain|about|describe|who built|who made)/i.test(q)) {
+      const desc = a.meta.description || a.overview[0]?.content || "no description available"
+      const topMods = a.modules.slice(0, 3).map(m => m.name).join(", ")
+      return `according to the analysis: ${desc.slice(0, 100)}${desc.length > 100 ? "…" : ""}. top modules: ${topMods}.`
+    }
+
+    // Data / privacy
+    if (/(data|collect|store|send|transmit|track|share|personal|user info|privacy)/i.test(q)) {
+      const counts = { collect: 0, store: 0, send: 0 }
+      a.dataItems.forEach(d => { counts[d.type]++ })
+      const flow = a.dataFlowSummary?.slice(0, 80) ?? "see data tab for details"
+      return `the repository signals indicate ${counts.collect} collected · ${counts.store} stored · ${counts.send} transmitted. ${flow}…`
+    }
+
+    // Legal / dossier
+    if (/(legal|lawsuit|violation|fine|regulat|compliance|dossier|scandal|investig)/i.test(q)) {
+      const license = a.meta.license ?? "no license detected"
+      const omenStatus = hasOmen ? "entries found in OMEN ledger" : "no OMEN entries on record"
+      const verdict = a.overallVerdict?.slice(0, 80) ?? ""
+      return `the dossier shows license: ${license}. OMEN record: ${omenStatus}. ${verdict}…`
+    }
+
+    // Compare
+    if (/(compare|vs|versus|against|difference|which is better)/i.test(q) && aB) {
+      const totalB = Object.values(aB.rescue).reduce((s, p) => s + (p as RescuePillar).score, 0)
+      const gradeB = totalB >= 36 ? "A" : totalB >= 30 ? "B" : totalB >= 24 ? "C" : totalB >= 16 ? "D" : "F"
+      const gaps = (Object.entries(r) as [string, RescuePillar][]).map(([k, v]) => ({
+        key: k, diff: Math.abs(v.score - ((aB.rescue[k as keyof RescueScore] as RescuePillar)?.score ?? 3))
+      })).sort((a, b) => b.diff - a.diff)
+      return `the data shows: ${a.meta.owner}/${a.meta.repo} scored ${totalRaw}/40 [${grade}] vs ${aB.meta.owner}/${aB.meta.repo} ${totalB}/40 [${gradeB}]. biggest gap: ${PILLAR_NAMES[gaps[0].key]}.`
+    }
+
+    // Summary / verdict
+    if (/(summar|verdict|overall|conclusion|tl;dr|tldr)/i.test(q)) {
+      const verdict = a.overallVerdict ?? ""
+      return `according to the analysis: "${verdict.slice(0, 130)}${verdict.length > 130 ? "…" : ""}"`
+    }
+
+    // Modules / code
+    if (/(code|tech|stack|module|component|architect|built with|language|framework)/i.test(q)) {
+      const topMods = a.modules.slice(0, 3).map(m => `${m.name}${m.path ? ` (${m.path})` : ""}`).join(", ")
+      return `according to the analysis, top modules: ${topMods}. language: ${a.meta.language}.`
+    }
+
+    // Changelog / history
+    if (/(commit|change|update|history|version|recent|release|changelog)/i.test(q)) {
+      return `the repository signals indicate ${a.meta.stars?.toLocaleString()} stars on ${a.meta.platform ?? "GitHub"}. for recent changes, check the change log tab.`
+    }
+
+    // Default: give the score + a nudge
+    return `the data shows [${grade}] ${totalRaw}/40 for ${a.meta.owner}/${a.meta.repo}. ask about score, data collection, modules, or legal history.`
+  }
+
   const handleRepoChatSubmit = () => {
     if (!repoChat.trim() || !analysisA) return
-    const q = repoChat.toLowerCase()
+    const q = repoChat.trim()
+    const ql = q.toLowerCase()
     setOmenNote(false)
     setRepoChatResponse("")
-    setFemChatResponse("")
 
-    // Compute grade from rescue scores for personality responses
     const totalRaw = analysisA.rescue
       ? Object.values(analysisA.rescue).reduce((s: number, p: unknown) => s + (p as { score: number }).score, 0)
       : 0
     const grade = totalRaw >= 36 ? "A" : totalRaw >= 30 ? "B" : totalRaw >= 24 ? "C" : totalRaw >= 16 ? "D" : "F"
-
     const owner = (analysisA.meta.owner ?? "").toLowerCase()
     const hasOmen = OMEN_ORGS.some(org => owner.includes(org))
 
-    let newFem = ""
+    // Route tab + set status bar
     let newPulse = ""
-
-    if (/(ethic|values|privacy|trust|govern|bias|fair|discriminat|hai|score|accountability|transparen|honorable|dark pattern|ux|manipulat)/i.test(q)) {
-      setActiveTab("hai")
-      newPulse = "hai"
-      if (grade === "D" || grade === "F") newFem = `WOAH. that score is rough. check the HAI tab — the numbers don't lie.`
-      else if (grade === "C") newFem = `mid. not terrible, not great. HAI tab has the breakdown.`
-      else newFem = `solid score. HAI tab shows what they're doing right.`
+    if (/(ethic|values|privacy|trust|govern|bias|fair|discriminat|hai|score|accountability|transparen|honorable|dark pattern|ux|manipulat)/i.test(ql)) {
+      setActiveTab("hai"); newPulse = "hai"
       setRepoChatResponse("showing HAI score — based on repository signals only")
-    } else if (/(what does|what is|overview|purpose|product|does it do|explain|about|describe|who built|who made)/i.test(q)) {
-      setActiveTab("overview")
-      newPulse = "overview"
-      newFem = `here's what this thing actually does — overview tab has the full picture.`
+    } else if (/(what does|what is|overview|purpose|product|does it do|explain|about|describe|who built|who made)/i.test(ql)) {
+      setActiveTab("overview"); newPulse = "overview"
       setRepoChatResponse("showing overview — plain language summary of this codebase")
-    } else if (/(data|collect|store|send|transmit|track|share|personal|user info)/i.test(q)) {
-      setActiveTab("data")
-      newPulse = "data"
-      newFem = `here's what they're collecting. data narrative tab has the breakdown.`
+    } else if (/(data|collect|store|send|transmit|track|share|personal|user info|privacy)/i.test(ql)) {
+      setActiveTab("data"); newPulse = "data"
       setRepoChatResponse("showing data narrative — what this software collects, stores, and transmits")
-    } else if (/(code|tech|stack|module|component|architect|how is it built|built with|language|framework)/i.test(q)) {
-      setActiveTab("modules")
-      newPulse = "modules"
-      newFem = `let's get into the code. module breakdown has everything.`
+    } else if (/(code|tech|stack|module|component|architect|how is it built|built with|language|framework)/i.test(ql)) {
+      setActiveTab("modules"); newPulse = "modules"
       setRepoChatResponse("showing module breakdown — key components of this codebase")
-    } else if (/(commit|change|update|history|version|recent|release|changelog)/i.test(q)) {
-      setActiveTab("changelog")
-      newPulse = "changelog"
-      newFem = `pulling the commit history. change log tab is loading.`
+    } else if (/(commit|change|update|history|version|recent|release|changelog)/i.test(ql)) {
+      setActiveTab("changelog"); newPulse = "changelog"
       setRepoChatResponse("showing commit history — loading recent changes")
       if (!changelog && !changelogLoading) loadChangelog(changelogDepth)
-    } else if (/(legal|lawsuit|violation|fine|regulat|compliance|dossier|accountab|scandal|investig)/i.test(q)) {
+    } else if (/(legal|lawsuit|violation|fine|regulat|compliance|dossier|accountab|scandal|investig)/i.test(ql)) {
       setDossierOpen(true)
-      newFem = hasOmen
-        ? `heads up — this company has entries in the OMEN ledger. dossier tab, check it.`
-        : `no OMEN flags found. dossier tab has the details.`
       setRepoChatResponse("opening dossier — accountability and legal context")
-    } else {
-      newFem = `hmm. not sure where to point you — try asking about the score, the product, or legal history.`
-      setRepoChatResponse("no specific section matched — try: 'what data does it collect?' or 'show HAI score'")
     }
 
-    // OMEN surface note
     if (hasOmen) setOmenNote(true)
+    if (newPulse) { setPulsingTab(newPulse); setTimeout(() => setPulsingTab(""), 3000) }
 
-    // FEM GITBYTE bubble — visible for 9 seconds then cleared
-    if (newFem) {
-      setFemChatResponse(newFem)
-      setTimeout(() => setFemChatResponse(""), 9000)
-    }
-
-    // Tab pulse — 3 seconds then cleared
-    if (newPulse) {
-      setPulsingTab(newPulse)
-      setTimeout(() => setPulsingTab(""), 3000)
-    }
+    // FEM GITBYTE — pending indicator then data-grounded response
+    const msgId = ++femMsgIdRef.current
+    setFemChatPending(true)
+    setTimeout(() => {
+      setFemChatPending(false)
+      const response = buildFemResponse(ql, analysisA, analysisB, grade, hasOmen)
+      setFemChatHistory(prev => [...prev, { id: msgId, text: response }].slice(-3))
+      // Rolling 9-second auto-clear for this specific message
+      setTimeout(() => {
+        setFemChatHistory(prev => prev.filter(m => m.id !== msgId))
+      }, 9000)
+    }, 600)
 
     setRepoChat("")
   }
@@ -1183,7 +1250,8 @@ export default function IGititPage() {
               files={analysisA.modules.length > 0 ? analysisA.modules.map(m => m.path || m.name) : undefined}
               outputs={analysisA.modules.length > 0 ? analysisA.modules.map(m => m.description) : undefined}
               active={false}
-              femResponse={femChatResponse}
+              femChatHistory={femChatHistory}
+              femChatPending={femChatPending}
             >
               {/* Ask-about-this-repo embedded directly inside FEM GITBYTE container */}
               <div style={{ fontSize: "10px", letterSpacing: "0.12em", color: "rgba(0,200,150,0.65)", marginBottom: "10px" }}>ASK ABOUT THIS REPO</div>
