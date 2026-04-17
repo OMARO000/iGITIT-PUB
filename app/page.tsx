@@ -1187,7 +1187,7 @@ export default function IGititPage() {
         </div>
         {/* NAV: HAI link + [history] on one row; toggle directly below */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
             <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer" style={{ fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap" }}>
               SUPPORT THE HAI PROJECT →
             </a>

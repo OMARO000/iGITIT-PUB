@@ -29,11 +29,12 @@ export function IGititLogo({ onClick }: { onClick?: () => void }) {
         target="_blank"
         rel="noopener noreferrer"
         suppressHydrationWarning={true}
-        style={{ textDecoration: "none", marginTop: "6px" }}
+        style={{ textDecoration: "none" }}
         onClick={e => e.stopPropagation()}
       >
         <div style={{
-          border: "1px solid rgba(74,158,240,0.4)",
+          border: "1px solid rgba(74,158,240,0.5)",
+          backgroundColor: "rgba(74,158,240,0.08)",
           padding: "8px 12px",
           fontSize: "10px",
           color: "rgba(74,158,240,0.9)",
