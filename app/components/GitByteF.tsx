@@ -8,6 +8,7 @@ interface GitByteFProps {
   active?: boolean
   speed?: number
   children?: ReactNode
+  femResponse?: string
 }
 
 const DEMO_FILES = [
@@ -26,7 +27,7 @@ const DEMO_OUTPUTS = [
 const W = 1100
 const H = 400
 
-export default function GitByteF({ files = DEMO_FILES, outputs, active = false, speed = 1, children }: GitByteFProps) {
+export default function GitByteF({ files = DEMO_FILES, outputs, active = false, speed = 1, children, femResponse }: GitByteFProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef({
     gitbyte: { x: 550, y: H / 2, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
@@ -345,13 +346,39 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
           files eaten: {score.eaten} · plain language produced: {score.produced}
         </div>
       </div>
-      <canvas
-        ref={canvasRef}
-        width={W}
-        height={H}
-        style={{ display: "block", width: "100%", height: `${H}px`, cursor: "pointer" }}
-        onClick={handleFeed}
-      />
+      <div style={{ position: "relative" }}>
+        <canvas
+          ref={canvasRef}
+          width={W}
+          height={H}
+          style={{ display: "block", width: "100%", height: `${H}px`, cursor: "pointer" }}
+          onClick={handleFeed}
+        />
+        {/* FEM GITBYTE personality response bubble — static, 9-second visibility */}
+        {femResponse && (
+          <div style={{
+            position: "absolute",
+            top: "24px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "rgba(0,0,0,0.55)",
+            border: "1px solid rgba(0,200,150,0.5)",
+            borderRadius: "5px",
+            padding: "9px 18px",
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: "12px",
+            color: "rgba(0,200,150,0.95)",
+            maxWidth: "68%",
+            textAlign: "center",
+            pointerEvents: "none",
+            lineHeight: 1.65,
+            letterSpacing: "0.03em",
+            boxShadow: "0 0 18px rgba(0,200,150,0.12)",
+          }}>
+            {femResponse}
+          </div>
+        )}
+      </div>
       <div style={{ padding: "10px 20px", borderTop: "1px solid rgba(0,200,150,0.1)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div suppressHydrationWarning style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.04em", fontFamily: "'IBM Plex Mono', monospace", fontStyle: "italic" }}>
           {statusText || (active ? "" : "click canvas to feed · or ask a question below")}
