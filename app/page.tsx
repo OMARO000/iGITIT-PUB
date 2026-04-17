@@ -1038,12 +1038,29 @@ export default function IGititPage() {
       `}</style>
 
       {/* HEADER */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
+        {/* LOGO + OMARO badge (tight next to the final "t" of iGITit, above "language") */}
+        <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: "0px" }}>
           <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }} />
           <div style={{ fontSize: "22px", color: T.textDim, letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
+          {/* Badge: sits after the 't' in iGITit, above the word 'language' in tagline */}
+          <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" style={{ position: "absolute", top: "38px", left: "578px", textDecoration: "none" }}>
+            <span style={{ fontSize: "8px", color: "rgba(74,158,240,0.5)", letterSpacing: "0.12em", border: "1px solid rgba(74,158,240,0.2)", padding: "2px 6px", borderRadius: "3px", fontFamily: "'IBM Plex Mono', monospace", whiteSpace: "nowrap", background: "rgba(74,158,240,0.05)" }}>AN OMARO COMPANY</span>
+          </a>
         </div>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        {/* NAV: HAI link + [history] on one row; toggle directly below */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer" style={{ fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap" }}>
+              SUPPORT THE HAI PROJECT →
+            </a>
+            {mounted && history.length > 0 && (
+              <div onClick={() => setShowHistory(!showHistory)} style={{ fontFamily: "inherit", fontSize: "11px", color: "#4A9EFF", border: "1px solid rgba(74,158,255,0.35)", background: "rgba(74,158,255,0.08)", borderRadius: "4px", padding: "6px 12px", textAlign: "center", lineHeight: 1.4, cursor: "pointer" }}>
+                <div style={{ letterSpacing: "0.08em" }}>[history]</div>
+                <div style={{ fontSize: "13px", fontWeight: 500 }}>{history.length}</div>
+              </div>
+            )}
+          </div>
           <button
             onClick={() => setLightMode(l => !l)}
             title={lightMode ? "Switch to dark mode" : "Switch to light mode"}
@@ -1051,42 +1068,6 @@ export default function IGititPage() {
           >
             {lightMode ? "[ dark ]" : "[ light ]"}
           </button>
-          <a
-            href="https://haiproject.xyz"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              fontFamily: "inherit",
-              fontSize: "10px",
-              color: "#00C896",
-              border: "1px solid rgba(0,200,150,0.3)",
-              padding: "4px 10px",
-              borderRadius: "4px",
-              textDecoration: "none",
-              letterSpacing: "0.1em",
-              whiteSpace: "nowrap",
-            }}
-          >
-            SUPPORT THE HAI PROJECT →
-          </a>
-          {mounted && history.length > 0 && (
-            <div onClick={() => setShowHistory(!showHistory)} style={{
-              fontFamily: "inherit",
-              fontSize: "11px",
-              color: "#4A9EFF",
-              border: "1px solid rgba(74,158,255,0.35)",
-              background: "rgba(74,158,255,0.08)",
-              borderRadius: "4px",
-              padding: "6px 12px",
-              textAlign: "center",
-              lineHeight: 1.4,
-              cursor: "pointer",
-            }}>
-              <div style={{ letterSpacing: "0.08em" }}>[history]</div>
-              <div style={{ fontSize: "13px", fontWeight: 500 }}>{history.length}</div>
-            </div>
-          )}
-          <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: "10px", color: "#4A9EF0", letterSpacing: "0.12em", border: "1px solid #4A9EF0", padding: "6px 14px", borderRadius: "4px", lineHeight: 1.6, fontFamily: "inherit", whiteSpace: "nowrap", background: "rgba(74,158,240,0.12)" }}><span>AN</span><span>OMARO</span><span>COMPANY</span></div></a>
         </div>
       </div>
 
