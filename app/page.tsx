@@ -650,6 +650,8 @@ export default function IGititPage() {
   const [repoChat, setRepoChat] = useState("")
   const [omenNote, setOmenNote] = useState(false)
   const [repoChatResponse, setRepoChatResponse] = useState("")
+  const [femChatResponse, setFemChatResponse] = useState("")
+  const [pulsingTab, setPulsingTab] = useState("")
 
   // Theme helper
   const T = lightMode ? {
@@ -982,34 +984,72 @@ export default function IGititPage() {
     const q = repoChat.toLowerCase()
     setOmenNote(false)
     setRepoChatResponse("")
+    setFemChatResponse("")
+
+    // Compute grade from rescue scores for personality responses
+    const totalRaw = analysisA.rescue
+      ? Object.values(analysisA.rescue).reduce((s: number, p: unknown) => s + (p as { score: number }).score, 0)
+      : 0
+    const grade = totalRaw >= 36 ? "A" : totalRaw >= 30 ? "B" : totalRaw >= 24 ? "C" : totalRaw >= 16 ? "D" : "F"
+
+    const owner = (analysisA.meta.owner ?? "").toLowerCase()
+    const hasOmen = OMEN_ORGS.some(org => owner.includes(org))
+
+    let newFem = ""
+    let newPulse = ""
 
     if (/(ethic|values|privacy|trust|govern|bias|fair|discriminat|hai|score|accountability|transparen|honorable|dark pattern|ux|manipulat)/i.test(q)) {
       setActiveTab("hai")
+      newPulse = "hai"
+      if (grade === "D" || grade === "F") newFem = `WOAH. that score is rough. check the HAI tab — the numbers don't lie.`
+      else if (grade === "C") newFem = `mid. not terrible, not great. HAI tab has the breakdown.`
+      else newFem = `solid score. HAI tab shows what they're doing right.`
       setRepoChatResponse("showing HAI score — based on repository signals only")
     } else if (/(what does|what is|overview|purpose|product|does it do|explain|about|describe|who built|who made)/i.test(q)) {
       setActiveTab("overview")
+      newPulse = "overview"
+      newFem = `here's what this thing actually does — overview tab has the full picture.`
       setRepoChatResponse("showing overview — plain language summary of this codebase")
     } else if (/(data|collect|store|send|transmit|track|share|personal|user info)/i.test(q)) {
       setActiveTab("data")
+      newPulse = "data"
+      newFem = `here's what they're collecting. data narrative tab has the breakdown.`
       setRepoChatResponse("showing data narrative — what this software collects, stores, and transmits")
     } else if (/(code|tech|stack|module|component|architect|how is it built|built with|language|framework)/i.test(q)) {
       setActiveTab("modules")
+      newPulse = "modules"
+      newFem = `let's get into the code. module breakdown has everything.`
       setRepoChatResponse("showing module breakdown — key components of this codebase")
     } else if (/(commit|change|update|history|version|recent|release|changelog)/i.test(q)) {
       setActiveTab("changelog")
+      newPulse = "changelog"
+      newFem = `pulling the commit history. change log tab is loading.`
       setRepoChatResponse("showing commit history — loading recent changes")
       if (!changelog && !changelogLoading) loadChangelog(changelogDepth)
     } else if (/(legal|lawsuit|violation|fine|regulat|compliance|dossier|accountab|scandal|investig)/i.test(q)) {
       setDossierOpen(true)
+      newFem = hasOmen
+        ? `heads up — this company has entries in the OMEN ledger. dossier tab, check it.`
+        : `no OMEN flags found. dossier tab has the details.`
       setRepoChatResponse("opening dossier — accountability and legal context")
     } else {
+      newFem = `hmm. not sure where to point you — try asking about the score, the product, or legal history.`
       setRepoChatResponse("no specific section matched — try: 'what data does it collect?' or 'show HAI score'")
     }
 
-    // OMEN check — surface note if org has known ledger entries
-    const owner = (analysisA.meta.owner ?? "").toLowerCase()
-    if (OMEN_ORGS.some(org => owner.includes(org))) {
-      setOmenNote(true)
+    // OMEN surface note
+    if (hasOmen) setOmenNote(true)
+
+    // FEM GITBYTE bubble — visible for 9 seconds then cleared
+    if (newFem) {
+      setFemChatResponse(newFem)
+      setTimeout(() => setFemChatResponse(""), 9000)
+    }
+
+    // Tab pulse — 3 seconds then cleared
+    if (newPulse) {
+      setPulsingTab(newPulse)
+      setTimeout(() => setPulsingTab(""), 3000)
     }
 
     setRepoChat("")
@@ -1048,6 +1088,7 @@ export default function IGititPage() {
         .commit-card:hover { border-color: ${T.commitCardHover} !important; }
         .depth-btn:hover { background: ${T.hoverBg} !important; }
         .compare-btn:hover { background: rgba(74,158,240,0.15) !important; border-color: rgba(74,158,240,0.5) !important; }
+        @keyframes tabPulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,0.5);transform:scale(1)} 50%{box-shadow:0 0 0 7px rgba(0,200,150,0);transform:scale(1.04)} }
       `}</style>
 
       {/* HEADER */}
@@ -1129,6 +1170,7 @@ export default function IGititPage() {
               files={analysisA.modules.length > 0 ? analysisA.modules.map(m => m.path || m.name) : undefined}
               outputs={analysisA.modules.length > 0 ? analysisA.modules.map(m => m.description) : undefined}
               active={false}
+              femResponse={femChatResponse}
             >
               {/* Ask-about-this-repo embedded directly inside FEM GITBYTE container */}
               <div style={{ fontSize: "10px", letterSpacing: "0.12em", color: "rgba(0,200,150,0.65)", marginBottom: "10px" }}>ASK ABOUT THIS REPO</div>
@@ -1211,7 +1253,25 @@ export default function IGititPage() {
           {/* ROW 1 — TABS + DOSSIER + COMPARE */}
           <div style={{ display: "flex", gap: "8px", marginBottom: "10px", flexWrap: "wrap", alignItems: "center" }}>
             {tabs.map(tab => (
-              <button key={tab.id} className="tab-btn" onClick={() => handleTabClick(tab.id)} style={{ padding: "10px 14px", background: activeTab === tab.id ? "rgba(74,158,240,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${activeTab === tab.id ? "#4A9EF0" : "rgba(255,255,255,0.08)"}`, borderRadius: "8px", fontFamily: "inherit", fontSize: "13px", color: activeTab === tab.id ? "#4A9EF0" : "rgba(255,255,255,0.45)", cursor: "pointer", letterSpacing: "0.03em", transition: "all 0.15s" }}>
+              <button
+                key={tab.id}
+                className="tab-btn"
+                onClick={() => handleTabClick(tab.id)}
+                style={{
+                  padding: "10px 14px",
+                  background: activeTab === tab.id ? "rgba(74,158,240,0.1)" : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${activeTab === tab.id ? "#4A9EF0" : "rgba(255,255,255,0.08)"}`,
+                  borderRadius: "8px",
+                  fontFamily: "inherit",
+                  fontSize: "13px",
+                  color: activeTab === tab.id ? "#4A9EF0" : "rgba(255,255,255,0.45)",
+                  cursor: "pointer",
+                  letterSpacing: "0.03em",
+                  transition: "all 0.15s",
+                  // FEM GITBYTE-triggered pulse when this tab was just navigated to
+                  animation: pulsingTab === tab.id ? "tabPulse 0.6s ease-in-out 3" : undefined,
+                }}
+              >
                 {tab.label}
               </button>
             ))}
