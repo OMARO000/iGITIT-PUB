@@ -654,7 +654,6 @@ export default function IGititPage() {
   const [fetchedFileOutputsB, setFetchedFileOutputsB] = useState<string[]>([])
 
   const [dossierOpen, setDossierOpen] = useState(false)
-  const [dossierExpanded, setDossierExpanded] = useState(false)
   const [listenOpen, setListenOpen] = useState(false)
   const [listenSection, setListenSection] = useState("overview")
   const [lightMode, setLightMode] = useState(false)
@@ -1706,55 +1705,49 @@ export default function IGititPage() {
           </div>
           {/* DOSSIER PANEL */}
           {dossierOpen && analysisA && (
-            <div style={{ width: "380px", minWidth: "380px", background: "#0d1520", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "8px", marginLeft: "16px", marginRight: "-140px", padding: "20px", flexShrink: 0, alignSelf: "flex-start", position: "sticky", top: "20px", boxShadow: "4px 0 32px rgba(74,158,240,0.08)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", paddingBottom: "10px", borderBottom: "1px solid rgba(74,158,240,0.12)" }}>
-                <div style={{ fontSize: "13px", color: "#4A9EF0", letterSpacing: "0.12em" }}>[ dossier ]</div>
-                <button onClick={() => setDossierExpanded(e => !e)} style={{ padding: "4px 10px", background: "rgba(74,158,240,0.08)", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "4px", fontFamily: "inherit", fontSize: "11px", color: "rgba(74,158,240,0.7)", cursor: "pointer", letterSpacing: "0.06em", transition: "all 0.15s" }}>
-                  {dossierExpanded ? "[ collapse ]" : "[ expand ]"}
-                </button>
-              </div>
-              <div style={{ maxHeight: dossierExpanded ? "1000px" : "200px", overflow: "hidden", transition: "max-height 0.35s ease" }}>
+            <div style={{ width: "380px", minWidth: "380px", background: "#0d1520", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "8px", marginLeft: "16px", marginRight: "-140px", padding: "28px 32px", flexShrink: 0, alignSelf: "flex-start", position: "sticky", top: "20px", boxShadow: "4px 0 32px rgba(74,158,240,0.08)" }}>
+              <div style={{ fontSize: "14px", color: "#4A9EF0", letterSpacing: "0.12em", marginBottom: "20px", paddingBottom: "12px", borderBottom: "1px solid rgba(74,158,240,0.12)" }}>[ dossier ]</div>
 
               {/* PLATFORM CONTEXT */}
-              <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>PLATFORM CONTEXT</div>
-                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "8px" }}>PLATFORM CONTEXT</div>
+                <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)", lineHeight: 1.65 }}>
                   {(analysisA as any).platformContext || `${analysisA.meta.owner} · ${analysisA.meta.stars?.toLocaleString()} stars on ${analysisA.meta.platform ?? "GitHub"}`}
                 </div>
               </div>
 
               {/* RESCUE FLAGS */}
-              <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "4px" }}>HAI FLAGS · LOWEST SCORING PILLARS ≤2</div>
-                <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.2)", lineHeight: 1.5, marginBottom: "8px" }}>The HAI Standard is OMARO's governance framework for honorable AI. Pillars scored 1–5 across integrity, accountability, safety, equality, human override, use limits, data sovereignty, and independent audit.</div>
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "6px" }}>HAI FLAGS · LOWEST SCORING PILLARS ≤2</div>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", lineHeight: 1.55, marginBottom: "10px" }}>The HAI Standard is OMARO's governance framework for honorable AI. Pillars scored 1–5 across integrity, accountability, safety, equality, human override, use limits, data sovereignty, and independent audit.</div>
                 {analysisA.rescue && (() => {
                   const pillars = Object.entries(analysisA.rescue) as [string, {score: number; finding: string}][]
                   const flagged = pillars.filter(([, val]) => val.score <= 2).sort((a, b) => a[1].score - b[1].score).slice(0, 3)
                   if (flagged.length === 0) return (
-                    <div style={{ fontSize: "9px", color: "#4CAF7D", border: "1px solid rgba(76,175,125,0.2)", borderRadius: "4px", padding: "6px 8px" }}>[ no major flags detected ]</div>
+                    <div style={{ fontSize: "13px", color: "#4CAF7D", border: "1px solid rgba(76,175,125,0.2)", borderRadius: "4px", padding: "8px 10px" }}>[ no major flags detected ]</div>
                   )
                   return flagged.map(([key, val]) => (
-                    <div key={key} style={{ marginBottom: "10px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "9px", marginBottom: "3px" }}>
-                        <span style={{ color: "rgba(255,255,255,0.5)" }}>[{key}] {({'I':'Integrity & Transparency','A':'Accountability & Privacy','S':'Safety & Robustness','E':'Equality & Non-Discrimination','C':'Human Override & Control','U':'Use Limits & Proportionality','E2':'Data Sovereignty & Empowerment','R':'Resilience & Dependency Prevention'} as Record<string,string>)[key]}</span>
+                    <div key={key} style={{ marginBottom: "12px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
+                        <span style={{ color: "rgba(255,255,255,0.6)" }}>[{key}] {({'I':'Integrity & Transparency','A':'Accountability & Privacy','S':'Safety & Robustness','E':'Equality & Non-Discrimination','C':'Human Override & Control','U':'Use Limits & Proportionality','E2':'Data Sovereignty & Empowerment','R':'Resilience & Dependency Prevention'} as Record<string,string>)[key]}</span>
                         <span style={{ color: val.score >= 4 ? "#4CAF7D" : val.score >= 3 ? "#4A9EF0" : val.score >= 2 ? "#F0A04A" : "#E05C5C" }}>{val.score}/5</span>
                       </div>
-                      <div style={{ height: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "1px", marginBottom: "4px" }}>
+                      <div style={{ height: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "1px", marginBottom: "5px" }}>
                         <div style={{ height: "2px", width: `${(val.score/5)*100}%`, background: val.score >= 4 ? "#4CAF7D" : val.score >= 3 ? "#4A9EF0" : val.score >= 2 ? "#F0A04A" : "#E05C5C", borderRadius: "1px" }} />
                       </div>
-                      <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", lineHeight: 1.5 }}>{val.finding}</div>
+                      <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", lineHeight: 1.55 }}>{val.finding}</div>
                     </div>
                   ))
                 })()}
               </div>
 
               {/* LICENSE */}
-              <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>LICENSE</div>
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "8px" }}>LICENSE</div>
                 {analysisA.meta.license ? (
                   <>
-                    <div style={{ display: "inline-block", fontSize: "7px", padding: "2px 7px", background: "rgba(74,158,240,0.1)", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "3px", color: "#4A9EF0", marginBottom: "5px" }}>{analysisA.meta.license}</div>
-                    <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.35)", lineHeight: 1.6 }}>
+                    <div style={{ display: "inline-block", fontSize: "11px", padding: "3px 9px", background: "rgba(74,158,240,0.1)", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "3px", color: "#4A9EF0", marginBottom: "7px" }}>{analysisA.meta.license}</div>
+                    <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", lineHeight: 1.65 }}>
                       {analysisA.meta.license.includes("MIT") && "Free to use, modify, and distribute. Minimal restrictions."}
                       {analysisA.meta.license.includes("Apache") && "Free to use and modify. Cannot use the project name or branding without permission."}
                       {analysisA.meta.license.includes("GPL") && "Must open-source any modifications. Copyleft — changes must stay free."}
@@ -1763,25 +1756,23 @@ export default function IGititPage() {
                     </div>
                   </>
                 ) : (
-                  <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>no license detected</div>
+                  <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", fontStyle: "italic" }}>no license detected</div>
                 )}
               </div>
 
               {/* HF MODEL CARD */}
-              <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>HF MODEL CARD</div>
-                <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.15)", fontStyle: "italic", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: "4px", padding: "6px 8px" }}>no ML detected in this repo</div>
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "8px" }}>HF MODEL CARD</div>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", fontStyle: "italic", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: "4px", padding: "8px 10px" }}>no ML detected in this repo</div>
               </div>
 
               {/* OMEN RECORD */}
-              <div style={{ marginBottom: "14px" }}>
-                <div style={{ fontSize: "9px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "5px" }}>OMEN RECORD</div>
-                <div style={{ fontSize: "8px", color: "rgba(255,255,255,0.15)", fontStyle: "italic", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: "4px", padding: "6px 8px" }}>no entries yet · <span style={{ color: "rgba(74,158,240,0.4)", cursor: "pointer" }}>[ submit a finding ]</span></div>
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "8px" }}>OMEN RECORD</div>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", fontStyle: "italic", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: "4px", padding: "8px 10px" }}>no entries yet · <span style={{ color: "rgba(74,158,240,0.4)", cursor: "pointer" }}>[ submit a finding ]</span></div>
               </div>
 
-              </div>{/* end collapsible content */}
-              {!dossierExpanded && <div style={{ height: "24px", background: "linear-gradient(to bottom, transparent, #0d1520)", marginTop: "-24px", pointerEvents: "none" }} />}
-              <div style={{ fontSize: "6px", letterSpacing: "0.08em", color: "rgba(74,158,240,0.2)", marginTop: "10px" }}>GOVERNED BY OMARO PBC</div>
+              <div style={{ fontSize: "10px", letterSpacing: "0.08em", color: "rgba(74,158,240,0.3)", marginTop: "8px" }}>GOVERNED BY OMARO PBC</div>
             </div>
           )}
           </div>
