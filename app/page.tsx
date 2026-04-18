@@ -1252,6 +1252,10 @@ export default function IGititPage() {
         [data-theme="dark"] .tab-btn[style*="4A9EF0"] { border-color: #4A9EF0 !important; }
         [data-theme="light"] .tab-btn { border-color: rgba(0,0,0,0.2) !important; }
         [data-theme="light"] .tab-btn[style*="4A9EF0"] { border-color: #1A7FD4 !important; }
+        [data-theme="light"] .dossier-panel { background: rgba(0,200,150,0.08) !important; border: 1px solid rgba(0,200,150,0.4) !important; }
+        [data-theme="light"] .dossier-panel * { color: #111111 !important; }
+        [data-theme="light"] .dossier-panel [style*="0,200,150"],[data-theme="light"] .dossier-panel [style*="0, 200, 150"],[data-theme="light"] .dossier-panel [style*="00C896"],[data-theme="light"] .dossier-panel [style*="00c896"] { color: #00B885 !important; }
+        [data-theme="light"] .dossier-panel [style*="74,158,240"],[data-theme="light"] .dossier-panel [style*="74, 158, 240"],[data-theme="light"] .dossier-panel [style*="4A9EF0"] { color: #00B885 !important; }
       `}</style>
 
       {/* HEADER */}
@@ -1889,7 +1893,7 @@ export default function IGititPage() {
           </div>
           {/* DOSSIER PANEL */}
           {dossierOpen && analysisA && (
-            <div style={{ width: "380px", minWidth: "380px", background: "#0d1520", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "8px", marginLeft: "16px", marginRight: "-140px", padding: "28px 32px", flexShrink: 0, alignSelf: "flex-start", position: "sticky", top: "20px", boxShadow: "4px 0 32px rgba(74,158,240,0.08)" }}>
+            <div className="dossier-panel" style={{ width: "380px", minWidth: "380px", background: "#0d1520", border: "1px solid rgba(74,158,240,0.2)", borderRadius: "8px", marginLeft: "16px", marginRight: "-140px", padding: "28px 32px", flexShrink: 0, alignSelf: "flex-start", position: "sticky", top: "20px", boxShadow: "4px 0 32px rgba(74,158,240,0.08)" }}>
               <div style={{ fontSize: "14px", color: "#4A9EF0", letterSpacing: "0.12em", marginBottom: "20px", paddingBottom: "12px", borderBottom: "1px solid rgba(74,158,240,0.12)" }}>[ dossier ]</div>
 
               {/* PLATFORM CONTEXT */}
