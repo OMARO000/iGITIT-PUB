@@ -668,15 +668,15 @@ export default function IGititPage() {
 
   // Theme helper
   const T = lightMode ? {
-    bg: "#E8E8E4",
+    bg: "#D0D0CA",
     text: "#111111",
     textDim: "#444444",
     textFaint: "#777777",
     textFainter: "#999999",
     border: "rgba(0,0,0,0.1)",
     borderMid: "rgba(0,0,0,0.15)",
-    card: "#D8D8D4",
-    inputBg: "#D4D4D0",
+    card: "#C8C8C2",
+    inputBg: "#C4C4BE",
     scrollbar: "rgba(0,0,0,0.2)",
     scanlines: "rgba(0,0,0,0.04)",
     hoverBg: "rgba(0,0,0,0.05)",
@@ -753,7 +753,7 @@ export default function IGititPage() {
 
   // Sync full-page background with light/dark mode
   useEffect(() => {
-    const bg = lightMode ? "#E8E8E4" : "#0b0b0c"
+    const bg = lightMode ? "#D0D0CA" : "#0b0b0c"
     document.documentElement.style.backgroundColor = bg
     document.body.style.backgroundColor = bg
   }, [lightMode])
@@ -1250,8 +1250,8 @@ export default function IGititPage() {
         [data-theme="light"] [style*="00C896"],[data-theme="light"] [style*="00c896"],[data-theme="light"] [style*="0,200,150"],[data-theme="light"] [style*="0, 200, 150"] { color: #00B885 !important; }
         [data-theme="light"] [style*="E05C5C"],[data-theme="light"] [style*="e05c5c"],[data-theme="light"] [style*="224,92,92"],[data-theme="light"] [style*="224, 92, 92"] { color: #CC3A3A !important; }
         [data-theme="light"] [style*="F0A04A"],[data-theme="light"] [style*="f0a04a"],[data-theme="light"] [style*="240,160,74"],[data-theme="light"] [style*="240, 160, 74"] { color: #D4720A !important; }
-        [data-theme="light"] .igitit-card { background: #D8D8D4 !important; border-color: rgba(0,0,0,0.1) !important; }
-        [data-theme="light"] .fem-gitbyte-box { background: #D0D0CC !important; }
+        [data-theme="light"] .igitit-card { background: #C8C8C2 !important; border-color: rgba(0,0,0,0.1) !important; }
+        [data-theme="light"] .fem-gitbyte-box { background: #C4C4BE !important; }
         [data-theme="dark"] .tab-btn { border-color: rgba(255,255,255,0.15) !important; }
         [data-theme="dark"] .tab-btn[style*="4A9EF0"] { border-color: #4A9EF0 !important; }
         [data-theme="light"] .tab-btn { border-color: rgba(0,0,0,0.2) !important; }
