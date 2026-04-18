@@ -1265,12 +1265,13 @@ export default function IGititPage() {
         [data-theme="light"] button,[data-theme="light"] .tab-btn,[data-theme="light"] [style*="border"] { border-color: rgba(0,0,0,0.3) !important; }
         [data-theme="light"] .gitbyte-analysis-box { background-color: rgba(10,58,122,0.9) !important; border: 2px solid #1A5AAA !important; }
         [data-theme="light"] .gitbyte-analysis-box * { color: #A8D4FF !important; }
-        [data-theme="light"] .gitbyte-analysis-box-post { background-color: rgba(10,74,53,0.5) !important; border: 2px solid #0D7A55 !important; }
+        [data-theme="light"] .gitbyte-analysis-box-post { background-color: rgba(10,74,53,0.9) !important; border: 2px solid #0D7A55 !important; }
+        [data-theme="dark"] .gitbyte-analysis-box.gitbyte-analysis-box-post { background-color: rgba(5,30,20,0.9) !important; border: 2px solid #0D7A55 !important; }
         [data-theme="light"] .fem-gitbyte-box { background-color: rgba(10,74,53,0.5) !important; border: 2px solid #0D7A55 !important; }
         [data-theme="light"] .fem-gitbyte-box * { color: #7FDDBB !important; }
         [data-theme="light"] .welcome-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
         [data-theme="light"] .url-input-box { background-color: rgba(10,58,122,0.9) !important; border: 2px solid rgba(26,90,170,0.7) !important; }
-        [data-theme="light"] .url-input-box input { background-color: rgba(10,58,122,0.9) !important; color: #c8d8ff !important; -webkit-text-fill-color: #c8d8ff !important; }
+        [data-theme="light"] .url-input-box input { background-color: transparent !important; color: #c8d8ff !important; -webkit-text-fill-color: #c8d8ff !important; }
         [data-theme="light"] .url-input-box input::selection { background-color: rgba(26,90,170,0.4) !important; }
         [data-theme="light"] .url-input-box input::placeholder { color: rgba(200,216,255,0.5) !important; }
         [data-theme="light"] .analyze-btn-analyzing { background-color: rgba(0,68,204,0.5) !important; border-color: rgba(0,68,204,0.7) !important; }
@@ -1350,7 +1351,7 @@ export default function IGititPage() {
           <div suppressHydrationWarning style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>paste a github, gitlab or radicle repository url</div>
           <div style={{ display: "flex", gap: "10px" }}>
             <div suppressHydrationWarning style={{ flex: 1, border: "1px solid rgba(26,90,170,0.4)", borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s, background 0.2s" }}>
-              <input suppressHydrationWarning type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com / gitlab.com / app.radicle.xyz" style={{ width: "100%", flex: 1, background: "none", backgroundColor: "transparent", border: "none", outline: "none", color: T.text, fontFamily: "monospace", fontSize: "18px", padding: "0", caretColor: "#4A9EF0", WebkitTextFillColor: T.text }} />
+              <input suppressHydrationWarning type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com / gitlab.com / app.radicle.xyz" style={{ width: "100%", flex: 1, background: "transparent", backgroundColor: "transparent", border: "none", outline: "none", color: T.text, fontFamily: "monospace", fontSize: "18px", padding: "0", caretColor: "#4A9EF0", WebkitTextFillColor: T.text, boxShadow: "none" }} />
               {animatingA && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #4A9EF0, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
             </div>
             <button suppressHydrationWarning className={`analyze-btn${analyzingA ? " analyze-btn-analyzing" : ""}`} onClick={handleAnalyzeA} data-analyzing={analyzingA ? "true" : "false"} style={{ padding: "16px 32px", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", cursor: analyzingA ? "default" : "pointer", letterSpacing: "0.08em", whiteSpace: "nowrap", transition: "all 0.15s", opacity: 1 }}>
