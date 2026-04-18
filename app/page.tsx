@@ -1245,21 +1245,22 @@ export default function IGititPage() {
         html, body { background-color: ${T.bg} !important; transition: background-color 0.3s ease; margin: 0; padding: 0; }
         .igitit-wrap { background-color: ${T.bg} !important; transition: background-color 0.3s ease; }
         [data-theme="light"] * { color: #111111 !important; }
-        [data-theme="light"] [style*="4A9EF0"],[data-theme="light"] [style*="4a9ef0"],[data-theme="light"] [style*="74,158,240"],[data-theme="light"] [style*="74, 158, 240"] { color: #1A7FD4 !important; }
-        [data-theme="light"] [style*="4CAF7D"],[data-theme="light"] [style*="4caf7d"],[data-theme="light"] [style*="76,175,125"],[data-theme="light"] [style*="76, 175, 125"] { color: #2E9E5B !important; }
-        [data-theme="light"] [style*="00C896"],[data-theme="light"] [style*="00c896"],[data-theme="light"] [style*="0,200,150"],[data-theme="light"] [style*="0, 200, 150"] { color: #00B885 !important; }
+        [data-theme="light"] [style*="4A9EF0"],[data-theme="light"] [style*="4a9ef0"],[data-theme="light"] [style*="74,158,240"],[data-theme="light"] [style*="74, 158, 240"] { color: #1668C4 !important; }
+        [data-theme="light"] [style*="4CAF7D"],[data-theme="light"] [style*="4caf7d"],[data-theme="light"] [style*="76,175,125"],[data-theme="light"] [style*="76, 175, 125"] { color: #1A8A47 !important; }
+        [data-theme="light"] [style*="00C896"],[data-theme="light"] [style*="00c896"],[data-theme="light"] [style*="0,200,150"],[data-theme="light"] [style*="0, 200, 150"] { color: #00A876 !important; }
         [data-theme="light"] [style*="E05C5C"],[data-theme="light"] [style*="e05c5c"],[data-theme="light"] [style*="224,92,92"],[data-theme="light"] [style*="224, 92, 92"] { color: #CC3A3A !important; }
-        [data-theme="light"] [style*="F0A04A"],[data-theme="light"] [style*="f0a04a"],[data-theme="light"] [style*="240,160,74"],[data-theme="light"] [style*="240, 160, 74"] { color: #D4720A !important; }
+        [data-theme="light"] [style*="F0A04A"],[data-theme="light"] [style*="f0a04a"],[data-theme="light"] [style*="240,160,74"],[data-theme="light"] [style*="240, 160, 74"] { color: #C4620A !important; }
         [data-theme="light"] .igitit-card { background: #C8C8C2 !important; border-color: rgba(0,0,0,0.1) !important; }
-        [data-theme="light"] .fem-gitbyte-box { background: #C4C4BE !important; }
+        [data-theme="light"] .fem-gitbyte-box { background: #C4C4BE !important; border-color: rgba(0,168,118,0.6) !important; }
+        [data-theme="light"] .gitbyte-analysis-box { border-color: rgba(74,158,240,0.6) !important; }
         [data-theme="dark"] .tab-btn { border-color: rgba(255,255,255,0.15) !important; }
         [data-theme="dark"] .tab-btn[style*="4A9EF0"] { border-color: #4A9EF0 !important; }
         [data-theme="light"] .tab-btn { border-color: rgba(0,0,0,0.2) !important; }
-        [data-theme="light"] .tab-btn[style*="4A9EF0"] { border-color: #1A7FD4 !important; }
-        [data-theme="light"] .dossier-panel { background: rgba(0,200,150,0.08) !important; border: 1px solid rgba(0,200,150,0.4) !important; }
+        [data-theme="light"] .tab-btn[style*="4A9EF0"] { border-color: #1668C4 !important; }
+        [data-theme="light"] .dossier-panel { background: rgba(0,200,150,0.08) !important; border: 1px solid rgba(0,168,118,0.6) !important; }
         [data-theme="light"] .dossier-panel * { color: #111111 !important; }
-        [data-theme="light"] .dossier-panel [style*="0,200,150"],[data-theme="light"] .dossier-panel [style*="0, 200, 150"],[data-theme="light"] .dossier-panel [style*="00C896"],[data-theme="light"] .dossier-panel [style*="00c896"] { color: #00B885 !important; }
-        [data-theme="light"] .dossier-panel [style*="74,158,240"],[data-theme="light"] .dossier-panel [style*="74, 158, 240"],[data-theme="light"] .dossier-panel [style*="4A9EF0"] { color: #00B885 !important; }
+        [data-theme="light"] .dossier-panel [style*="0,200,150"],[data-theme="light"] .dossier-panel [style*="0, 200, 150"],[data-theme="light"] .dossier-panel [style*="00C896"],[data-theme="light"] .dossier-panel [style*="00c896"] { color: #00A876 !important; }
+        [data-theme="light"] .dossier-panel [style*="74,158,240"],[data-theme="light"] .dossier-panel [style*="74, 158, 240"],[data-theme="light"] .dossier-panel [style*="4A9EF0"] { color: #00A876 !important; }
         [data-theme="light"] .fem-chat-bubble { background: rgba(30,30,30,0.85) !important; }
       `}</style>
 
