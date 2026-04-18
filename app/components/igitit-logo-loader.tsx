@@ -15,7 +15,7 @@ export function IGititLogo({ onClick, lightMode }: { onClick?: () => void; light
       onClick={onClick}
       style={{ cursor: onClick ? "pointer" : "default", userSelect: "none" }}
     >
-      <svg width="630" height="160" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+      <svg width="420" height="107" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
         <text x="0" y="72" dominantBaseline="auto" style={{ fontFamily: "'IBM Plex Mono','Courier New',monospace", fontSize: "56px", letterSpacing: "-2px" }}>
           <tspan style={{ fontWeight: 500, fill: boldFill }}>ıGIT</tspan>
           <tspan style={{ fontWeight: 300, fill: faintFill }}>ıt</tspan>
