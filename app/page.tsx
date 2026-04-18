@@ -1231,11 +1231,11 @@ export default function IGititPage() {
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
         @keyframes pulse-btn { 0%,100%{box-shadow:0 0 0 0 rgba(74,158,240,0.4)} 50%{box-shadow:0 0 0 8px rgba(74,158,240,0)} }
-        .scanlines { background-image: repeating-linear-gradient(0deg, transparent, transparent 1px, ${T.scanlines} 1px, ${T.scanlines} 2px, transparent 2px, transparent 4px), url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C%2Fsvg%3E"); background-size: auto, 200px 200px; }
+        .scanlines { }
         .tab-btn:hover { background: ${T.hoverBg} !important; }
-        .analyze-btn { background: #4A9EF0 !important; color: #0b0b0c !important; border: 1px solid #4A9EF0 !important; }
+        .analyze-btn { background: #4A9EF0 !important; color: #ffffff !important; border: 1px solid #4A9EF0 !important; }
         .analyze-btn:hover { background: rgba(74,158,240,0.9) !important; }
-        .analyze-btn[data-analyzing="true"] { background: ${T.card} !important; color: ${T.textFaint} !important; }
+        .analyze-btn[data-analyzing="true"] { background: ${T.card} !important; color: #ffffff !important; }
         .history-item:hover { background: ${T.hoverBg} !important; }
         .export-btn:hover { background: ${T.hoverBg} !important; }
         .commit-card:hover { border-color: ${T.commitCardHover} !important; }
