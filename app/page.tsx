@@ -1263,9 +1263,9 @@ export default function IGititPage() {
         [data-theme="light"] .dossier-panel [style*="74,158,240"],[data-theme="light"] .dossier-panel [style*="74, 158, 240"],[data-theme="light"] .dossier-panel [style*="4A9EF0"] { color: #007755 !important; }
         [data-theme="light"] .fem-chat-bubble { background: rgba(30,30,30,0.85) !important; }
         [data-theme="light"] button,[data-theme="light"] .tab-btn,[data-theme="light"] [style*="border"] { border-color: rgba(0,0,0,0.3) !important; }
-        [data-theme="light"] .gitbyte-analysis-box { background-color: #0A3A7A !important; border: 2px solid #1A5AAA !important; }
+        [data-theme="light"] .gitbyte-analysis-box { background-color: rgba(10,58,122,0.5) !important; border: 2px solid #1A5AAA !important; }
         [data-theme="light"] .gitbyte-analysis-box * { color: #A8D4FF !important; }
-        [data-theme="light"] .fem-gitbyte-box { background-color: #0A4A35 !important; border: 2px solid #0D7A55 !important; }
+        [data-theme="light"] .fem-gitbyte-box { background-color: rgba(10,74,53,0.5) !important; border: 2px solid #0D7A55 !important; }
         [data-theme="light"] .fem-gitbyte-box * { color: #7FDDBB !important; }
       `}</style>
 
@@ -1285,7 +1285,7 @@ export default function IGititPage() {
           href="https://haiproject.xyz"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ position: "absolute", left: "340px", top: "14px", fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap" }}
+          style={{ position: "absolute", left: "340px", top: "28px", fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap" }}
         >
           SUPPORT THE HAI PROJECT →
         </a>
@@ -1296,7 +1296,7 @@ export default function IGititPage() {
           target="_blank"
           rel="noopener noreferrer"
           suppressHydrationWarning={true}
-          style={{ position: "absolute", left: "390px", top: "60px", textDecoration: "none" }}
+          style={{ position: "absolute", left: "390px", top: "72px", textDecoration: "none" }}
           onClick={e => e.stopPropagation()}
         >
           <div style={{ border: "1px solid rgba(74,158,240,0.5)", backgroundColor: "rgba(74,158,240,0.08)", padding: "5px 12px", fontSize: "10px", color: "rgba(74,158,240,0.9)", letterSpacing: "1.5px", lineHeight: 1.5, textAlign: "center", fontFamily: "'IBM Plex Mono', monospace", display: "inline-block" }}>
