@@ -1265,25 +1265,25 @@ export default function IGititPage() {
 
       {/* HEADER */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
-        {/* LEFT: HAI link → logo (badge absolute) → tagline */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          {/* HAI PROJECT link — above logo */}
-          <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer" style={{ fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap", display: "inline-block", alignSelf: "flex-start", marginBottom: "12px" }}>
+        {/* LEFT: HAI link → [logo + badge inline] → tagline */}
+        <div suppressHydrationWarning style={{ display: "flex", flexDirection: "column", position: "relative" }}>
+          {/* Row 1: HAI PROJECT link — sits just above the blue dots */}
+          <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer" style={{ fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap", display: "inline-block", alignSelf: "flex-start", marginBottom: "8px" }}>
             SUPPORT THE HAI PROJECT →
           </a>
-          {/* Logo container — badge anchored to bottom-right */}
-          <div style={{ position: "relative" }}>
+          {/* Row 2: Logo SVG + OMARO badge inline (no absolute) */}
+          <div style={{ display: "flex", alignItems: "center" }}>
             <IGititLogo
               lightMode={lightMode}
               onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }}
             />
-            {/* OMARO badge — absolute, anchored bottom-right of logo block */}
+            {/* OMARO badge — inline, vertically centered with logo */}
             <a
               href="https://omaro.xyz"
               target="_blank"
               rel="noopener noreferrer"
               suppressHydrationWarning={true}
-              style={{ position: "absolute", right: 0, bottom: 28, textDecoration: "none" }}
+              style={{ textDecoration: "none", alignSelf: "center", marginLeft: "16px", flexShrink: 0 }}
               onClick={e => e.stopPropagation()}
             >
               <div style={{
@@ -1305,8 +1305,9 @@ export default function IGititPage() {
                 AN<br />OMARO<br />COMPANY
               </div>
             </a>
-            <div style={{ fontSize: "22px", color: T.textDim, letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
           </div>
+          {/* Row 3: Tagline */}
+          <div style={{ fontSize: "22px", color: T.textDim, letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
         </div>
         {/* RIGHT: [history] + [light/dark] toggle */}
         <div suppressHydrationWarning style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
