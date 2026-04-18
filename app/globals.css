@@ -10,6 +10,3 @@ html, body { font-size: 18px; margin: 0; background: #0b0b0c; }
   background: transparent !important;
   background-color: transparent !important;
 }
-.url-input-box input::selection {
-  background: rgba(74,158,240,0.35) !important;
-}
