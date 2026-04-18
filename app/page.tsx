@@ -1275,6 +1275,8 @@ export default function IGititPage() {
         [data-theme="dark"] .fem-gitbyte-box { background-color: rgba(5,30,20,0.5) !important; }
         [data-theme="dark"] .welcome-box { background-color: rgba(5,30,20,0.5) !important; }
         [data-theme="dark"] .url-input-box { background-color: rgba(5,30,20,0.5) !important; }
+        .hai-project-link { background-color: rgba(26,107,58,0.5) !important; }
+        .history-box { background-color: rgba(74,158,240,0.15) !important; }
       `}</style>
 
       {/* HEADER — flex layout */}
@@ -1284,9 +1286,9 @@ export default function IGititPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           {/* Row 1: Badge */}
           <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" suppressHydrationWarning
-            style={{ display: "inline-block", marginBottom: "6px", border: "1px solid rgba(74,158,240,0.5)", padding: "4px 10px", fontSize: "9px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", background: "rgba(74,158,240,0.08)", textDecoration: "none", fontFamily: "inherit" }}
+            style={{ marginBottom: "6px", border: "1px solid rgba(74,158,240,0.5)", padding: "8px 10px", fontSize: "9px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", lineHeight: "1.6", textAlign: "center", background: "rgba(74,158,240,0.08)", textDecoration: "none", fontFamily: "inherit" }}
             onClick={e => e.stopPropagation()}>
-            AN · OMARO · COMPANY
+            AN<br />OMARO<br />COMPANY
           </a>
           {/* Row 2: Logo */}
           <IGititLogo
@@ -1301,12 +1303,12 @@ export default function IGititPage() {
 
         {/* RIGHT COLUMN */}
         <div suppressHydrationWarning style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
-          <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer"
+          <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer" className="hai-project-link"
             style={{ border: "1px solid #1a6b3a", padding: "5px 14px", fontSize: "11px", color: "#2ecc71", letterSpacing: "1px", textDecoration: "none", fontFamily: "inherit" }}>
             SUPPORT THE HAI PROJECT →
           </a>
           {mounted && history.length > 0 && (
-            <div style={{ border: "1px solid rgba(74,158,240,0.5)", padding: "6px 14px", fontSize: "11px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", textAlign: "center", background: "rgba(74,158,240,0.08)", cursor: "pointer", fontFamily: "inherit" }}
+            <div className="history-box" style={{ border: "1px solid rgba(74,158,240,0.5)", padding: "6px 14px", fontSize: "11px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", textAlign: "center", background: "rgba(74,158,240,0.08)", cursor: "pointer", fontFamily: "inherit" }}
               onClick={() => setShowHistory(h => !h)}>
               [history]<br /><span style={{ fontSize: "16px", fontWeight: "bold" }}>{history.length}</span>
             </div>
