@@ -1116,10 +1116,12 @@ export default function IGititPage() {
       return `the data shows: ${a.meta.owner}/${a.meta.repo} scored ${totalRaw}/40 [${grade}] vs ${aB.meta.owner}/${aB.meta.repo} ${totalB}/40 [${gradeB}]. biggest gap: ${PILLAR_NAMES[biggestGap.key]} (${biggestGap.diff} point${biggestGap.diff !== 1 ? "s" : ""}).`
     }
 
-    // Summary / verdict
+    // Summary / verdict — full text, up to 2 sentences, no truncation
     if (/(summar|verdict|overall|conclusion|tl;?dr|bottom line|takeaway)/i.test(q)) {
       const verdict = a.overallVerdict ?? ""
-      return `according to the analysis: "${verdict.slice(0, 150)}${verdict.length > 150 ? "…" : ""}"`
+      const sentences = verdict.match(/[^.!?]+[.!?]+/g) ?? [verdict]
+      const twoSentences = sentences.slice(0, 2).join(" ").trim()
+      return `according to the analysis: ${twoSentences} full breakdown across all tabs.`
     }
 
     // Modules / code architecture
@@ -1137,11 +1139,17 @@ export default function IGititPage() {
       return `according to the analysis, the modules in this repo are: ${all}. ask about a specific one for details.`
     }
 
-    // Changelog / history
+    // Changelog / history — pull actual entries from changelogRef if available
     if (/(commit|change|update|history|version|recent|release|changelog|when.*update|last.*update)/i.test(q)) {
-      const stars = a.meta.stars?.toLocaleString() ?? "unknown"
-      const platform = a.meta.platform ?? "GitHub"
-      return `the repository signals indicate ${stars} stars on ${platform}. for a full commit timeline, check the change log tab — it loads the 50 most recent commits.`
+      const entries = changelogRef.current
+      if (entries && entries.length > 0) {
+        const count = entries.length
+        const latest = entries[0]
+        const latestDesc = latest.plainTitle ?? latest.originalMessage?.slice(0, 60) ?? "unlabeled"
+        const latestDate = latest.date ? latest.date.slice(0, 10) : "unknown date"
+        return `the data shows ${count} logged changes. most recent: "${latestDesc}" (${latestDate}). full history in the change log tab.`
+      }
+      return `the repository signals indicate ${a.meta.stars?.toLocaleString() ?? "unknown"} stars on ${a.meta.platform ?? "GitHub"}. changelog loads in the change log tab — trigger it to see actual entries.`
     }
 
     // Fallback: score + nudge
@@ -1188,17 +1196,13 @@ export default function IGititPage() {
     if (hasOmen) setOmenNote(true)
     if (newPulse) { setPulsingTab(newPulse); setTimeout(() => setPulsingTab(""), 3000) }
 
-    // FEM GITBYTE — build response eagerly (avoid stale closure), show pending then reveal
+    // FEM GITBYTE — build response eagerly, show pending then reveal; messages stay until pushed out by newer ones
     const msgId = ++femMsgIdRef.current
     const response = buildFemResponse(ql, analysisA, analysisB, grade, hasOmen)
     setFemChatPending(true)
     setTimeout(() => {
       setFemChatPending(false)
       setFemChatHistory(prev => [...prev, { id: msgId, text: response }].slice(-3))
-      // Per-message 9-second auto-clear
-      setTimeout(() => {
-        setFemChatHistory(prev => prev.filter(m => m.id !== msgId))
-      }, 9000)
     }, 600)
 
     setRepoChat("")
@@ -1256,6 +1260,7 @@ export default function IGititPage() {
         [data-theme="light"] .dossier-panel * { color: #111111 !important; }
         [data-theme="light"] .dossier-panel [style*="0,200,150"],[data-theme="light"] .dossier-panel [style*="0, 200, 150"],[data-theme="light"] .dossier-panel [style*="00C896"],[data-theme="light"] .dossier-panel [style*="00c896"] { color: #00B885 !important; }
         [data-theme="light"] .dossier-panel [style*="74,158,240"],[data-theme="light"] .dossier-panel [style*="74, 158, 240"],[data-theme="light"] .dossier-panel [style*="4A9EF0"] { color: #00B885 !important; }
+        [data-theme="light"] .fem-chat-bubble { background: rgba(30,30,30,0.85) !important; }
       `}</style>
 
       {/* HEADER */}
