@@ -1049,7 +1049,7 @@ export default function IGititPage() {
 
     // Platform / org context
     if (/(platform|company|org|organization|who owns|who runs|background|context|about the org)/i.test(q)) {
-      const ctx = a.platformContext?.slice(0, 150) ?? `${a.meta.owner} on ${a.meta.platform ?? "GitHub"}`
+      const ctx = (a as any).platformContext?.slice(0, 150) ?? `${a.meta.owner} on ${a.meta.platform ?? "GitHub"}`
       return `according to the analysis, ${ctx}…`
     }
 
