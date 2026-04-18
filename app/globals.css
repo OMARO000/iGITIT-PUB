@@ -6,14 +6,10 @@ html, body { font-size: 18px; margin: 0; background: #0b0b0c; }
 .igitit-wrap {
   position: relative;
 }
-.url-input-box input::selection {
-  background: rgba(26,90,170,0.5) !important;
-  color: #ffffff !important;
-}
-.url-input-box input::-moz-selection {
-  background: rgba(26,90,170,0.5) !important;
-  color: #ffffff !important;
-}
 .url-input-box input {
-  accent-color: rgba(74,158,240,0.8);
+  background: transparent !important;
+  background-color: transparent !important;
+}
+.url-input-box input::selection {
+  background: rgba(74,158,240,0.35) !important;
 }
