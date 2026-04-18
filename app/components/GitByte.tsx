@@ -313,7 +313,7 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
   }
 
   return (
-    <div style={{ marginTop: "32px", border: "1px solid rgba(74,158,255,0.2)", borderRadius: "8px", overflow: "hidden", background: "rgba(74,158,255,0.04)" }}>
+    <div className="gitbyte-analysis-box" style={{ marginTop: "32px", border: "1px solid rgba(74,158,255,0.2)", borderRadius: "8px", overflow: "hidden", background: "rgba(74,158,255,0.04)" }}>
       <div style={{ padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace" }}>
           GITBYTE · open source, open language
