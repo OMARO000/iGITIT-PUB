@@ -1341,7 +1341,7 @@ export default function IGititPage() {
       {/* INPUT AREA */}
       {!compareMode ? (
         /* SINGLE INPUT */
-        <div suppressHydrationWarning className="url-input-box" style={{ marginBottom: "32px", background: analyzingA ? "rgba(74,158,255,0.04)" : "transparent", border: analyzingA ? "1px solid rgba(74,158,255,0.25)" : "1px solid transparent", borderRadius: "8px", padding: analyzingA ? "16px" : "0", transition: "all 0.3s ease" }}>
+        <div suppressHydrationWarning className="url-input-box" style={{ marginBottom: "32px", background: analyzingA ? "rgba(74,158,255,0.04)" : undefined, border: analyzingA ? "1px solid rgba(74,158,255,0.25)" : undefined, borderRadius: "8px", padding: analyzingA ? "16px" : "0", transition: "all 0.3s ease" }}>
           <div suppressHydrationWarning style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>paste a github, gitlab or radicle repository url</div>
           <div style={{ display: "flex", gap: "10px" }}>
             <div suppressHydrationWarning style={{ flex: 1, background: animatingA ? "rgba(74,158,240,0.04)" : !analysisA ? "rgba(74,158,240,0.03)" : T.inputBg, border: `1px solid ${animatingA ? "rgba(74,158,240,0.6)" : !analysisA ? "rgba(74,158,240,0.25)" : T.borderMid}`, borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s, background 0.2s", boxShadow: !analysisA && !animatingA ? "0 0 0 1px rgba(74,158,240,0.08), 0 0 24px rgba(74,158,240,0.06)" : "none" }}>
