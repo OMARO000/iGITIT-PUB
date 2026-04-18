@@ -1271,64 +1271,51 @@ export default function IGititPage() {
         [data-theme="light"] .url-input-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
         [data-theme="light"] .analyze-btn-analyzing { background-color: rgba(0,68,204,0.5) !important; border-color: rgba(0,68,204,0.7) !important; }
         [data-theme="light"] .fem-url-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
+        [data-theme="dark"] .gitbyte-analysis-box { background-color: rgba(10,20,40,0.5) !important; }
+        [data-theme="dark"] .fem-gitbyte-box { background-color: rgba(5,30,20,0.5) !important; }
+        [data-theme="dark"] .welcome-box { background-color: rgba(5,30,20,0.5) !important; }
+        [data-theme="dark"] .url-input-box { background-color: rgba(5,30,20,0.5) !important; }
       `}</style>
 
-      {/* HEADER — absolute-positioned elements locked to pixel coords */}
-      <div suppressHydrationWarning style={{ position: "relative", width: "100%", height: "180px", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
+      {/* HEADER — flex layout */}
+      <div suppressHydrationWarning style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
 
-        {/* Logo: left:43px, top:84px */}
-        <div style={{ position: "absolute", left: "43px", top: "84px" }}>
+        {/* LEFT COLUMN */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          {/* Row 1: Badge */}
+          <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" suppressHydrationWarning
+            style={{ display: "inline-block", marginBottom: "6px", border: "1px solid rgba(74,158,240,0.5)", padding: "4px 10px", fontSize: "9px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", background: "rgba(74,158,240,0.08)", textDecoration: "none", fontFamily: "inherit" }}
+            onClick={e => e.stopPropagation()}>
+            AN · OMARO · COMPANY
+          </a>
+          {/* Row 2: Logo */}
           <IGititLogo
             lightMode={lightMode}
             onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }}
           />
+          {/* Row 3: Tagline */}
+          <div style={{ fontSize: "14px", color: T.textFaint, letterSpacing: "2px", marginTop: "6px", fontFamily: "inherit" }}>
+            open source, open language.
+          </div>
         </div>
 
-        {/* HAI link: left:340px, top:14px */}
-        <a
-          href="https://haiproject.xyz"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ position: "absolute", left: "478px", top: "47px", fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap" }}
-        >
-          SUPPORT THE HAI PROJECT →
-        </a>
-
-        {/* OMARO badge: left:390px, top:60px */}
-        <a
-          href="https://omaro.xyz"
-          target="_blank"
-          rel="noopener noreferrer"
-          suppressHydrationWarning={true}
-          style={{ position: "absolute", left: "52px", top: "53px", textDecoration: "none" }}
-          onClick={e => e.stopPropagation()}
-        >
-          <div style={{ border: "1px solid rgba(74,158,240,0.5)", backgroundColor: "rgba(74,158,240,0.08)", padding: "5px 12px", fontSize: "10px", color: "rgba(74,158,240,0.9)", letterSpacing: "1.5px", lineHeight: 1.5, textAlign: "center", fontFamily: "'IBM Plex Mono', monospace", display: "inline-block" }}>
-            AN · OMARO · COMPANY
-          </div>
-        </a>
-
-        {/* Tagline: left:45px, top:141px */}
-        <div style={{ position: "absolute", left: "45px", top: "141px", fontSize: "22px", color: T.textDim, letterSpacing: "0.08em" }}>open source, open language.</div>
-
-        {/* History box: left:478px, top:80px */}
-        <div suppressHydrationWarning style={{ position: "absolute", left: "478px", top: "80px" }}>
+        {/* RIGHT COLUMN */}
+        <div suppressHydrationWarning style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
+          <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer"
+            style={{ border: "1px solid #1a6b3a", padding: "5px 14px", fontSize: "11px", color: "#2ecc71", letterSpacing: "1px", textDecoration: "none", fontFamily: "inherit" }}>
+            SUPPORT THE HAI PROJECT →
+          </a>
           {mounted && history.length > 0 && (
-            <div onClick={() => setShowHistory(!showHistory)} style={{ fontFamily: "inherit", fontSize: "11px", color: "#4A9EFF", border: "1px solid rgba(74,158,255,0.35)", background: "rgba(74,158,255,0.08)", borderRadius: "4px", padding: "6px 12px", textAlign: "center", lineHeight: 1.4, cursor: "pointer" }}>
-              <div style={{ letterSpacing: "0.08em" }}>[history]</div>
-              <div style={{ fontSize: "13px", fontWeight: 500 }}>{history.length}</div>
+            <div style={{ border: "1px solid rgba(74,158,240,0.5)", padding: "6px 14px", fontSize: "11px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", textAlign: "center", background: "rgba(74,158,240,0.08)", cursor: "pointer", fontFamily: "inherit" }}
+              onClick={() => setShowHistory(h => !h)}>
+              [history]<br /><span style={{ fontSize: "16px", fontWeight: "bold" }}>{history.length}</span>
             </div>
           )}
+          <div style={{ border: `1px solid ${T.borderMid}`, padding: "5px 14px", fontSize: "11px", color: T.textFaint, letterSpacing: "1px", cursor: "pointer", fontFamily: "inherit" }}
+            onClick={() => setLightMode(l => !l)}>
+            [ {lightMode ? "dark" : "light"} ]
+          </div>
         </div>
-
-        {/* Light/dark toggle: left:600px, top:134px */}
-        <button
-          onClick={() => setLightMode(l => !l)}
-          title={lightMode ? "Switch to dark mode" : "Switch to light mode"}
-          style={{ position: "absolute", left: "600px", top: "134px", background: "transparent", border: `1px solid ${T.borderMid}`, borderRadius: "4px", padding: "4px 10px", fontFamily: "inherit", fontSize: "13px", color: T.textDim, cursor: "pointer", letterSpacing: "0.06em", whiteSpace: "nowrap", transition: "all 0.2s" }}
-        >
-          {lightMode ? "[ dark ]" : "[ light ]"}
-        </button>
 
       </div>
 
