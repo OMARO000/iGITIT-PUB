@@ -1263,65 +1263,69 @@ export default function IGititPage() {
         [data-theme="light"] .dossier-panel [style*="74,158,240"],[data-theme="light"] .dossier-panel [style*="74, 158, 240"],[data-theme="light"] .dossier-panel [style*="4A9EF0"] { color: #007755 !important; }
         [data-theme="light"] .fem-chat-bubble { background: rgba(30,30,30,0.85) !important; }
         [data-theme="light"] button,[data-theme="light"] .tab-btn,[data-theme="light"] [style*="border"] { border-color: rgba(0,0,0,0.3) !important; }
-        [data-theme="light"] .gitbyte-analysis-box,[data-theme="light"] .fem-gitbyte-box { background-color: #B8B8B2 !important; border-color: rgba(0,100,200,0.7) !important; }
+        [data-theme="light"] .gitbyte-analysis-box { background-color: #0A3A7A !important; border: 2px solid #1A5AAA !important; }
+        [data-theme="light"] .gitbyte-analysis-box * { color: #A8D4FF !important; }
+        [data-theme="light"] .fem-gitbyte-box { background-color: #0A4A35 !important; border: 2px solid #0D7A55 !important; }
+        [data-theme="light"] .fem-gitbyte-box * { color: #7FDDBB !important; }
       `}</style>
 
-      {/* HEADER */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
-        {/* LEFT: HAI link → [logo + badge inline] → tagline */}
-        <div suppressHydrationWarning style={{ display: "flex", flexDirection: "column", position: "relative" }}>
-          {/* Row 1: HAI PROJECT link — sits just above the blue dots */}
-          <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer" style={{ fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap", display: "inline-block", alignSelf: "flex-start", marginBottom: "8px" }}>
-            SUPPORT THE HAI PROJECT →
-          </a>
-          {/* Row 2: Logo SVG */}
+      {/* HEADER — absolute-positioned elements locked to pixel coords */}
+      <div suppressHydrationWarning style={{ position: "relative", width: "100%", height: "180px", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
+
+        {/* Logo: left:0, top:0 */}
+        <div style={{ position: "absolute", left: 0, top: 0 }}>
           <IGititLogo
             lightMode={lightMode}
             onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }}
           />
-          {/* Row 3: OMARO badge — left-aligned, between logo and tagline */}
-          <a
-            href="https://omaro.xyz"
-            target="_blank"
-            rel="noopener noreferrer"
-            suppressHydrationWarning={true}
-            style={{ textDecoration: "none", display: "inline-block", alignSelf: "flex-start", marginTop: "4px", marginBottom: "4px" }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{
-              border: "1px solid rgba(74,158,240,0.5)",
-              backgroundColor: "rgba(74,158,240,0.08)",
-              padding: "5px 12px",
-              fontSize: "10px",
-              color: "rgba(74,158,240,0.9)",
-              letterSpacing: "1.5px",
-              lineHeight: 1.5,
-              textAlign: "center",
-              fontFamily: "'IBM Plex Mono', monospace",
-              display: "inline-block",
-            }}>
-              AN · OMARO · COMPANY
-            </div>
-          </a>
-          {/* Row 4: Tagline */}
-          <div style={{ fontSize: "22px", color: T.textDim, letterSpacing: "0.08em", marginTop: "0px" }}>open source, open language.</div>
         </div>
-        {/* RIGHT: [history] + [light/dark] toggle */}
-        <div suppressHydrationWarning style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
+
+        {/* HAI link: left:340px, top:14px */}
+        <a
+          href="https://haiproject.xyz"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ position: "absolute", left: "340px", top: "14px", fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap" }}
+        >
+          SUPPORT THE HAI PROJECT →
+        </a>
+
+        {/* OMARO badge: left:390px, top:60px */}
+        <a
+          href="https://omaro.xyz"
+          target="_blank"
+          rel="noopener noreferrer"
+          suppressHydrationWarning={true}
+          style={{ position: "absolute", left: "390px", top: "60px", textDecoration: "none" }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{ border: "1px solid rgba(74,158,240,0.5)", backgroundColor: "rgba(74,158,240,0.08)", padding: "5px 12px", fontSize: "10px", color: "rgba(74,158,240,0.9)", letterSpacing: "1.5px", lineHeight: 1.5, textAlign: "center", fontFamily: "'IBM Plex Mono', monospace", display: "inline-block" }}>
+            AN · OMARO · COMPANY
+          </div>
+        </a>
+
+        {/* Tagline: left:0, top:118px */}
+        <div style={{ position: "absolute", left: 0, top: "118px", fontSize: "22px", color: T.textDim, letterSpacing: "0.08em" }}>open source, open language.</div>
+
+        {/* History box: right:0, top:0 */}
+        <div suppressHydrationWarning style={{ position: "absolute", right: 0, top: 0 }}>
           {mounted && history.length > 0 && (
             <div onClick={() => setShowHistory(!showHistory)} style={{ fontFamily: "inherit", fontSize: "11px", color: "#4A9EFF", border: "1px solid rgba(74,158,255,0.35)", background: "rgba(74,158,255,0.08)", borderRadius: "4px", padding: "6px 12px", textAlign: "center", lineHeight: 1.4, cursor: "pointer" }}>
               <div style={{ letterSpacing: "0.08em" }}>[history]</div>
               <div style={{ fontSize: "13px", fontWeight: 500 }}>{history.length}</div>
             </div>
           )}
-          <button
-            onClick={() => setLightMode(l => !l)}
-            title={lightMode ? "Switch to dark mode" : "Switch to light mode"}
-            style={{ background: "transparent", border: `1px solid ${T.borderMid}`, borderRadius: "4px", padding: "4px 10px", fontFamily: "inherit", fontSize: "13px", color: T.textDim, cursor: "pointer", letterSpacing: "0.06em", whiteSpace: "nowrap", transition: "all 0.2s" }}
-          >
-            {lightMode ? "[ dark ]" : "[ light ]"}
-          </button>
         </div>
+
+        {/* Light/dark toggle: right:0, top:58px */}
+        <button
+          onClick={() => setLightMode(l => !l)}
+          title={lightMode ? "Switch to dark mode" : "Switch to light mode"}
+          style={{ position: "absolute", right: 0, top: "58px", background: "transparent", border: `1px solid ${T.borderMid}`, borderRadius: "4px", padding: "4px 10px", fontFamily: "inherit", fontSize: "13px", color: T.textDim, cursor: "pointer", letterSpacing: "0.06em", whiteSpace: "nowrap", transition: "all 0.2s" }}
+        >
+          {lightMode ? "[ dark ]" : "[ light ]"}
+        </button>
+
       </div>
 
       {/* HISTORY PANEL */}
