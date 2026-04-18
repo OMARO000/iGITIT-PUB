@@ -1276,7 +1276,7 @@ export default function IGititPage() {
         [data-theme="dark"] .welcome-box { background-color: rgba(5,30,20,0.5) !important; }
         [data-theme="dark"] .url-input-box { background-color: rgba(5,30,20,0.5) !important; }
         .hai-project-link { background-color: rgba(26,107,58,0.5) !important; }
-        .history-box { background-color: rgba(74,158,240,0.25) !important; border-color: rgba(74,158,240,0.6) !important; }
+        .history-box { background-color: rgba(10,58,122,0.5) !important; border-color: rgba(26,90,170,0.7) !important; }
       `}</style>
 
       {/* HEADER — flex layout */}
@@ -1286,7 +1286,7 @@ export default function IGititPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           {/* Row 1: Badge */}
           <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" suppressHydrationWarning
-            style={{ display: "inline-block", width: "64px", marginBottom: "6px", border: "1px solid rgba(74,158,240,0.6)", padding: "8px 6px", fontSize: "9px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", lineHeight: "1.8", textAlign: "center", backgroundColor: "rgba(74,158,240,0.25)", textDecoration: "none", fontFamily: "inherit" }}
+            style={{ display: "inline-block", width: "64px", marginBottom: "6px", border: "1px solid rgba(26,90,170,0.7)", padding: "8px 6px", fontSize: "9px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", lineHeight: "1.8", textAlign: "center", backgroundColor: "rgba(10,58,122,0.5)", textDecoration: "none", fontFamily: "inherit" }}
             onClick={e => e.stopPropagation()}>
             AN<br />OMARO<br />COMPANY
           </a>
