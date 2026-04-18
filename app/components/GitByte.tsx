@@ -7,6 +7,7 @@ interface GitByteProps {
   outputs?: string[]
   active?: boolean
   speed?: number
+  postAnalysis?: boolean
 }
 
 const DEMO_FILES = [
@@ -25,7 +26,7 @@ const DEMO_OUTPUTS = [
 const W = 1100
 const H = 400
 
-export default function GitByte({ files = DEMO_FILES, outputs, active = false, speed = 1 }: GitByteProps) {
+export default function GitByte({ files = DEMO_FILES, outputs, active = false, speed = 1, postAnalysis = false }: GitByteProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stateRef = useRef({
     gitbyte: { x: 550, y: H / 2, w: 36, h: 28, mouthOpen: 0, eating: false, digesting: 0 },
@@ -313,7 +314,7 @@ export default function GitByte({ files = DEMO_FILES, outputs, active = false, s
   }
 
   return (
-    <div className="gitbyte-analysis-box" style={{ marginTop: "32px", border: "1px solid rgba(74,158,255,0.2)", borderRadius: "8px", overflow: "hidden", background: "rgba(74,158,255,0.04)" }}>
+    <div className={`gitbyte-analysis-box${postAnalysis ? " gitbyte-analysis-box-post" : ""}`} style={{ marginTop: "32px", border: "1px solid rgba(74,158,255,0.2)", borderRadius: "8px", overflow: "hidden", background: "rgba(74,158,255,0.04)" }}>
       <div style={{ padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em", fontFamily: "'IBM Plex Mono', monospace" }}>
           GITBYTE · open source, open language

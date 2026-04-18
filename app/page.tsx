@@ -1265,11 +1265,14 @@ export default function IGititPage() {
         [data-theme="light"] button,[data-theme="light"] .tab-btn,[data-theme="light"] [style*="border"] { border-color: rgba(0,0,0,0.3) !important; }
         [data-theme="light"] .gitbyte-analysis-box { background-color: rgba(10,58,122,0.5) !important; border: 2px solid #1A5AAA !important; }
         [data-theme="light"] .gitbyte-analysis-box * { color: #A8D4FF !important; }
+        [data-theme="light"] .gitbyte-analysis-box-post { background-color: rgba(10,74,53,0.5) !important; border: 2px solid #0D7A55 !important; }
         [data-theme="light"] .fem-gitbyte-box { background-color: rgba(10,74,53,0.5) !important; border: 2px solid #0D7A55 !important; }
         [data-theme="light"] .fem-gitbyte-box * { color: #7FDDBB !important; }
         [data-theme="light"] .welcome-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
         [data-theme="light"] .url-input-box { background-color: rgba(10,58,122,0.5) !important; border: 2px solid rgba(26,90,170,0.7) !important; }
-        [data-theme="light"] .url-input-box input { background-color: rgba(10,58,122,0.3) !important; color: #c8d8ff !important; }
+        [data-theme="light"] .url-input-box input { background-color: rgba(10,58,122,0.5) !important; color: #c8d8ff !important; -webkit-text-fill-color: #c8d8ff !important; }
+        [data-theme="light"] .url-input-box input::selection { background-color: rgba(26,90,170,0.4) !important; }
+        [data-theme="light"] .url-input-box input::placeholder { color: rgba(200,216,255,0.5) !important; }
         [data-theme="light"] .analyze-btn-analyzing { background-color: rgba(0,68,204,0.5) !important; border-color: rgba(0,68,204,0.7) !important; }
         [data-theme="light"] .fem-url-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
         [data-theme="dark"] .gitbyte-analysis-box { background-color: rgba(10,20,40,0.5) !important; }
@@ -1343,7 +1346,7 @@ export default function IGititPage() {
       {/* INPUT AREA */}
       {!compareMode ? (
         /* SINGLE INPUT */
-        <div suppressHydrationWarning className="url-input-box" style={{ marginBottom: "32px", border: analyzingA ? "1px solid rgba(74,158,255,0.25)" : undefined, borderRadius: "8px", padding: analyzingA ? "16px" : "0", transition: "all 0.3s ease" }}>
+        <div suppressHydrationWarning className="url-input-box" style={{ marginBottom: "32px", background: analyzingA ? "rgba(74,158,255,0.04)" : analysisA ? "rgba(10,74,53,0.5)" : undefined, border: analyzingA ? "1px solid rgba(74,158,240,0.2)" : analysisA ? "2px solid #0D7A55" : undefined, borderRadius: "8px", padding: analyzingA ? "16px" : "0", transition: "all 0.3s ease" }}>
           <div suppressHydrationWarning style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>paste a github, gitlab or radicle repository url</div>
           <div style={{ display: "flex", gap: "10px" }}>
             <div suppressHydrationWarning style={{ flex: 1, border: `1px solid ${animatingA ? "rgba(74,158,240,0.6)" : !analysisA ? "rgba(74,158,240,0.25)" : T.borderMid}`, borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s, background 0.2s", boxShadow: !analysisA && !animatingA ? "0 0 0 1px rgba(74,158,240,0.08), 0 0 24px rgba(74,158,240,0.06)" : "none" }}>
@@ -1409,6 +1412,7 @@ export default function IGititPage() {
               files={fetchedFileSnippets.length > 0 ? fetchedFileSnippets : fetchedFilePaths.length > 0 ? fetchedFilePaths : undefined}
               outputs={fetchedFileOutputs.length > 0 ? fetchedFileOutputs : undefined}
               active={analyzingA}
+              postAnalysis={!!analysisA}
             />
           )}
         </div>
