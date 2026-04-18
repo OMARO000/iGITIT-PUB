@@ -6,51 +6,25 @@ import { useEffect, useState } from "react"
 // LOGO
 // ─────────────────────────────────────────────
 
-export function IGititLogo({ onClick }: { onClick?: () => void }) {
+export function IGititLogo({ onClick, lightMode }: { onClick?: () => void; lightMode?: boolean }) {
+  const boldFill = lightMode ? "#1a1a1a" : "rgba(255,255,255,0.92)"
+  const faintFill = lightMode ? "#888888" : "rgba(255,255,255,0.45)"
   return (
     <div
       suppressHydrationWarning
       onClick={onClick}
-      style={{ cursor: onClick ? "pointer" : "default", userSelect: "none", display: "flex", alignItems: "flex-start", gap: "10px" }}
+      style={{ cursor: onClick ? "pointer" : "default", userSelect: "none" }}
     >
       <svg width="630" height="160" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
         <text x="0" y="72" dominantBaseline="auto" style={{ fontFamily: "'IBM Plex Mono','Courier New',monospace", fontSize: "56px", letterSpacing: "-2px" }}>
-          <tspan style={{ fontWeight: 500, fill: "rgba(255,255,255,0.92)" }}>ıGIT</tspan>
-          <tspan style={{ fontWeight: 300, fill: "rgba(255,255,255,0.45)" }}>ıt</tspan>
+          <tspan style={{ fontWeight: 500, fill: boldFill }}>ıGIT</tspan>
+          <tspan style={{ fontWeight: 300, fill: faintFill }}>ıt</tspan>
         </text>
         {/* Blue dot over first ı */}
         <circle cx="13" cy="25" r="5" fill="#4A9EF0" />
         {/* Blue dot over second ı */}
         <circle cx="147" cy="25" r="5" fill="#4A9EF0" />
       </svg>
-      {/* OMARO badge — top-aligned, sits as companion to the logotype */}
-      <a
-        href="https://omaro.xyz"
-        target="_blank"
-        rel="noopener noreferrer"
-        suppressHydrationWarning={true}
-        style={{ textDecoration: "none" }}
-        onClick={e => e.stopPropagation()}
-      >
-        <div style={{
-          border: "1px solid rgba(74,158,240,0.5)",
-          backgroundColor: "rgba(74,158,240,0.08)",
-          padding: "8px 12px",
-          fontSize: "10px",
-          color: "rgba(74,158,240,0.9)",
-          letterSpacing: "1.5px",
-          lineHeight: 1.5,
-          textAlign: "center",
-          fontFamily: "'IBM Plex Mono', monospace",
-          minHeight: "48px",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-        }}>
-          AN<br />OMARO<br />COMPANY
-        </div>
-      </a>
     </div>
   )
 }
