@@ -1244,24 +1244,26 @@ export default function IGititPage() {
         @keyframes tabPulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,0.5);transform:scale(1)} 50%{box-shadow:0 0 0 7px rgba(0,200,150,0);transform:scale(1.04)} }
         html, body { background-color: ${T.bg} !important; transition: background-color 0.3s ease; margin: 0; padding: 0; }
         .igitit-wrap { background-color: ${T.bg} !important; transition: background-color 0.3s ease; }
-        [data-theme="light"] * { color: #111111 !important; }
-        [data-theme="light"] [style*="4A9EF0"],[data-theme="light"] [style*="4a9ef0"],[data-theme="light"] [style*="74,158,240"],[data-theme="light"] [style*="74, 158, 240"] { color: #0055BB !important; }
-        [data-theme="light"] [style*="4CAF7D"],[data-theme="light"] [style*="4caf7d"],[data-theme="light"] [style*="76,175,125"],[data-theme="light"] [style*="76, 175, 125"] { color: #1A7A3A !important; }
-        [data-theme="light"] [style*="00C896"],[data-theme="light"] [style*="00c896"],[data-theme="light"] [style*="0,200,150"],[data-theme="light"] [style*="0, 200, 150"] { color: #009966 !important; }
+        [data-theme="light"] * { color: #111111 !important; --accent-opacity: 1.0; }
+        [data-theme="light"] [style*="4A9EF0"],[data-theme="light"] [style*="4a9ef0"],[data-theme="light"] [style*="74,158,240"],[data-theme="light"] [style*="74, 158, 240"] { color: #0044CC !important; }
+        [data-theme="light"] [style*="4CAF7D"],[data-theme="light"] [style*="4caf7d"],[data-theme="light"] [style*="76,175,125"],[data-theme="light"] [style*="76, 175, 125"] { color: #116622 !important; }
+        [data-theme="light"] [style*="00C896"],[data-theme="light"] [style*="00c896"],[data-theme="light"] [style*="0,200,150"],[data-theme="light"] [style*="0, 200, 150"] { color: #007755 !important; }
         [data-theme="light"] [style*="E05C5C"],[data-theme="light"] [style*="e05c5c"],[data-theme="light"] [style*="224,92,92"],[data-theme="light"] [style*="224, 92, 92"] { color: #CC3A3A !important; }
-        [data-theme="light"] [style*="F0A04A"],[data-theme="light"] [style*="f0a04a"],[data-theme="light"] [style*="240,160,74"],[data-theme="light"] [style*="240, 160, 74"] { color: #BB5500 !important; }
+        [data-theme="light"] [style*="F0A04A"],[data-theme="light"] [style*="f0a04a"],[data-theme="light"] [style*="240,160,74"],[data-theme="light"] [style*="240, 160, 74"] { color: #AA4400 !important; }
         [data-theme="light"] .igitit-card { background: #C8C8C2 !important; border-color: rgba(0,0,0,0.1) !important; }
         [data-theme="light"] .fem-gitbyte-box { background: #C4C4BE !important; border-color: rgba(0,168,118,0.6) !important; }
         [data-theme="light"] .gitbyte-analysis-box { border-color: rgba(74,158,240,0.6) !important; }
         [data-theme="dark"] .tab-btn { border-color: rgba(255,255,255,0.15) !important; }
         [data-theme="dark"] .tab-btn[style*="4A9EF0"] { border-color: #4A9EF0 !important; }
         [data-theme="light"] .tab-btn { border-color: rgba(0,0,0,0.2) !important; }
-        [data-theme="light"] .tab-btn[style*="4A9EF0"] { border-color: #0055BB !important; }
+        [data-theme="light"] .tab-btn[style*="4A9EF0"] { border-color: #0044CC !important; }
         [data-theme="light"] .dossier-panel { background: rgba(0,200,150,0.08) !important; border: 1px solid rgba(0,168,118,0.6) !important; }
         [data-theme="light"] .dossier-panel * { color: #111111 !important; }
-        [data-theme="light"] .dossier-panel [style*="0,200,150"],[data-theme="light"] .dossier-panel [style*="0, 200, 150"],[data-theme="light"] .dossier-panel [style*="00C896"],[data-theme="light"] .dossier-panel [style*="00c896"] { color: #009966 !important; }
-        [data-theme="light"] .dossier-panel [style*="74,158,240"],[data-theme="light"] .dossier-panel [style*="74, 158, 240"],[data-theme="light"] .dossier-panel [style*="4A9EF0"] { color: #009966 !important; }
+        [data-theme="light"] .dossier-panel [style*="0,200,150"],[data-theme="light"] .dossier-panel [style*="0, 200, 150"],[data-theme="light"] .dossier-panel [style*="00C896"],[data-theme="light"] .dossier-panel [style*="00c896"] { color: #007755 !important; }
+        [data-theme="light"] .dossier-panel [style*="74,158,240"],[data-theme="light"] .dossier-panel [style*="74, 158, 240"],[data-theme="light"] .dossier-panel [style*="4A9EF0"] { color: #007755 !important; }
         [data-theme="light"] .fem-chat-bubble { background: rgba(30,30,30,0.85) !important; }
+        [data-theme="light"] button,[data-theme="light"] .tab-btn,[data-theme="light"] [style*="border"] { border-color: rgba(0,0,0,0.3) !important; }
+        [data-theme="light"] .gitbyte-analysis-box,[data-theme="light"] .fem-gitbyte-box { background-color: #B8B8B2 !important; border-color: rgba(0,100,200,0.7) !important; }
       `}</style>
 
       {/* HEADER */}
@@ -1272,43 +1274,37 @@ export default function IGititPage() {
           <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer" style={{ fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap", display: "inline-block", alignSelf: "flex-start", marginBottom: "8px" }}>
             SUPPORT THE HAI PROJECT →
           </a>
-          {/* Row 2: Logo SVG + OMARO badge inline (no absolute) */}
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <IGititLogo
-              lightMode={lightMode}
-              onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }}
-            />
-            {/* OMARO badge — inline, vertically centered with logo */}
-            <a
-              href="https://omaro.xyz"
-              target="_blank"
-              rel="noopener noreferrer"
-              suppressHydrationWarning={true}
-              style={{ textDecoration: "none", alignSelf: "center", marginLeft: "10px", marginTop: "0px", flexShrink: 0 }}
-              onClick={e => e.stopPropagation()}
-            >
-              <div style={{
-                border: "1px solid rgba(74,158,240,0.5)",
-                backgroundColor: "rgba(74,158,240,0.08)",
-                padding: "8px 12px",
-                fontSize: "10px",
-                color: "rgba(74,158,240,0.9)",
-                letterSpacing: "1.5px",
-                lineHeight: 1.5,
-                textAlign: "center",
-                fontFamily: "'IBM Plex Mono', monospace",
-                minHeight: "48px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-              }}>
-                AN<br />OMARO<br />COMPANY
-              </div>
-            </a>
-          </div>
-          {/* Row 3: Tagline */}
-          <div style={{ fontSize: "22px", color: T.textDim, letterSpacing: "0.08em", marginTop: "-20px" }}>open source, open language.</div>
+          {/* Row 2: Logo SVG */}
+          <IGititLogo
+            lightMode={lightMode}
+            onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }}
+          />
+          {/* Row 3: OMARO badge — left-aligned, between logo and tagline */}
+          <a
+            href="https://omaro.xyz"
+            target="_blank"
+            rel="noopener noreferrer"
+            suppressHydrationWarning={true}
+            style={{ textDecoration: "none", display: "inline-block", alignSelf: "flex-start", marginTop: "4px", marginBottom: "4px" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{
+              border: "1px solid rgba(74,158,240,0.5)",
+              backgroundColor: "rgba(74,158,240,0.08)",
+              padding: "5px 12px",
+              fontSize: "10px",
+              color: "rgba(74,158,240,0.9)",
+              letterSpacing: "1.5px",
+              lineHeight: 1.5,
+              textAlign: "center",
+              fontFamily: "'IBM Plex Mono', monospace",
+              display: "inline-block",
+            }}>
+              AN · OMARO · COMPANY
+            </div>
+          </a>
+          {/* Row 4: Tagline */}
+          <div style={{ fontSize: "22px", color: T.textDim, letterSpacing: "0.08em", marginTop: "0px" }}>open source, open language.</div>
         </div>
         {/* RIGHT: [history] + [light/dark] toggle */}
         <div suppressHydrationWarning style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
