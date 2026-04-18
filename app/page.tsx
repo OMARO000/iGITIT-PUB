@@ -470,7 +470,7 @@ function WelcomeGroup({
   }
 
   return (
-    <div suppressHydrationWarning style={{
+    <div suppressHydrationWarning className="welcome-box" style={{
       width: "100%",
       border: "1px solid rgba(0,200,150,0.2)",
       borderRadius: "8px",
@@ -1267,6 +1267,8 @@ export default function IGititPage() {
         [data-theme="light"] .gitbyte-analysis-box * { color: #A8D4FF !important; }
         [data-theme="light"] .fem-gitbyte-box { background-color: rgba(10,74,53,0.5) !important; border: 2px solid #0D7A55 !important; }
         [data-theme="light"] .fem-gitbyte-box * { color: #7FDDBB !important; }
+        [data-theme="light"] .welcome-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
+        [data-theme="light"] .url-input-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
       `}</style>
 
       {/* HEADER — absolute-positioned elements locked to pixel coords */}
@@ -1285,7 +1287,7 @@ export default function IGititPage() {
           href="https://haiproject.xyz"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ position: "absolute", left: "340px", top: "28px", fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap" }}
+          style={{ position: "absolute", left: "220px", top: "28px", fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap" }}
         >
           SUPPORT THE HAI PROJECT →
         </a>
@@ -1296,7 +1298,7 @@ export default function IGititPage() {
           target="_blank"
           rel="noopener noreferrer"
           suppressHydrationWarning={true}
-          style={{ position: "absolute", left: "390px", top: "72px", textDecoration: "none" }}
+          style={{ position: "absolute", left: "220px", top: "72px", textDecoration: "none" }}
           onClick={e => e.stopPropagation()}
         >
           <div style={{ border: "1px solid rgba(74,158,240,0.5)", backgroundColor: "rgba(74,158,240,0.08)", padding: "5px 12px", fontSize: "10px", color: "rgba(74,158,240,0.9)", letterSpacing: "1.5px", lineHeight: 1.5, textAlign: "center", fontFamily: "'IBM Plex Mono', monospace", display: "inline-block" }}>
@@ -1348,7 +1350,7 @@ export default function IGititPage() {
       {/* INPUT AREA */}
       {!compareMode ? (
         /* SINGLE INPUT */
-        <div suppressHydrationWarning style={{ marginBottom: "32px", background: analyzingA ? "rgba(74,158,255,0.04)" : "transparent", border: analyzingA ? "1px solid rgba(74,158,255,0.25)" : "1px solid transparent", borderRadius: "8px", padding: analyzingA ? "16px" : "0", transition: "all 0.3s ease" }}>
+        <div suppressHydrationWarning className="url-input-box" style={{ marginBottom: "32px", background: analyzingA ? "rgba(74,158,255,0.04)" : "transparent", border: analyzingA ? "1px solid rgba(74,158,255,0.25)" : "1px solid transparent", borderRadius: "8px", padding: analyzingA ? "16px" : "0", transition: "all 0.3s ease" }}>
           <div suppressHydrationWarning style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>paste a github, gitlab or radicle repository url</div>
           <div style={{ display: "flex", gap: "10px" }}>
             <div suppressHydrationWarning style={{ flex: 1, background: animatingA ? "rgba(74,158,240,0.04)" : !analysisA ? "rgba(74,158,240,0.03)" : T.inputBg, border: `1px solid ${animatingA ? "rgba(74,158,240,0.6)" : !analysisA ? "rgba(74,158,240,0.25)" : T.borderMid}`, borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s, background 0.2s", boxShadow: !analysisA && !animatingA ? "0 0 0 1px rgba(74,158,240,0.08), 0 0 24px rgba(74,158,240,0.06)" : "none" }}>
