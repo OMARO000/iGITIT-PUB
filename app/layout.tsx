@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="shortcut icon" href="/favicon.svg" />
       </head>
-      <body className="min-h-full flex flex-col" style={{ background: "#0b0b0c" }}>
+      <body className="min-h-full flex flex-col">
         {children}
       </body>
     </html>

@@ -751,6 +751,13 @@ export default function IGititPage() {
 
   useEffect(() => { setMounted(true) }, [])
 
+  // Sync full-page background with light/dark mode
+  useEffect(() => {
+    const bg = lightMode ? "#E8E8E4" : "#0b0b0c"
+    document.documentElement.style.backgroundColor = bg
+    document.body.style.backgroundColor = bg
+  }, [lightMode])
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const r = params.get("repo"); if (r) setUrlA(decodeURIComponent(r))
@@ -1231,16 +1238,20 @@ export default function IGititPage() {
         .depth-btn:hover { background: ${T.hoverBg} !important; }
         .compare-btn:hover { background: rgba(74,158,240,0.15) !important; border-color: rgba(74,158,240,0.5) !important; }
         @keyframes tabPulse { 0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,0.5);transform:scale(1)} 50%{box-shadow:0 0 0 7px rgba(0,200,150,0);transform:scale(1.04)} }
-        html, body { background-color: ${T.bg}; transition: background-color 0.3s ease; margin: 0; padding: 0; }
-        .igitit-wrap { background-color: ${T.bg}; transition: background-color 0.3s ease; }
+        html, body { background-color: ${T.bg} !important; transition: background-color 0.3s ease; margin: 0; padding: 0; }
+        .igitit-wrap { background-color: ${T.bg} !important; transition: background-color 0.3s ease; }
         [data-theme="light"] * { color: #111111 !important; }
-        [data-theme="light"] [style*="4A9EF0"],[data-theme="light"] [style*="4a9ef0"],[data-theme="light"] [style*="74,158,240"],[data-theme="light"] [style*="74, 158, 240"] { color: #4A9EF0 !important; }
-        [data-theme="light"] [style*="4CAF7D"],[data-theme="light"] [style*="4caf7d"],[data-theme="light"] [style*="76,175,125"],[data-theme="light"] [style*="76, 175, 125"] { color: #4CAF7D !important; }
-        [data-theme="light"] [style*="00C896"],[data-theme="light"] [style*="00c896"],[data-theme="light"] [style*="0,200,150"],[data-theme="light"] [style*="0, 200, 150"] { color: #00C896 !important; }
-        [data-theme="light"] [style*="E05C5C"],[data-theme="light"] [style*="e05c5c"],[data-theme="light"] [style*="224,92,92"],[data-theme="light"] [style*="224, 92, 92"] { color: #E05C5C !important; }
-        [data-theme="light"] [style*="F0A04A"],[data-theme="light"] [style*="f0a04a"],[data-theme="light"] [style*="240,160,74"],[data-theme="light"] [style*="240, 160, 74"] { color: #F0A04A !important; }
+        [data-theme="light"] [style*="4A9EF0"],[data-theme="light"] [style*="4a9ef0"],[data-theme="light"] [style*="74,158,240"],[data-theme="light"] [style*="74, 158, 240"] { color: #1A7FD4 !important; }
+        [data-theme="light"] [style*="4CAF7D"],[data-theme="light"] [style*="4caf7d"],[data-theme="light"] [style*="76,175,125"],[data-theme="light"] [style*="76, 175, 125"] { color: #2E9E5B !important; }
+        [data-theme="light"] [style*="00C896"],[data-theme="light"] [style*="00c896"],[data-theme="light"] [style*="0,200,150"],[data-theme="light"] [style*="0, 200, 150"] { color: #00B885 !important; }
+        [data-theme="light"] [style*="E05C5C"],[data-theme="light"] [style*="e05c5c"],[data-theme="light"] [style*="224,92,92"],[data-theme="light"] [style*="224, 92, 92"] { color: #CC3A3A !important; }
+        [data-theme="light"] [style*="F0A04A"],[data-theme="light"] [style*="f0a04a"],[data-theme="light"] [style*="240,160,74"],[data-theme="light"] [style*="240, 160, 74"] { color: #D4720A !important; }
         [data-theme="light"] .igitit-card { background: #D8D8D4 !important; border-color: rgba(0,0,0,0.1) !important; }
         [data-theme="light"] .fem-gitbyte-box { background: #D0D0CC !important; }
+        [data-theme="dark"] .tab-btn { border-color: rgba(255,255,255,0.15) !important; }
+        [data-theme="dark"] .tab-btn[style*="4A9EF0"] { border-color: #4A9EF0 !important; }
+        [data-theme="light"] .tab-btn { border-color: rgba(0,0,0,0.2) !important; }
+        [data-theme="light"] .tab-btn[style*="4A9EF0"] { border-color: #1A7FD4 !important; }
       `}</style>
 
       {/* HEADER */}
