@@ -177,7 +177,7 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
       const fx = gx + gw / 2 - 10
       const fy = gy - gh / 2 - 9
       // 5 petals, solid blue (visible on both dark and light backgrounds)
-      ctx.fillStyle = "rgba(0,120,220,1.0)"
+      ctx.fillStyle = "rgba(220,80,120,1.0)"
       for (let i = 0; i < 5; i++) {
         const angle = (i / 5) * Math.PI * 2 - Math.PI / 2
         ctx.beginPath()
