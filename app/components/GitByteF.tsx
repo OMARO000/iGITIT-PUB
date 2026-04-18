@@ -379,7 +379,7 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
               const opacity = posFromNewest === 0 ? 1 : posFromNewest === 1 ? 0.55 : 0.28
               const fontSize = posFromNewest === 0 ? "12px" : "11px"
               return (
-                <div key={msg.id} style={{
+                <div key={msg.id} className="fem-chat-bubble" style={{
                   background: "rgba(0,0,0,0.55)",
                   border: `1px solid rgba(0,200,150,${posFromNewest === 0 ? "0.5" : "0.25"})`,
                   borderRadius: "5px",
@@ -393,6 +393,8 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
                   boxShadow: posFromNewest === 0 ? "0 0 18px rgba(0,200,150,0.12)" : "none",
                   width: "100%",
                   transition: "opacity 0.4s ease",
+                  maxHeight: "300px",
+                  overflowY: "auto",
                 }}>
                   {msg.text}
                 </div>
