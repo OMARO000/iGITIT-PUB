@@ -1269,6 +1269,7 @@ export default function IGititPage() {
         [data-theme="light"] .fem-gitbyte-box * { color: #7FDDBB !important; }
         [data-theme="light"] .welcome-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
         [data-theme="light"] .url-input-box { background-color: rgba(10,74,53,0.5) !important; border: 2px solid #0D7A55 !important; }
+        [data-theme="light"] .url-input-box > *,[data-theme="light"] .url-input-box input { background-color: rgba(10,74,53,0.5) !important; border-color: #0D7A55 !important; }
         [data-theme="light"] .analyze-btn-analyzing { background-color: rgba(0,68,204,0.5) !important; border-color: rgba(0,68,204,0.7) !important; }
         [data-theme="light"] .fem-url-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
         [data-theme="dark"] .gitbyte-analysis-box { background-color: rgba(10,20,40,0.5) !important; }
@@ -1341,11 +1342,11 @@ export default function IGititPage() {
       {/* INPUT AREA */}
       {!compareMode ? (
         /* SINGLE INPUT */
-        <div suppressHydrationWarning className="url-input-box" style={{ marginBottom: "32px", background: analyzingA ? "rgba(74,158,255,0.04)" : undefined, border: analyzingA ? "1px solid rgba(74,158,255,0.25)" : undefined, borderRadius: "8px", padding: analyzingA ? "16px" : "0", transition: "all 0.3s ease" }}>
+        <div suppressHydrationWarning className="url-input-box" style={{ marginBottom: "32px", border: analyzingA ? "1px solid rgba(74,158,255,0.25)" : undefined, borderRadius: "8px", padding: analyzingA ? "16px" : "0", transition: "all 0.3s ease" }}>
           <div suppressHydrationWarning style={{ fontSize: "18px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em", marginBottom: "12px" }}>paste a github, gitlab or radicle repository url</div>
           <div style={{ display: "flex", gap: "10px" }}>
-            <div suppressHydrationWarning style={{ flex: 1, background: animatingA ? "rgba(74,158,240,0.04)" : !analysisA ? "rgba(74,158,240,0.03)" : T.inputBg, border: `1px solid ${animatingA ? "rgba(74,158,240,0.6)" : !analysisA ? "rgba(74,158,240,0.25)" : T.borderMid}`, borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s, background 0.2s", boxShadow: !analysisA && !animatingA ? "0 0 0 1px rgba(74,158,240,0.08), 0 0 24px rgba(74,158,240,0.06)" : "none" }}>
-              <input suppressHydrationWarning type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com / gitlab.com / app.radicle.xyz" style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "18px", color: animatingA ? "#4A9EF0" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }} />
+            <div suppressHydrationWarning style={{ flex: 1, border: `1px solid ${animatingA ? "rgba(74,158,240,0.6)" : !analysisA ? "rgba(74,158,240,0.25)" : T.borderMid}`, borderRadius: "6px", padding: "16px 24px", position: "relative", overflow: "hidden", transition: "border-color 0.2s, background 0.2s", boxShadow: !analysisA && !animatingA ? "0 0 0 1px rgba(74,158,240,0.08), 0 0 24px rgba(74,158,240,0.06)" : "none" }}>
+              <input suppressHydrationWarning type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com / gitlab.com / app.radicle.xyz" style={{ width: "100%", border: "none", outline: "none", fontFamily: "inherit", fontSize: "18px", color: animatingA ? "#4A9EF0" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }} />
               {animatingA && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #4A9EF0, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
             </div>
             <button suppressHydrationWarning className={`analyze-btn${analyzingA ? " analyze-btn-analyzing" : ""}`} onClick={handleAnalyzeA} data-analyzing={analyzingA ? "true" : "false"} style={{ padding: "16px 32px", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", cursor: analyzingA ? "default" : "pointer", letterSpacing: "0.08em", whiteSpace: "nowrap", transition: "all 0.15s", opacity: 1 }}>
