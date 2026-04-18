@@ -176,8 +176,8 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
       // ── FLOWER (distinguishing feature — same blue family, pixel art) ──
       const fx = gx + gw / 2 - 10
       const fy = gy - gh / 2 - 9
-      // 5 petals, light blue
-      ctx.fillStyle = "rgba(140,200,255,0.88)"
+      // 5 petals, solid blue (visible on both dark and light backgrounds)
+      ctx.fillStyle = "rgba(0,120,220,1.0)"
       for (let i = 0; i < 5; i++) {
         const angle = (i / 5) * Math.PI * 2 - Math.PI / 2
         ctx.beginPath()
@@ -185,7 +185,7 @@ export default function GitByteF({ files = DEMO_FILES, outputs, active = false, 
         ctx.fill()
       }
       // Outer ring of center
-      ctx.fillStyle = "#C8E8FF"
+      ctx.fillStyle = "rgba(255,255,255,1.0)"
       ctx.beginPath(); ctx.arc(fx, fy, 3.2, 0, Math.PI * 2); ctx.fill()
       // Inner dot
       ctx.fillStyle = "#4A9EF0"
