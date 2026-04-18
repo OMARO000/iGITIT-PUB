@@ -1269,13 +1269,15 @@ export default function IGititPage() {
         [data-theme="light"] .fem-gitbyte-box * { color: #7FDDBB !important; }
         [data-theme="light"] .welcome-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
         [data-theme="light"] .url-input-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
+        [data-theme="light"] .analyze-btn-analyzing { background-color: rgba(0,68,204,0.5) !important; border-color: rgba(0,68,204,0.7) !important; }
+        [data-theme="light"] .fem-url-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
       `}</style>
 
       {/* HEADER — absolute-positioned elements locked to pixel coords */}
       <div suppressHydrationWarning style={{ position: "relative", width: "100%", height: "180px", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
 
-        {/* Logo: left:0, top:0 */}
-        <div style={{ position: "absolute", left: 0, top: 0 }}>
+        {/* Logo: left:43px, top:84px */}
+        <div style={{ position: "absolute", left: "43px", top: "84px" }}>
           <IGititLogo
             lightMode={lightMode}
             onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }}
@@ -1287,7 +1289,7 @@ export default function IGititPage() {
           href="https://haiproject.xyz"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ position: "absolute", left: "220px", top: "28px", fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap" }}
+          style={{ position: "absolute", left: "478px", top: "47px", fontFamily: "inherit", fontSize: "10px", color: "#00C896", border: "1px solid rgba(0,200,150,0.3)", padding: "4px 10px", borderRadius: "4px", textDecoration: "none", letterSpacing: "0.1em", whiteSpace: "nowrap" }}
         >
           SUPPORT THE HAI PROJECT →
         </a>
@@ -1298,7 +1300,7 @@ export default function IGititPage() {
           target="_blank"
           rel="noopener noreferrer"
           suppressHydrationWarning={true}
-          style={{ position: "absolute", left: "220px", top: "72px", textDecoration: "none" }}
+          style={{ position: "absolute", left: "52px", top: "53px", textDecoration: "none" }}
           onClick={e => e.stopPropagation()}
         >
           <div style={{ border: "1px solid rgba(74,158,240,0.5)", backgroundColor: "rgba(74,158,240,0.08)", padding: "5px 12px", fontSize: "10px", color: "rgba(74,158,240,0.9)", letterSpacing: "1.5px", lineHeight: 1.5, textAlign: "center", fontFamily: "'IBM Plex Mono', monospace", display: "inline-block" }}>
@@ -1306,11 +1308,11 @@ export default function IGititPage() {
           </div>
         </a>
 
-        {/* Tagline: left:0, top:118px */}
-        <div style={{ position: "absolute", left: 0, top: "118px", fontSize: "22px", color: T.textDim, letterSpacing: "0.08em" }}>open source, open language.</div>
+        {/* Tagline: left:45px, top:141px */}
+        <div style={{ position: "absolute", left: "45px", top: "141px", fontSize: "22px", color: T.textDim, letterSpacing: "0.08em" }}>open source, open language.</div>
 
-        {/* History box: right:0, top:0 */}
-        <div suppressHydrationWarning style={{ position: "absolute", right: 0, top: 0 }}>
+        {/* History box: left:478px, top:80px */}
+        <div suppressHydrationWarning style={{ position: "absolute", left: "478px", top: "80px" }}>
           {mounted && history.length > 0 && (
             <div onClick={() => setShowHistory(!showHistory)} style={{ fontFamily: "inherit", fontSize: "11px", color: "#4A9EFF", border: "1px solid rgba(74,158,255,0.35)", background: "rgba(74,158,255,0.08)", borderRadius: "4px", padding: "6px 12px", textAlign: "center", lineHeight: 1.4, cursor: "pointer" }}>
               <div style={{ letterSpacing: "0.08em" }}>[history]</div>
@@ -1319,11 +1321,11 @@ export default function IGititPage() {
           )}
         </div>
 
-        {/* Light/dark toggle: right:0, top:58px */}
+        {/* Light/dark toggle: left:600px, top:134px */}
         <button
           onClick={() => setLightMode(l => !l)}
           title={lightMode ? "Switch to dark mode" : "Switch to light mode"}
-          style={{ position: "absolute", right: 0, top: "58px", background: "transparent", border: `1px solid ${T.borderMid}`, borderRadius: "4px", padding: "4px 10px", fontFamily: "inherit", fontSize: "13px", color: T.textDim, cursor: "pointer", letterSpacing: "0.06em", whiteSpace: "nowrap", transition: "all 0.2s" }}
+          style={{ position: "absolute", left: "600px", top: "134px", background: "transparent", border: `1px solid ${T.borderMid}`, borderRadius: "4px", padding: "4px 10px", fontFamily: "inherit", fontSize: "13px", color: T.textDim, cursor: "pointer", letterSpacing: "0.06em", whiteSpace: "nowrap", transition: "all 0.2s" }}
         >
           {lightMode ? "[ dark ]" : "[ light ]"}
         </button>
@@ -1357,7 +1359,7 @@ export default function IGititPage() {
               <input suppressHydrationWarning type="text" value={urlA} onChange={e => handleUrlChange(setUrlA, setAnimatingA)(e.target.value)} onKeyDown={e => e.key === "Enter" && handleAnalyzeA()} placeholder="https://github.com / gitlab.com / app.radicle.xyz" style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontFamily: "inherit", fontSize: "18px", color: animatingA ? "#4A9EF0" : "rgba(255,255,255,0.88)", transition: "color 0.2s" }} />
               {animatingA && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "1px", background: "linear-gradient(90deg, transparent, #4A9EF0, transparent)", animation: "pulse 0.4s ease-in-out infinite" }} />}
             </div>
-            <button suppressHydrationWarning className="analyze-btn" onClick={handleAnalyzeA} data-analyzing={analyzingA ? "true" : "false"} style={{ padding: "16px 32px", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", cursor: analyzingA ? "default" : "pointer", letterSpacing: "0.08em", whiteSpace: "nowrap", transition: "all 0.15s", opacity: 1 }}>
+            <button suppressHydrationWarning className={`analyze-btn${analyzingA ? " analyze-btn-analyzing" : ""}`} onClick={handleAnalyzeA} data-analyzing={analyzingA ? "true" : "false"} style={{ padding: "16px 32px", borderRadius: "6px", fontFamily: "inherit", fontSize: "18px", cursor: analyzingA ? "default" : "pointer", letterSpacing: "0.08em", whiteSpace: "nowrap", transition: "all 0.15s", opacity: 1 }}>
               {analyzingA ? "[ analyzing… ]" : "[ analyze ]"}
             </button>
           </div>
@@ -1384,7 +1386,7 @@ export default function IGititPage() {
             >
               {/* Ask-about-this-repo embedded directly inside FEM GITBYTE container */}
               <div style={{ fontSize: "10px", letterSpacing: "0.12em", color: "rgba(0,200,150,0.65)", marginBottom: "10px" }}>ASK ABOUT THIS REPO</div>
-              <div style={{ display: "flex", gap: "8px" }}>
+              <div className="fem-url-box" style={{ display: "flex", gap: "8px" }}>
                 <input
                   type="text"
                   value={repoChat}
