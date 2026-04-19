@@ -1294,28 +1294,31 @@ export default function IGititPage() {
         .history-box { background-color: rgba(10,58,122,0.5) !important; border-color: rgba(26,90,170,0.7) !important; }
       `}</style>
 
-      {/* HEADER — flex layout */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }} suppressHydrationWarning>
+      {/* HEADER — flex layout: logo left / OMARO + HAI stacked center-left / history + toggle right */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "32px", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }} suppressHydrationWarning>
 
-        {/* LEFT COLUMN: badge → logo → tagline → HAI link */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-          {/* Badge */}
-          <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" suppressHydrationWarning
-            style={{ display: "inline-block", width: "fit-content", marginBottom: "4px", border: "1px solid rgba(26,90,170,0.7)", padding: "6px 12px", fontSize: "10px", color: "rgba(74,158,240,0.9)", letterSpacing: "2px", backgroundColor: "rgba(10,58,122,0.5)", textDecoration: "none", fontFamily: "monospace" }}>
-            AN · OMARO · COMPANY
-          </a>
-          {/* Logo (includes its own tagline) */}
+        {/* LEFT: Logo */}
+        <div>
           <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }} lightMode={lightMode} />
-          {/* HAI link */}
+        </div>
+
+        {/* MIDDLE: OMARO badge + SUPPORT HAI badge (stacked vertically) */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center" }}>
+          <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" suppressHydrationWarning
+            style={{ display: "inline-block", width: "72px", border: "1px solid rgba(26,90,170,0.7)", padding: "10px 6px", fontSize: "9px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", lineHeight: "1.8", textAlign: "center", backgroundColor: "rgba(10,58,122,0.5)", textDecoration: "none", fontFamily: "monospace" }}>
+            AN<br />OMARO<br />COMPANY
+          </a>
           <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer"
-            className="hai-project-link"
-            style={{ display: "inline-block", width: "fit-content", border: "1px solid #1a6b3a", padding: "6px 14px", fontSize: "11px", color: "#2ecc71", letterSpacing: "1px", textDecoration: "none", fontFamily: "monospace", marginTop: "16px" }}>
-            SUPPORT THE HAI PROJECT →
+            style={{ display: "inline-block", width: "72px", border: "1px solid #1a6b3a", padding: "10px 6px", fontSize: "9px", color: "#2ecc71", letterSpacing: "1px", lineHeight: "1.8", textAlign: "center", backgroundColor: "rgba(26,107,58,0.25)", textDecoration: "none", fontFamily: "monospace" }}>
+            SUPPORT<br />THE<br />HAI<br />PROJECT
           </a>
         </div>
 
-        {/* RIGHT COLUMN: history + toggle with gap between */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "48px" }}>
+        {/* SPACER to push history/toggle to the right */}
+        <div style={{ flex: 1 }}></div>
+
+        {/* RIGHT: history + toggle (stacked) */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "12px" }}>
           <div className="history-box"
             style={{ border: "1px solid rgba(26,90,170,0.7)", padding: "8px 18px", fontSize: "11px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", textAlign: "center", backgroundColor: "rgba(10,58,122,0.5)", cursor: "pointer", fontFamily: "monospace" }}
             onClick={() => setShowHistory(h => !h)}>
