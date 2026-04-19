@@ -1289,41 +1289,38 @@ export default function IGititPage() {
       `}</style>
 
       {/* HEADER — flex layout */}
-      <div suppressHydrationWarning style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px", paddingBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }} suppressHydrationWarning>
 
-        {/* LEFT COLUMN */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          {/* Row 1: Badge */}
+        {/* LEFT COLUMN: badge → logo → tagline → HAI link */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+          {/* Badge */}
           <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" suppressHydrationWarning
-            style={{ display: "inline-block", width: "64px", marginBottom: "6px", border: "1px solid rgba(26,90,170,0.7)", padding: "8px 6px", fontSize: "9px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", lineHeight: "1.8", textAlign: "center", backgroundColor: "rgba(10,58,122,0.5)", textDecoration: "none", fontFamily: "inherit" }}
-            onClick={e => e.stopPropagation()}>
-            AN<br />OMARO<br />COMPANY
+            style={{ display: "inline-block", width: "fit-content", marginBottom: "12px", border: "1px solid rgba(26,90,170,0.7)", padding: "6px 12px", fontSize: "10px", color: "rgba(74,158,240,0.9)", letterSpacing: "2px", backgroundColor: "rgba(10,58,122,0.5)", textDecoration: "none", fontFamily: "monospace" }}>
+            AN · OMARO · COMPANY
           </a>
-          {/* Row 2: Logo */}
-          <IGititLogo
-            lightMode={lightMode}
-            onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }}
-          />
-          {/* Row 3: Tagline */}
-          <div style={{ fontSize: "14px", color: T.textFaint, letterSpacing: "2px", marginTop: "6px", fontFamily: "inherit" }}>
+          {/* Logo */}
+          <IGititLogo onClick={() => { setAnalysisA(null); }} lightMode={lightMode} />
+          {/* Tagline */}
+          <div style={{ fontSize: "14px", color: T.textFaint, letterSpacing: "2px", marginTop: "4px", marginBottom: "16px", fontFamily: "monospace" }}>
             open source, open language.
           </div>
-        </div>
-
-        {/* RIGHT COLUMN */}
-        <div suppressHydrationWarning style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
-          <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer" className="hai-project-link"
-            style={{ border: "1px solid #1a6b3a", padding: "5px 14px", fontSize: "11px", color: "#2ecc71", letterSpacing: "1px", textDecoration: "none", fontFamily: "inherit" }}>
+          {/* HAI link */}
+          <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer"
+            className="hai-project-link"
+            style={{ display: "inline-block", width: "fit-content", border: "1px solid #1a6b3a", padding: "6px 14px", fontSize: "11px", color: "#2ecc71", letterSpacing: "1px", textDecoration: "none", fontFamily: "monospace" }}>
             SUPPORT THE HAI PROJECT →
           </a>
-          {mounted && history.length > 0 && (
-            <div className="history-box" style={{ border: "1px solid rgba(74,158,240,0.5)", padding: "6px 14px", fontSize: "11px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", textAlign: "center", background: "rgba(74,158,240,0.08)", cursor: "pointer", fontFamily: "inherit" }}
-              onClick={() => setShowHistory(h => !h)}>
-              [history]<br /><span style={{ fontSize: "16px", fontWeight: "bold" }}>{history.length}</span>
-            </div>
-          )}
-          <div style={{ border: `1px solid ${T.borderMid}`, padding: "5px 14px", fontSize: "11px", color: T.textFaint, letterSpacing: "1px", cursor: "pointer", fontFamily: "inherit" }}
-            onClick={() => setLightMode(l => !l)}>
+        </div>
+
+        {/* RIGHT COLUMN: history + toggle with gap between */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "48px" }}>
+          <div className="history-box"
+            style={{ border: "1px solid rgba(26,90,170,0.7)", padding: "8px 18px", fontSize: "11px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", textAlign: "center", backgroundColor: "rgba(10,58,122,0.5)", cursor: "pointer", fontFamily: "monospace" }}
+            onClick={() => setShowHistory(true)}>
+            [history]<br /><span style={{ fontSize: "16px", fontWeight: "bold" }}>{history.length}</span>
+          </div>
+          <div style={{ border: "1px solid rgba(150,150,150,0.4)", padding: "6px 14px", fontSize: "11px", color: T.textFaint, letterSpacing: "1px", cursor: "pointer", fontFamily: "monospace" }}
+            onClick={() => setLightMode(!lightMode)}>
             [ {lightMode ? "dark" : "light"} ]
           </div>
         </div>
