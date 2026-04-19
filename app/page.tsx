@@ -1269,7 +1269,7 @@ export default function IGititPage() {
         [data-theme="dark"] .gitbyte-analysis-box.gitbyte-analysis-box-post { background-color: rgba(5,30,20,0.9) !important; border: 2px solid #0D7A55 !important; }
         [data-theme="light"] .url-input-box.url-input-box-post { background-color: rgba(10,58,122,0.9) !important; border: 2px solid rgba(26,90,170,0.7) !important; }
         [data-theme="dark"] .url-input-box.url-input-box-post { background-color: rgba(5,30,20,0.9) !important; border: 2px solid #0D7A55 !important; }
-        [data-theme="light"] .fem-gitbyte-box { background-color: rgba(10,74,53,0.5) !important; border: 2px solid #0D7A55 !important; }
+        [data-theme="light"] .fem-gitbyte-box { background-color: rgba(10,58,122,0.9) !important; border: 2px solid rgba(26,90,170,0.7) !important; }
         [data-theme="light"] .fem-gitbyte-box * { color: #7FDDBB !important; }
         [data-theme="light"] .welcome-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
         [data-theme="light"] .url-input-box { background-color: rgba(10,58,122,0.9) !important; border: 2px solid rgba(26,90,170,0.7) !important; }
@@ -1277,9 +1277,10 @@ export default function IGititPage() {
         [data-theme="light"] .url-input-box input::selection { background-color: rgba(26,90,170,0.4) !important; }
         [data-theme="light"] .url-input-box input::placeholder { color: rgba(200,216,255,0.5) !important; }
         [data-theme="light"] .analyze-btn-analyzing { background-color: rgba(0,68,204,0.5) !important; border-color: rgba(0,68,204,0.7) !important; }
-        [data-theme="light"] .fem-url-box { background-color: rgba(10,74,53,0.5) !important; border-color: rgba(13,122,85,0.7) !important; }
+        [data-theme="light"] .fem-url-box { background-color: rgba(10,58,122,0.5) !important; border-color: rgba(26,90,170,0.7) !important; }
         [data-theme="dark"] .gitbyte-analysis-box { background-color: rgba(10,20,40,0.5) !important; }
-        [data-theme="dark"] .fem-gitbyte-box { background-color: rgba(5,30,20,0.5) !important; }
+        [data-theme="dark"] .fem-gitbyte-box { background-color: rgba(5,30,20,0.9) !important; border: 2px solid #0D7A55 !important; }
+        [data-theme="dark"] .fem-url-box { background-color: rgba(5,30,20,0.5) !important; border-color: rgba(13,122,85,0.5) !important; }
         [data-theme="dark"] .welcome-box { background-color: rgba(5,30,20,0.5) !important; }
         [data-theme="dark"] .url-input-box { background-color: rgba(5,30,20,0.5) !important; }
         [data-theme="dark"] .url-input-box input { background-color: transparent !important; color: #cccccc !important; }
