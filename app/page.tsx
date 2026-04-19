@@ -1295,7 +1295,7 @@ export default function IGititPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
           {/* Badge */}
           <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" suppressHydrationWarning
-            style={{ display: "inline-block", width: "fit-content", marginBottom: "12px", border: "1px solid rgba(26,90,170,0.7)", padding: "6px 12px", fontSize: "10px", color: "rgba(74,158,240,0.9)", letterSpacing: "2px", backgroundColor: "rgba(10,58,122,0.5)", textDecoration: "none", fontFamily: "monospace" }}>
+            style={{ display: "inline-block", width: "fit-content", marginBottom: "4px", border: "1px solid rgba(26,90,170,0.7)", padding: "6px 12px", fontSize: "10px", color: "rgba(74,158,240,0.9)", letterSpacing: "2px", backgroundColor: "rgba(10,58,122,0.5)", textDecoration: "none", fontFamily: "monospace" }}>
             AN · OMARO · COMPANY
           </a>
           {/* Logo */}
