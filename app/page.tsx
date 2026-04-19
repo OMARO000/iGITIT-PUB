@@ -1289,7 +1289,7 @@ export default function IGititPage() {
       `}</style>
 
       {/* HEADER — flex layout */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px", paddingBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }} suppressHydrationWarning>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "40px", paddingBottom: "20px", borderBottom: `1px solid ${T.border}` }} suppressHydrationWarning>
 
         {/* LEFT COLUMN: badge → logo → tagline → HAI link */}
         <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
@@ -1299,7 +1299,7 @@ export default function IGititPage() {
             AN · OMARO · COMPANY
           </a>
           {/* Logo */}
-          <IGititLogo onClick={() => { setAnalysisA(null); }} lightMode={lightMode} />
+          <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }} lightMode={lightMode} />
           {/* Tagline */}
           <div style={{ fontSize: "14px", color: T.textFaint, letterSpacing: "2px", marginTop: "4px", marginBottom: "16px", fontFamily: "monospace" }}>
             open source, open language.
@@ -1316,11 +1316,11 @@ export default function IGititPage() {
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "48px" }}>
           <div className="history-box"
             style={{ border: "1px solid rgba(26,90,170,0.7)", padding: "8px 18px", fontSize: "11px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", textAlign: "center", backgroundColor: "rgba(10,58,122,0.5)", cursor: "pointer", fontFamily: "monospace" }}
-            onClick={() => setShowHistory(true)}>
+            onClick={() => setShowHistory(h => !h)}>
             [history]<br /><span style={{ fontSize: "16px", fontWeight: "bold" }}>{history.length}</span>
           </div>
           <div style={{ border: "1px solid rgba(150,150,150,0.4)", padding: "6px 14px", fontSize: "11px", color: T.textFaint, letterSpacing: "1px", cursor: "pointer", fontFamily: "monospace" }}
-            onClick={() => setLightMode(!lightMode)}>
+            onClick={() => setLightMode(l => !l)}>
             [ {lightMode ? "dark" : "light"} ]
           </div>
         </div>
