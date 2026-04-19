@@ -1,4 +1,25 @@
-html, body { font-size: 18px; margin: 0; background: #0b0b0c; }
+html, body {
+  font-size: 18px;
+  margin: 0;
+  background-color: #0b0b0c;
+  background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+[data-theme="dark"] .igitit-wrap {
+  background-color: #0b0b0c !important;
+  background-image: radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px) !important;
+  background-size: 14px 14px !important;
+}
+[data-theme="light"] html, [data-theme="light"] body {
+  background-color: #D0D0CA;
+  background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+[data-theme="light"] .igitit-wrap {
+  background-color: #D0D0CA !important;
+  background-image: radial-gradient(rgba(0,0,0,0.1) 1px, transparent 1px) !important;
+  background-size: 14px 14px !important;
+}
 @keyframes igitPulse {
   0%, 100% { opacity: 0.6; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.02); }

@@ -754,8 +754,14 @@ export default function IGititPage() {
   // Sync full-page background with light/dark mode
   useEffect(() => {
     const bg = lightMode ? "#D0D0CA" : "#0b0b0c"
+    const dotColor = lightMode ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.07)"
+    const bgImage = `radial-gradient(${dotColor} 1px, transparent 1px)`
     document.documentElement.style.backgroundColor = bg
+    document.documentElement.style.backgroundImage = bgImage
+    document.documentElement.style.backgroundSize = "14px 14px"
     document.body.style.backgroundColor = bg
+    document.body.style.backgroundImage = bgImage
+    document.body.style.backgroundSize = "14px 14px"
   }, [lightMode])
 
   useEffect(() => {
