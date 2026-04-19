@@ -1317,7 +1317,7 @@ export default function IGititPage() {
           <div className="history-box"
             style={{ border: "1px solid rgba(26,90,170,0.7)", padding: "8px 18px", fontSize: "11px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", textAlign: "center", backgroundColor: "rgba(10,58,122,0.5)", cursor: "pointer", fontFamily: "monospace" }}
             onClick={() => setShowHistory(h => !h)}>
-            [history]<br /><span style={{ fontSize: "16px", fontWeight: "bold" }}>{history.length}</span>
+            [history]<br /><span suppressHydrationWarning style={{ fontSize: "16px", fontWeight: "bold" }}>{mounted ? history.length : 0}</span>
           </div>
           <div style={{ border: "1px solid rgba(150,150,150,0.4)", padding: "6px 14px", fontSize: "11px", color: T.textFaint, letterSpacing: "1px", cursor: "pointer", fontFamily: "monospace" }}
             onClick={() => setLightMode(l => !l)}>
