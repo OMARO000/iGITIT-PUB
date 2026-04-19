@@ -1304,16 +1304,12 @@ export default function IGititPage() {
             style={{ display: "inline-block", width: "fit-content", marginBottom: "4px", border: "1px solid rgba(26,90,170,0.7)", padding: "6px 12px", fontSize: "10px", color: "rgba(74,158,240,0.9)", letterSpacing: "2px", backgroundColor: "rgba(10,58,122,0.5)", textDecoration: "none", fontFamily: "monospace" }}>
             AN · OMARO · COMPANY
           </a>
-          {/* Logo */}
+          {/* Logo (includes its own tagline) */}
           <IGititLogo onClick={() => { setAnalysisA(null); setAnalysisB(null); setErrorA(null); setErrorB(null); setUrlA(""); setUrlB(""); setCompareMode(false); setChangelog(null); changelogRef.current = null; setComparison(null); comparisonRef.current = null; window.history.replaceState(null, "", window.location.pathname) }} lightMode={lightMode} />
-          {/* Tagline */}
-          <div style={{ fontSize: "14px", color: T.textFaint, letterSpacing: "2px", marginTop: "4px", marginBottom: "16px", fontFamily: "monospace" }}>
-            open source, open language.
-          </div>
           {/* HAI link */}
           <a href="https://haiproject.xyz" target="_blank" rel="noopener noreferrer"
             className="hai-project-link"
-            style={{ display: "inline-block", width: "fit-content", border: "1px solid #1a6b3a", padding: "6px 14px", fontSize: "11px", color: "#2ecc71", letterSpacing: "1px", textDecoration: "none", fontFamily: "monospace" }}>
+            style={{ display: "inline-block", width: "fit-content", border: "1px solid #1a6b3a", padding: "6px 14px", fontSize: "11px", color: "#2ecc71", letterSpacing: "1px", textDecoration: "none", fontFamily: "monospace", marginTop: "16px" }}>
             SUPPORT THE HAI PROJECT →
           </a>
         </div>
