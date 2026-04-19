@@ -7,24 +7,79 @@ import { useEffect, useState } from "react"
 // ─────────────────────────────────────────────
 
 export function IGititLogo({ onClick, lightMode }: { onClick?: () => void; lightMode?: boolean }) {
-  const boldFill = lightMode ? "#1a1a1a" : "rgba(255,255,255,0.92)"
-  const faintFill = lightMode ? "#888888" : "rgba(255,255,255,0.45)"
+  const boldFill        = lightMode ? "#111111"            : "#ffffff"
+  const dotColor        = lightMode ? "#0044CC"            : "#4A9EF0"
+  const taglineColor    = lightMode ? "#555555"            : "#888888"
+  const containerBorder = lightMode ? "rgba(0,68,204,0.5)" : "rgba(74,158,240,0.5)"
+  const containerBg     = lightMode ? "rgba(10,58,122,0.15)" : "rgba(10,58,122,0.25)"
+
+  const sprite = (
+    <>
+      <polygon points="10,28 2,24 -2,34 10,34" fill="#378ADD" />
+      <rect x="10" y="18" width="36" height="28" rx="6" fill="#4A9EF0" />
+      <rect x="14" y="34" width="28" height="8" rx="3" fill="rgba(255,255,255,0.15)" />
+      <rect x="16" y="44" width="6" height="6" fill="#378ADD" />
+      <rect x="30" y="44" width="6" height="6" fill="#378ADD" />
+      <circle cx="38" cy="28" r="4" fill="#0b0b0c" />
+      <circle cx="39" cy="27" r="1.5" fill="#fff" />
+      <path d="M 44 34 A 3 3 0 0 0 50 34" stroke="#0b0b0c" strokeWidth="1.5" fill="none" />
+    </>
+  )
+
+  const flower = (
+    <g transform="translate(36, 11)">
+      {[-90, -18, 54, 126, 198].map((a, i) => (
+        <g key={i} transform={`rotate(${a})`}>
+          <ellipse cx="5.5" cy="0" rx="3.5" ry="2.4" fill="rgba(220,80,120,1)" />
+        </g>
+      ))}
+      <circle cx="0" cy="0" r="3.2" fill="#fff" />
+      <circle cx="0" cy="0" r="1.6" fill="#4A9EF0" />
+    </g>
+  )
+
   return (
     <div
       suppressHydrationWarning
       onClick={onClick}
-      style={{ cursor: onClick ? "pointer" : "default", userSelect: "none" }}
+      style={{
+        display: "inline-flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "10px",
+        padding: "20px 32px",
+        borderRadius: "8px",
+        border: `1px solid ${containerBorder}`,
+        background: containerBg,
+        cursor: onClick ? "pointer" : "default",
+        userSelect: "none",
+      }}
     >
-      <svg width="520" height="132" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
-        <text x="0" y="72" dominantBaseline="auto" style={{ fontFamily: "'IBM Plex Mono','Courier New',monospace", fontSize: "56px", letterSpacing: "-2px" }}>
-          <tspan style={{ fontWeight: 500, fill: boldFill }}>ıGIT</tspan>
-          <tspan style={{ fontWeight: 300, fill: faintFill }}>ıt</tspan>
+      {/* Row 1: GitByte + FEM GITBYTE */}
+      <div style={{ display: "flex", gap: "16px" }}>
+        <svg width="60" height="56" viewBox="0 0 56 56" style={{ overflow: "visible" }} xmlns="http://www.w3.org/2000/svg">
+          {sprite}
+        </svg>
+        <svg width="60" height="56" viewBox="0 0 56 56" style={{ overflow: "visible" }} xmlns="http://www.w3.org/2000/svg">
+          {sprite}
+          {flower}
+        </svg>
+      </div>
+
+      {/* Row 2: Wordmark */}
+      <svg width="280" height="60" viewBox="0 0 280 60" xmlns="http://www.w3.org/2000/svg">
+        <text x="0" y="52" style={{ fontFamily: "'IBM Plex Mono','Courier New',monospace", fontSize: "52px", fontWeight: 900, letterSpacing: "-2px" }}>
+          <tspan fill={boldFill}>ıGIT</tspan>
+          <tspan fill="#888888">ıt</tspan>
         </text>
-        {/* Blue dot over first ı */}
-        <circle cx="13" cy="25" r="5" fill="#4A9EF0" />
-        {/* Blue dot over second ı */}
-        <circle cx="147" cy="25" r="5" fill="#4A9EF0" />
+        <circle cx="6" cy="12" r="5" fill={dotColor} />
+        <circle cx="192" cy="12" r="5" fill={dotColor} />
       </svg>
+
+      {/* Row 3: Tagline */}
+      <div style={{ fontFamily: "'IBM Plex Mono','Courier New',monospace", fontSize: "13px", letterSpacing: "2px", color: taglineColor }}>
+        open source, open language.
+      </div>
     </div>
   )
 }
