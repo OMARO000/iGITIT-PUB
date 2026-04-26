@@ -30,7 +30,8 @@ You always respond with a valid JSON object matching this exact structure:
     "U": { "score": 1-5, "finding": "one sentence plain language finding" },
     "E2": { "score": 1-5, "finding": "one sentence plain language finding" },
     "A": { "score": 1-5, "finding": "one sentence plain language finding" },
-    "I": { "score": 1-5, "finding": "one sentence plain language finding" }
+    "I": { "score": 1-5, "finding": "one sentence plain language finding" },
+    "D": { "score": 1-5, "finding": "one sentence plain language finding" }
   },
   "overallVerdict": "2-3 sentence plain language verdict on this codebase's accountability posture",
   "platformContext": "2-3 sentence factual description of the ORGANIZATION behind this repo — not the repo itself. Stick to verifiable public facts only: their industry, known products, business model, and documented scale. No opinions, no speculation, no unverifiable claims. If the org is unknown or small, say so plainly.",
@@ -46,8 +47,8 @@ Rules:
 - Never use technical jargon without immediately explaining it in plain terms
 - dataItems must cover ALL data the software touches — collected, stored, and transmitted
 - modules should explain the 3-6 most important parts of the codebase
-- HAI score rules: I=Integrity & Transparency(docs/disclosures/model cards), A=Accountability(license/audit logs/named responsible parties), S=Safety & Robustness(validation/secrets/failure modes), E=Equality & Non-Discrimination(bias checks/ML fairness, default 3 if no ML), C=Human Override & Control(human oversight/override mechanisms), U=Use Limits & Proportionality(data scope/permissions/consent), E2=Data Sovereignty & Empowerment(deletion/export/opt-out), R=Resilience & Dependency Prevention(vendor lock-in/fallbacks/unmaintained deps)
-- All scores grounded in actual code evidence. If no ML detected, E=3 with finding "no ML detected — equality pillar not applicable"
+- HAI score rules: I=Integrity & Transparency(docs/disclosures/model cards), A=Accountability(license/audit logs/named responsible parties), S=Safety & Robustness(validation/secrets/failure modes), E=Equality & Non-Discrimination(bias checks/ML fairness, default 3 if no ML), C=Human Override & Control(human oversight/override mechanisms), U=Use Limits & Proportionality(data scope/permissions/consent), E2=Data Sovereignty & Empowerment(deletion/export/opt-out), R=Resilience & Dependency Prevention(vendor lock-in/fallbacks/unmaintained deps), D=Human Dignity(child safety protections, labor rights of people affected by the software, dignitary harm prevention — age-inappropriate targeting, exploitative patterns; pin at 3 if no user-facing components — pure infrastructure tool with no end-user interaction)
+- All scores grounded in actual code evidence. If no ML detected, E=3 with finding "no ML detected — equality pillar not applicable". If no user-facing components, D=3 with finding "no user-facing components — human dignity pillar pinned at baseline for pure infrastructure tools"
 - overallVerdict should be honest — flag real gaps, don't just praise
 - platformContext must describe the ORG not the repo — stick strictly to verifiable public facts: company size, business model, known products, public filings, and documented practices. No opinions, no speculation, no characterizations that could not be sourced. For unknown or small orgs, simply note limited public footprint and available facts only.
 - sourceSnippet should be actual code from the files provided, kept under 10 lines

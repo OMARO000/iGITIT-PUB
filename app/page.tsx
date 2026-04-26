@@ -29,7 +29,7 @@ interface OverviewSection { title: string; content: string }
 interface DataItem { type: "collect" | "store" | "send"; label: string; description: string; sourceLine?: string }
 interface Module { name: string; path: string; description: string; sourceSnippet?: string }
 interface RescuePillar { score: number; finding: string }
-interface RescueScore { R: RescuePillar; E: RescuePillar; S: RescuePillar; C: RescuePillar; U: RescuePillar; E2: RescuePillar; A: RescuePillar; I: RescuePillar }
+interface RescueScore { R: RescuePillar; E: RescuePillar; S: RescuePillar; C: RescuePillar; U: RescuePillar; E2: RescuePillar; A: RescuePillar; I: RescuePillar; D: RescuePillar }
 interface UXEthicsSignal { pattern: string; description: string; severity: "low" | "medium" | "high" }
 interface UXEthics { signals: UXEthicsSignal[]; summary: string }
 interface FemChatMessage { id: number; text: string }
@@ -106,9 +106,9 @@ function buildTextReport(analysis: Analysis): string {
   L.push("", "DATA FLOW SUMMARY", dataFlowSummary, "", "═══════════════════════════════", "MODULE BREAKDOWN", "═══════════════════════════════")
   for (const mod of modules) { L.push(`\n${mod.name}${mod.path ? ` (${mod.path})` : ""}`, mod.description) }
   const totalRaw = Object.values(rescue).reduce((s, p) => s + (p as RescuePillar).score, 0)
-  const grade = totalRaw >= 36 ? "A" : totalRaw >= 30 ? "B" : totalRaw >= 24 ? "C" : totalRaw >= 16 ? "D" : "F"
-  L.push("", "═══════════════════════════════", `HAI SCORE · [${grade}] ${totalRaw}/40 · GOVERNED BY OMARO PBC`, "═══════════════════════════════")
-  for (const k of ["I","A","S","E","C","U","E2","R"]) { const v = (rescue as any)[k]; if (v) L.push(`\n[${k}]: ${(v as RescuePillar).score}/5 — ${(v as RescuePillar).finding}`) }
+  const grade = totalRaw >= 41 ? "A" : totalRaw >= 34 ? "B" : totalRaw >= 27 ? "C" : totalRaw >= 18 ? "D" : "F"
+  L.push("", "═══════════════════════════════", `HAI SCORE · [${grade}] ${totalRaw}/45 · GOVERNED BY OMARO PBC`, "═══════════════════════════════")
+  for (const k of ["I","A","S","E","C","U","E2","R","D"]) { const v = (rescue as any)[k]; if (v) L.push(`\n[${k}]: ${(v as RescuePillar).score}/5 — ${(v as RescuePillar).finding}`) }
   L.push("", "OVERALL VERDICT", overallVerdict, "", "─────────────────────────────────────────────────────")
   L.push("analysis reflects repository state at time of request · not legal or compliance advice", "igitit.xyz · omaro-pbc.org")
   return L.join("\n")
@@ -217,11 +217,12 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
       { key: "U", label: "Use Limits & Proportionality" },
       { key: "E2", label: "Data Sovereignty & Empowerment" },
       { key: "R", label: "Resilience & Dependency Prevention" },
+      { key: "D", label: "Human Dignity" },
     ]
     const r = analysis.rescue
-    const total = Math.round((r.R.score + r.E.score + r.S.score + r.C.score + r.U.score + r.E2.score + r.A.score + r.I.score) / 8 * 8)
-    const totalRaw = r.R.score + r.E.score + r.S.score + r.C.score + r.U.score + r.E2.score + r.A.score + r.I.score
-    const grade = totalRaw >= 36 ? "A" : totalRaw >= 30 ? "B" : totalRaw >= 24 ? "C" : totalRaw >= 16 ? "D" : "F"
+    const total = r.R.score + r.E.score + r.S.score + r.C.score + r.U.score + r.E2.score + r.A.score + r.I.score + r.D.score
+    const totalRaw = r.R.score + r.E.score + r.S.score + r.C.score + r.U.score + r.E2.score + r.A.score + r.I.score + r.D.score
+    const grade = totalRaw >= 41 ? "A" : totalRaw >= 34 ? "B" : totalRaw >= 27 ? "C" : totalRaw >= 18 ? "D" : "F"
     const gradeColor = grade === "A" ? "#4CAF7D" : grade === "B" ? "#4A9EF0" : grade === "C" ? "#F0A04A" : "#E05C5C"
     return (
       <div>
@@ -233,7 +234,7 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
           <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "24px", flexWrap: "wrap" }}>
             <div style={{ fontSize: "64px", fontFamily: "inherit", color: gradeColor, fontWeight: 300, lineHeight: 1 }}>[{grade}]</div>
             <div>
-              <div style={{ fontSize: "24px", color: gradeColor, fontWeight: 300 }}>{totalRaw}/40</div>
+              <div style={{ fontSize: "24px", color: gradeColor, fontWeight: 300 }}>{totalRaw}/45</div>
               <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", marginTop: "4px" }}>HAI SCORE · GOVERNED BY OMARO PBC</div>
             </div>
             {/* Disclaimer: same row, right of score, moderate left margin */}
