@@ -156,7 +156,7 @@ export interface OverviewSection { title: string; content: string }
 export interface DataItem { type: "collect"|"store"|"send"; label: string; description: string; sourceLine?: string }
 export interface Module { name: string; path: string; description: string; sourceSnippet?: string }
 export interface RescuePillar { score: number; finding: string }
-export interface RescueScore { R: RescuePillar; E: RescuePillar; S: RescuePillar; C: RescuePillar; U: RescuePillar; E2: RescuePillar; A: RescuePillar; I: RescuePillar }
+export interface RescueScore { R: RescuePillar; E: RescuePillar; S: RescuePillar; C: RescuePillar; U: RescuePillar; E2: RescuePillar; A: RescuePillar; I: RescuePillar; D: RescuePillar }
 export interface Analysis {
   meta?: Record<string,unknown>
   overview: OverviewSection[]
@@ -273,11 +273,12 @@ export async function downloadAnalysisPDF(
     { key: "U", label: "Use Limits & Proportionality" },
     { key: "E2", label: "Data Sovereignty & Empowerment" },
     { key: "R", label: "Resilience & Dependency Prevention" },
+    { key: "D", label: "Human Dignity" },
   ]
   const rScore = analysis.rescue
   const totalRaw = rScore ? Object.values(rScore).reduce((s, p) => s + (p as RescuePillar).score, 0) : 0
-  const grade = totalRaw >= 36 ? "A" : totalRaw >= 30 ? "B" : totalRaw >= 24 ? "C" : totalRaw >= 16 ? "D" : "F"
-  h.sectionLabel(y, `HAI SCORE · [${grade}] ${totalRaw}/40 · GOVERNED BY OMARO PBC`); y += 8
+  const grade = totalRaw >= 41 ? "A" : totalRaw >= 34 ? "B" : totalRaw >= 27 ? "C" : totalRaw >= 18 ? "D" : "F"
+  h.sectionLabel(y, `HAI SCORE · [${grade}] ${totalRaw}/45 · GOVERNED BY OMARO PBC`); y += 8
   if (rScore) {
     for (const { key, label } of rescuePillars) {
       y = h.checkPage(y, 12)
@@ -517,11 +518,12 @@ export async function downloadComparePDF(
       { key: "E2", label: "Empowerment & Rights" },
       { key: "A", label: "Accountability & Privacy" },
       { key: "I", label: "Integrity & Transparency" },
+      { key: "D", label: "Human Dignity" },
     ]
     const wrScore = analysis.rescue
     const wrTotal = wrScore ? Object.values(wrScore).reduce((s, p) => s + (p as RescuePillar).score, 0) : 0
-    const wrGrade = wrTotal >= 36 ? "A" : wrTotal >= 30 ? "B" : wrTotal >= 24 ? "C" : wrTotal >= 16 ? "D" : "F"
-    h.sectionLabel(ry, `HAI SCORE · [${wrGrade}] ${wrTotal}/40 · GOVERNED BY OMARO PBC`); ry += 8
+    const wrGrade = wrTotal >= 41 ? "A" : wrTotal >= 34 ? "B" : wrTotal >= 27 ? "C" : wrTotal >= 18 ? "D" : "F"
+    h.sectionLabel(ry, `HAI SCORE · [${wrGrade}] ${wrTotal}/45 · GOVERNED BY OMARO PBC`); ry += 8
     if (wrScore) {
       for (const { key, label } of wrPillars) {
         ry = h.checkPage(ry, 12)
