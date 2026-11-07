@@ -1,0 +1,32 @@
+# Render setup ("Blueprint") for igitit.xyz. Render reads this when the repository is connected.
+services:
+  - type: web
+    name: igitit
+    runtime: node
+    # Starter keeps the site awake; the free plan sleeps after 15 idle minutes and wakes slowly.
+    plan: starter
+    region: oregon
+    branch: main
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /docs
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # The model and the most it may spend in a day (US dollars, resets at midnight UTC).
+      - key: IGITIT_MODEL
+        value: claude-sonnet-5-5
+      - key: IGITIT_DAILY_BUDGET_USD
+        value: "5"
+      # Typed in Render's dashboard (sync: false keeps them out of this file).
+      - key: MODEL_API_KEY
+        sync: false
+      - key: IGITIT_DATABASE_URL
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITLAB_TOKEN
+        sync: false
+      - key: PINATA_JWT
+        sync: false
