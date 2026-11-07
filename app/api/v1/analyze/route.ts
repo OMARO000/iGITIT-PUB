@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
+import { BudgetReached } from "@/app/lib/model"
+import { NotARepo, analyzeRepo } from "@/app/lib/analyze"
 
 // ─────────────────────────────────────────────
 // RATE LIMITING — in-memory, per IP
@@ -98,36 +100,23 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const baseUrl = req.nextUrl.origin
-
-    // Fetch repo data
-    const repoRes = await fetch(`${baseUrl}/api/repo`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: `https://${parsed.platform}.com/${parsed.owner}/${parsed.repo}` }),
-    })
-    if (!repoRes.ok) {
-      const err = await repoRes.json()
-      return NextResponse.json({ error: "fetch_failed", message: err.error ?? "Failed to fetch repository" }, { status: 502, headers })
+    let result
+    try {
+      result = await analyzeRepo(`https://${parsed.platform}.com/${parsed.owner}/${parsed.repo}`)
+    } catch (e) {
+      if (e instanceof BudgetReached) return NextResponse.json({ error: "budget_reached", message: e.message }, { status: 503, headers })
+      if (e instanceof NotARepo) return NextResponse.json({ error: "fetch_failed", message: e.message }, { status: 502, headers })
+      return NextResponse.json({ error: "analysis_failed", message: e instanceof Error ? e.message : "Analysis failed" }, { status: 502, headers })
     }
-    const repoData = await repoRes.json()
-
-    // Run analysis
-    const analyzeRes = await fetch(`${baseUrl}/api/analyze`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...repoData, meta: { ...repoData.meta, platform: parsed.platform === "github" ? "GitHub" : "GitLab" } }),
-    })
-    if (!analyzeRes.ok) {
-      const err = await analyzeRes.json()
-      return NextResponse.json({ error: "analysis_failed", message: err.error ?? "Analysis failed" }, { status: 502, headers })
-    }
-    const { analysis, meta } = await analyzeRes.json()
+    const { analysis, meta } = result as { analysis: Record<string, any>; meta: Record<string, any> }
 
     return NextResponse.json({
       ok: true,
       version: "1.0",
       generatedAt: new Date().toISOString(),
+      commit: meta.commit ?? null,
+      readAt: result.stored?.readAt ?? new Date().toISOString(),
+      current: result.stored ? result.stored.current : true,
       repository: {
         owner: meta.owner,
         repo: meta.repo,
