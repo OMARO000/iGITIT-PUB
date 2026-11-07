@@ -6,7 +6,8 @@ services:
     # Starter keeps the site awake; the free plan sleeps after 15 idle minutes and wakes slowly.
     plan: starter
     region: oregon
-    branch: main
+    # Builds from the "render" branch until igitit.xyz points here; then this becomes main.
+    branch: render
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /docs
