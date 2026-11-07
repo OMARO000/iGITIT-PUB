@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import Anthropic from "@anthropic-ai/sdk"
+import { BudgetReached, callModel, parseJson } from "@/app/lib/model"
+import { getReading, putReading } from "@/app/lib/store"
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 
 const CHANGELOG_SYSTEM = `You are iGITit's Change Log engine. Your job is to read software commit history and explain what actually changed — written for non-technical readers: journalists, regulators, researchers, and the general public.
@@ -139,7 +139,10 @@ async function getGitLabChangelog(owner: string, repo: string, depth: number) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { owner, repo, platform, depth = 10 } = await req.json()
+    const body = await req.json()
+    const { owner, repo, platform } = body
+    // At most 25 commits a read; each costs model time.
+    const depth = Math.max(1, Math.min(Number(body.depth) || 10, 25))
 
     if (!owner || !repo) {
       return NextResponse.json({ error: "owner and repo required" }, { status: 400 })
@@ -167,38 +170,24 @@ CHANGED FILES:
 ${filesSummary}`
     }).join("\n\n---\n\n")
 
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 6000,
-      system: CHANGELOG_SYSTEM,
-      messages: [{
-        role: "user",
-        content: `Analyze these ${commits.length} commits from ${owner}/${repo} and return the JSON array of plain-language explanations.
+    // Stored by repository, newest commit and depth: the same history is read once for everyone.
+    const key = `${String(platform ?? "GitHub").toLowerCase()}:${String(owner).toLowerCase()}/${String(repo).toLowerCase()}@${commits[0]?.sha}:${commits.length}`
+    const hit = await getReading<unknown[]>("changelog", key)
+    if (hit) return NextResponse.json({ changelog: hit.result, total: commits.length, stored: { readAt: hit.readAt } })
+    let answer
+    try {
+      answer = await callModel("changelog", CHANGELOG_SYSTEM, `Analyze these ${commits.length} commits from ${owner}/${repo} and return the JSON array of plain-language explanations.
 
 ${commitsText}
 
-Return the complete JSON array now.`
-      }],
-    })
-
-    const rawText = response.content
-      .filter(b => b.type === "text")
-      .map(b => b.text)
-      .join("")
-
-    const clean = rawText
-      .replace(/^```json\s*/i, "")
-      .replace(/^```\s*/i, "")
-      .replace(/```\s*$/i, "")
-      .trim()
-
-    let changelog
-    try {
-      changelog = JSON.parse(clean)
-    } catch {
-      return NextResponse.json({ error: "Failed to parse changelog", raw: clean }, { status: 500 })
+Return the complete JSON array now.`, 6000)
+    } catch (e) {
+      if (e instanceof BudgetReached) return NextResponse.json({ error: e.message, budget: true }, { status: 503 })
+      throw e
     }
-
+    let changelog
+    try { changelog = parseJson<unknown[]>(answer.text) } catch { return NextResponse.json({ error: "Failed to parse changelog" }, { status: 500 }) }
+    await putReading("changelog", key, `${String(platform ?? "GitHub").toLowerCase()}:${String(owner).toLowerCase()}/${String(repo).toLowerCase()}`, commits[0]?.sha ?? null, answer.model, changelog, answer.costUsd)
     return NextResponse.json({ changelog, total: commits.length })
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error"

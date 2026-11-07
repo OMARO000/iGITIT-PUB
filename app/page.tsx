@@ -645,6 +645,7 @@ export default function IGititPage() {
   const [analyzingA, setAnalyzingA] = useState(false)
   const [stepA, setStepA] = useState(0)
   const [analysisA, setAnalysisA] = useState<Analysis | null>(null)
+  const [readNote, setReadNote] = useState<string | null>(null)
   const [errorA, setErrorA] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [expandedModuleSingle, setExpandedModuleSingle] = useState<string | null>(null)
@@ -850,28 +851,18 @@ export default function IGititPage() {
       if (!setFilePaths) setFetchedFileSnippets(snippets)
 
       setStep(2)
-      // Fire changelog and analysis IN PARALLEL — by the time Claude finishes, changelog is ready
-      if (setAnalysis === setAnalysisA && !compareMode) {
-        setChangelogLoading(true); setChangelog(null); setChangelogDepth(50)
-      }
-      const [analyzeRes] = await Promise.all([
-        fetch("/api/analyze", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...repoData, meta: { ...repoData.meta, platform: platform === "github" ? "GitHub" : "GitLab" } }),
-        }),
-        // Preload changelog in background while Claude analyzes
-        setAnalysis === setAnalysisA && !compareMode
-          ? fetch("/api/changelog", {
-              method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ owner: repoData.meta.owner, repo: repoData.meta.repo, platform: platform === "github" ? "GitHub" : "GitLab", depth: 50 }),
-            }).then(r => r.json()).then(data => {
-              setChangelog(data.changelog ?? [])
-              changelogRef.current = data.changelog ?? []
-            }).catch(() => {}).finally(() => setChangelogLoading(false))
-          : Promise.resolve(),
-      ])
+      // The server reads the repository itself at one commit and may answer from a stored reading (no model cost).
+      // Changelog loads only when its tab is opened.
+      const analyzeRes = await fetch("/api/analyze", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      })
       if (!analyzeRes.ok) { const e = await analyzeRes.json(); throw new Error(e.error ?? "Failed to analyze") }
-      const { analysis: data, meta } = await analyzeRes.json()
+      const { analysis: data, meta, stored } = await analyzeRes.json()
+      // An older stored reading (today's budget used up) says so, with its date and commit.
+      if (setAnalysis === setAnalysisA) setReadNote(stored && !stored.current
+        ? `Showing the reading from ${String(stored.readAt).slice(0, 10)}${stored.commit ? ` (commit ${String(stored.commit).slice(0, 7)})` : ""}. New readings resume after midnight UTC.`
+        : null)
       const full: Analysis = { ...data, meta: { ...meta, platform: platform === "github" ? "GitHub" : "GitLab" } }
       setAnalysis(full)
 
@@ -1374,6 +1365,9 @@ export default function IGititPage() {
           )}
           {errorA && !analyzingA && (
             <div style={{ marginTop: "10px", padding: "12px 16px", background: "rgba(224,92,92,0.08)", border: "1px solid rgba(224,92,92,0.3)", borderRadius: "6px", fontSize: "13px", color: "#E05C5C" }}>⚠ {errorA}</div>
+          )}
+          {readNote && analysisA && !analyzingA && (
+            <div style={{ marginTop: "10px", padding: "12px 16px", background: "rgba(196,151,74,0.08)", border: "1px solid rgba(196,151,74,0.3)", borderRadius: "6px", fontSize: "13px", color: "#C4974A" }}>{readNote}</div>
           )}
           {analyzingA && <CommitGraphLoader step={stepA} />}
           {/* Original GitByte during analysis; FEM GITBYTE (idle + chat) once results are in */}
