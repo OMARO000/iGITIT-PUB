@@ -1,4 +1,4 @@
-# Render setup ("Blueprint") for iGITit (served at omaro.xyz/igitit). Render reads this when the repository is connected.
+# Render setup ("Blueprint") for the code-reading server behind IRIS's "Read the code" (served under /iris/code). Render reads this when the repository is connected.
 services:
   - type: web
     name: igitit
@@ -6,11 +6,11 @@ services:
     # Starter keeps the site awake; the free plan sleeps after 15 idle minutes and wakes slowly.
     plan: starter
     region: oregon
-    # Builds from the "render" branch for now; it becomes main once omaro.xyz/igitit points here.
+    # Builds from the "render" branch for now; it becomes main once the address is settled.
     branch: render
     buildCommand: npm ci && npm run build
     startCommand: npm start
-    healthCheckPath: /igitit/docs
+    healthCheckPath: /iris/code/docs
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
