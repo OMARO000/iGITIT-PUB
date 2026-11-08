@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { CORS } from '@/app/lib/limits'
 
 // Company → GitHub org resolver table
 const COMPANY_MAP: Record<string, string> = {
@@ -92,7 +93,7 @@ function resolveOrg(query: string): { org: string; resolved: boolean } {
 
 export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get('q')
-  if (!q) return NextResponse.json({ repos: [] })
+  if (!q) return NextResponse.json({ repos: [] }, { headers: CORS })
 
   try {
     const { org, resolved } = resolveOrg(q)
@@ -112,7 +113,7 @@ export async function GET(req: NextRequest) {
       }
     )
 
-    if (!ghRes.ok) return NextResponse.json({ repos: [] })
+    if (!ghRes.ok) return NextResponse.json({ repos: [] }, { headers: CORS })
 
     const data = await ghRes.json()
 
@@ -140,8 +141,10 @@ export async function GET(req: NextRequest) {
       description: r.description ?? null,
     }))
 
-    return NextResponse.json({ repos })
+    return NextResponse.json({ repos }, { headers: CORS })
   } catch {
-    return NextResponse.json({ repos: [] })
+    return NextResponse.json({ repos: [] }, { headers: CORS })
   }
 }
+
+export function OPTIONS() { return new NextResponse(null, { status: 204, headers: CORS }) }
