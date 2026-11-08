@@ -211,7 +211,7 @@ export default function DocsPage() {
     "dataFlowSummary": "…",
     "modules": [{ "name": "…", "path": "…", "description": "…", "sourceSnippet": "…" }],
     "rescue": { "I": { "score": 4, "finding": "…" }, "A": { "score": 3, "finding": "…" } },
-    "uxEthics": { "patterns": [{ "slug": "pre-checked-consent", "severity": "high", "evidence": "…" }], "summary": "…" },
+    "uxEthics": { "signals": [{ "pattern": "pre-checked-consent", "description": "…", "severity": "high" }], "summary": "…" },
     "platformContext": "…",
     "overallVerdict": "…"
   }
