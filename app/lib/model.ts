@@ -23,9 +23,12 @@ const UNKNOWN: [number, number] = [10, 50]
 
 export const priceOf = (model: string): [number, number] => PRICES[model] ?? UNKNOWN
 
-export function costUsd(model: string, inputTokens: number, outputTokens: number): number {
+/** Batch requests (nightly pre-reads) cost half. */
+export const BATCH_DISCOUNT = 0.5
+
+export function costUsd(model: string, inputTokens: number, outputTokens: number, batch = false): number {
   const [i, o] = priceOf(model)
-  return (inputTokens * i + outputTokens * o) / 1_000_000
+  return ((inputTokens * i + outputTokens * o) / 1_000_000) * (batch ? BATCH_DISCOUNT : 1)
 }
 
 /** Worst case before calling: about 4 characters a token in, the full output allowance out. */
@@ -36,7 +39,7 @@ export class BudgetReached extends Error {
 }
 
 let client: Anthropic | null = null
-function anthropic(): Anthropic {
+export function anthropic(): Anthropic {
   const apiKey = process.env.MODEL_API_KEY
   if (!apiKey) throw new Error("MODEL_API_KEY is missing in the host's settings")
   client ??= new Anthropic({ apiKey })
@@ -74,4 +77,59 @@ export async function callModel(kind: string, system: string, user: string, maxT
 export function parseJson<T>(raw: string): T {
   const clean = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim()
   return JSON.parse(clean) as T
+}
+
+// --- Nightly pre-reads through the batch interface (half price, answers within 24 hours) ---------------------
+
+export interface BatchItem { key: string; system: string; user: string; maxTokens: number }
+
+/** Submits pre-reads. Each one's worst-case cost (at batch price) is reserved under today's cap first; ones that don't fit wait. */
+export async function submitBatch(items: BatchItem[]): Promise<{ batchId: string | null; submitted: { key: string; reservation: number; estimate: number }[]; deferred: string[] }> {
+  const submitted: { key: string; reservation: number; estimate: number }[] = []
+  const deferred: string[] = []
+  const requests = []
+  for (const it of items) {
+    const estimate = estimateUsd(MODEL, it.system.length + it.user.length, it.maxTokens) * BATCH_DISCOUNT
+    const reservation = await reserve("preread", estimate, DAILY_BUDGET_USD)
+    if (reservation === null) { deferred.push(it.key); continue }
+    submitted.push({ key: it.key, reservation, estimate })
+    requests.push({
+      custom_id: customId(it.key),
+      params: { model: MODEL, max_tokens: it.maxTokens, system: it.system, messages: [{ role: "user" as const, content: it.user }] },
+    })
+  }
+  if (!requests.length) return { batchId: null, submitted, deferred }
+  try {
+    const batch = await anthropic().messages.batches.create({ requests })
+    return { batchId: batch.id, submitted, deferred }
+  } catch (e) {
+    for (const s of submitted) await settle(s.reservation, s.estimate, 0)
+    throw e
+  }
+}
+
+/** Batch ids allow 64 characters of letters, digits, "-" and "_": the reading key is hashed into one. */
+export function customId(key: string): string {
+  let h = 0
+  for (let i = 0; i < key.length; i++) h = (Math.imul(31, h) + key.charCodeAt(i)) | 0
+  return `r${(h >>> 0).toString(36)}-${key.replace(/[^A-Za-z0-9_-]/g, "_").slice(-50)}`.slice(0, 64)
+}
+
+export interface BatchAnswer { customId: string; text: string | null; costUsd: number; error?: string }
+
+/** Results of a finished batch; null while it's still running. */
+export async function batchResults(batchId: string): Promise<BatchAnswer[] | null> {
+  const b = await anthropic().messages.batches.retrieve(batchId)
+  if (b.processing_status !== "ended") return null
+  const out: BatchAnswer[] = []
+  for await (const r of await anthropic().messages.batches.results(batchId)) {
+    if (r.result.type === "succeeded") {
+      const m = r.result.message
+      const text = m.content.filter((c) => c.type === "text").map((c) => (c as { text: string }).text).join("")
+      out.push({ customId: r.custom_id, text, costUsd: costUsd(MODEL, m.usage.input_tokens, m.usage.output_tokens, true) })
+    } else {
+      out.push({ customId: r.custom_id, text: null, costUsd: 0, error: r.result.type })
+    }
+  }
+  return out
 }

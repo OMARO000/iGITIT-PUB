@@ -28,6 +28,10 @@ async function migrate(s: Sql): Promise<void> {
     reserved_usd numeric not null, actual_usd numeric, created_at timestamptz not null default now()
   )`
   await s`create index if not exists spend_day on igitit.spend (day)`
+  await s`create table if not exists igitit.batches (
+    id text primary key, submitted_at timestamptz not null default now(), finished_at timestamptz,
+    items jsonb not null
+  )`
 }
 
 export async function ready_(): Promise<Sql | null> {
@@ -109,4 +113,32 @@ export async function settle(id: number, estimateUsd: number, actualUsd: number)
   const s = await ready_()
   if (!s || id < 0) { memorySpent += actualUsd - estimateUsd; return }
   await s`update igitit.spend set actual_usd = ${actualUsd} where id = ${id}`
+}
+
+// --- Pre-read batches -----------------------------------------------------------------------------------------
+
+export interface BatchRow { id: string; items: { key: string; customId: string; repo: string; commit: string; reservation: number; estimate: number; meta: Record<string, unknown> }[] }
+
+export async function saveBatch(id: string, items: BatchRow["items"]): Promise<void> {
+  const s = await ready_()
+  if (!s) return
+  await s`insert into igitit.batches (id, items) values (${id}, ${s.json(items as unknown as postgres.JSONValue)})`
+}
+
+export async function openBatches(): Promise<BatchRow[]> {
+  const s = await ready_()
+  if (!s) return []
+  return s<BatchRow[]>`select id, items from igitit.batches where finished_at is null order by submitted_at`
+}
+
+export async function finishBatch(id: string): Promise<void> {
+  const s = await ready_()
+  if (!s) return
+  await s`update igitit.batches set finished_at = now() where id = ${id}`
+}
+
+/** Keys already waiting in an open batch, so a repository isn't queued twice. */
+export async function pendingKeys(): Promise<Set<string>> {
+  const rows = await openBatches()
+  return new Set(rows.flatMap((r) => r.items.map((i) => i.key)))
 }
