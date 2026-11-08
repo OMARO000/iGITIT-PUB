@@ -5,7 +5,8 @@ export async function GET(req: NextRequest) {
   const repoParam = searchParams.get("repo")
   const theme = searchParams.get("theme") ?? "dark"
   const compact = searchParams.get("compact") === "true"
-  const baseUrl = req.nextUrl.origin
+  // The public address, whatever host serves this (Render behind omaro.xyz/igitit).
+  const baseUrl = "https://omaro.xyz/igitit"
 
   if (!repoParam) {
     return new NextResponse(`console.error('[iGITit] Missing required parameter: repo');`, {
@@ -18,6 +19,7 @@ export async function GET(req: NextRequest) {
   const borderColor = theme === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.08)"
   const mutedColor = theme === "light" ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.35)"
   const amber = "#C4974A"
+  const blue = "#4A9EF0"
   const green = "#4CAF7D"
   const red = "#E05C5C"
 
@@ -36,22 +38,22 @@ export async function GET(req: NextRequest) {
     border: ${JSON.stringify(borderColor)},
     muted: ${JSON.stringify(mutedColor)},
     amber: ${JSON.stringify(amber)},
+    blue: ${JSON.stringify(blue)},
     green: ${JSON.stringify(green)},
     red: ${JSON.stringify(red)},
     font: "'IBM Plex Mono', 'Courier New', monospace",
   };
 
-  function el(tag, css, html) {
+  function el(tag, css) {
     var e = document.createElement(tag);
     e.style.cssText = css;
-    if (html) e.innerHTML = html;
     return e;
   }
 
   function scoreColor(pass) { return pass ? styles.green : styles.red; }
 
   function dataColor(type) {
-    if (type === 'collect') return styles.amber;
+    if (type === 'collect') return styles.blue;
     if (type === 'store') return styles.green;
     return styles.red;
   }
