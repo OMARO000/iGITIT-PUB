@@ -1,162 +1,34 @@
-import { NextRequest, NextResponse } from "next/server"
-import { BudgetReached } from "@/app/lib/model"
-import { NotARepo, analyzeRepo } from "@/app/lib/analyze"
+import { NextRequest } from "next/server"
+import { analyzeRepo } from "@/app/lib/analyze"
+import { clientIp, countFresh, mayReadFresh } from "@/app/lib/limits"
+import { fail, failFrom, ok, preflight } from "@/app/lib/respond"
 
-// ─────────────────────────────────────────────
-// RATE LIMITING — in-memory, per IP
-// 10 requests per hour per IP for free tier
-// ─────────────────────────────────────────────
-
-const RATE_LIMIT = 10
-const WINDOW_MS = 60 * 60 * 1000 // 1 hour
-
-const ipMap = new Map<string, { count: number; resetAt: number }>()
-
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: number } {
-  const now = Date.now()
-  const entry = ipMap.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    const resetAt = now + WINDOW_MS
-    ipMap.set(ip, { count: 1, resetAt })
-    return { allowed: true, remaining: RATE_LIMIT - 1, resetAt }
-  }
-
-  if (entry.count >= RATE_LIMIT) {
-    return { allowed: false, remaining: 0, resetAt: entry.resetAt }
-  }
-
-  entry.count++
-  return { allowed: true, remaining: RATE_LIMIT - entry.count, resetAt: entry.resetAt }
-}
-
-function getIP(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  )
-}
-
-function parseRepoUrl(input: string): { owner: string; repo: string; platform: "github" | "gitlab" } | null {
-  // Accept full URLs or owner/repo shorthand
-  const fullUrl = input.includes("://") ? input : `https://github.com/${input}`
-
-  if (fullUrl.includes("github.com")) {
-    const m = fullUrl.match(/github\.com\/([^/]+)\/([^/?\s#]+)/)
-    if (!m) return null
-    return { owner: m[1], repo: m[2].replace(/\.git$/, ""), platform: "github" }
-  }
-  if (fullUrl.includes("gitlab.com")) {
-    const m = fullUrl.match(/gitlab\.com\/([^/]+)\/([^/?\s#]+)/)
-    if (!m) return null
-    return { owner: m[1], repo: m[2].replace(/\.git$/, ""), platform: "gitlab" }
-  }
-  return null
-}
-
+/**
+ * GET /igitit/api/v1/analyze?repo=<GitHub, GitLab or Radicle address>
+ * The full analysis: overview, data the code collects, stores and sends, data flow, modules, the 9-pillar HAI score,
+ * dark patterns, license, platform context and verdict. From the store when that commit (or an unchanged later one)
+ * was read; otherwise a fresh reading, which counts against this address's 10 an hour.
+ */
 export async function GET(req: NextRequest) {
-  const ip = getIP(req)
-  const { allowed, remaining, resetAt } = checkRateLimit(ip)
-
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "X-RateLimit-Limit": String(RATE_LIMIT),
-    "X-RateLimit-Remaining": String(remaining),
-    "X-RateLimit-Reset": String(Math.ceil(resetAt / 1000)),
-    "Cache-Control": "public, max-age=3600",
-  }
-
-  if (!allowed) {
-    return NextResponse.json({
-      error: "rate_limit_exceeded",
-      message: `Free tier: ${RATE_LIMIT} requests per hour. Rate limit resets at ${new Date(resetAt).toISOString()}.`,
-      resetAt: new Date(resetAt).toISOString(),
-      docs: "https://igitit.xyz/docs",
-    }, { status: 429, headers })
-  }
-
-  const { searchParams } = new URL(req.url)
-  const repoParam = searchParams.get("repo")
-
-  if (!repoParam) {
-    return NextResponse.json({
-      error: "missing_parameter",
-      message: "Required parameter: ?repo=github.com/owner/repository",
-      example: "/api/v1/analyze?repo=github.com/facebook/react",
-      docs: "https://igitit.xyz/docs",
-    }, { status: 400, headers })
-  }
-
-  const parsed = parseRepoUrl(repoParam)
-  if (!parsed) {
-    return NextResponse.json({
-      error: "invalid_repo",
-      message: "Could not parse repository URL. Supported formats: github.com/owner/repo, gitlab.com/owner/repo, or owner/repo (defaults to GitHub).",
-      docs: "https://igitit.xyz/docs",
-    }, { status: 400, headers })
-  }
-
+  const ip = clientIp(req.headers)
+  const raw = req.nextUrl.searchParams.get("repo")?.trim()
+  if (!raw) return fail(400, "missing_parameter", "Required: ?repo=github.com/owner/repository")
+  const url = raw.includes("://") ? raw : raw.split("/").length === 2 ? `https://github.com/${raw}` : `https://${raw}`
   try {
-    let result
-    try {
-      result = await analyzeRepo(`https://${parsed.platform}.com/${parsed.owner}/${parsed.repo}`)
-    } catch (e) {
-      if (e instanceof BudgetReached) return NextResponse.json({ error: "budget_reached", message: e.message }, { status: 503, headers })
-      if (e instanceof NotARepo) return NextResponse.json({ error: "fetch_failed", message: e.message }, { status: 502, headers })
-      return NextResponse.json({ error: "analysis_failed", message: e instanceof Error ? e.message : "Analysis failed" }, { status: 502, headers })
-    }
-    const { analysis, meta } = result as { analysis: Record<string, any>; meta: Record<string, any> }
-
-    return NextResponse.json({
-      ok: true,
-      version: "1.0",
-      generatedAt: new Date().toISOString(),
-      commit: meta.commit ?? null,
+    const fresh = mayReadFresh(ip)
+    const result = await analyzeRepo(url, fresh)
+    if (!result.stored) countFresh(ip)
+    return ok(ip, {
+      version: "1.1",
+      repository: result.meta,
+      commit: result.meta.commit ?? null,
       readAt: result.stored?.readAt ?? new Date().toISOString(),
-      current: result.stored ? result.stored.current : true,
-      repository: {
-        owner: meta.owner,
-        repo: meta.repo,
-        platform: parsed.platform,
-        language: meta.language,
-        stars: meta.stars,
-        fileCount: meta.fileCount,
-        license: meta.license ?? null,
-        description: meta.description ?? null,
-      },
-      analysis: {
-        overview: analysis.overview,
-        dataItems: analysis.dataItems,
-        dataFlowSummary: analysis.dataFlowSummary,
-        modules: analysis.modules,
-        score: analysis.score,
-        overallVerdict: analysis.overallVerdict,
-      },
-      meta: {
-        poweredBy: "iGITit",
-        generatedBy: "Claude (Anthropic)",
-        product: "OMARO PBC",
-        docsUrl: "https://igitit.xyz/docs",
-        embedUrl: `https://igitit.xyz/api/v1/embed?repo=${encodeURIComponent(repoParam)}`,
-      },
-    }, { headers })
-
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    return NextResponse.json({ error: "internal_error", message }, { status: 500, headers })
+      stored: result.stored ?? null,
+      analysis: result.analysis,
+    })
+  } catch (e) {
+    return failFrom(e)
   }
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  })
-}
+export const OPTIONS = preflight
