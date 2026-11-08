@@ -122,8 +122,10 @@ export async function GET(req: NextRequest) {
       }
 
       // HAI SCORE: the 9 pillars, each 1 to 5
-      var NAMES = { I: 'Integrity & Transparency', A: 'Accountability', S: 'Safety & Robustness', E: 'Equality & Non-Discrimination', C: 'Human Override & Control', U: 'Use Limits & Proportionality', E2: 'Data Ownership & Empowerment', R: 'Resilience & Dependency Prevention', D: 'Human Dignity' };
-      var rescue = analysis.rescue || {};
+      var NAMES = { I: 'Integrity & Transparency', II: 'Accountability Chain', III: 'Safety & Robustness', IV: 'Equality & Non-Discrimination', V: 'Human Override & Control', VI: 'Use Limits & Proportionality', VII: 'Data Ownership & Empowerment', VIII: 'Independent Audit', IX: 'Human Dignity Across the Full Stack' };
+      var LEGACY = { I: 'I', A: 'II', S: 'III', E: 'IV', C: 'V', U: 'VI', E2: 'VII', D: 'IX' };
+      var rescue = analysis.hai || {};
+      if (!analysis.hai && analysis.rescue) Object.keys(analysis.rescue).forEach(function(k) { if (LEGACY[k]) rescue[LEGACY[k]] = analysis.rescue[k]; });
       var keys = Object.keys(NAMES).filter(function(k) { return rescue[k] && typeof rescue[k].score === 'number'; });
       if (keys.length) {
         var total = keys.reduce(function(n, k) { return n + rescue[k].score; }, 0);

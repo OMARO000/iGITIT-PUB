@@ -1,10 +1,5 @@
+import { HAI_PILLARS, haiOf } from "@/app/lib/hai"
 import { checkRecord } from "@/app/lib/seal"
-
-const PILLAR: Record<string, string> = {
-  I: "Integrity & Transparency", A: "Accountability", S: "Safety & Robustness", E: "Equality & Non-Discrimination",
-  C: "Human Override & Control", U: "Use Limits & Proportionality", E2: "Data Ownership & Empowerment",
-  R: "Resilience & Dependency Prevention", D: "Human Dignity",
-}
 
 interface VerificationDoc {
   schema: string
@@ -135,6 +130,8 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
 
   const repo = doc.repository
   const analysis = doc.analysis
+  const hai = haiOf(analysis as unknown as Record<string, unknown>)
+  const pillars = HAI_PILLARS.filter((p) => hai[p.id])
   const verification = doc.verification
 
   return (
@@ -306,10 +303,10 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
       <Card>
         {sectionLabel(`HAI SCORE · ${repo.owner}/${repo.repo}`)}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {analysis.rescue && Object.entries(analysis.rescue).map(([k, v]) => (
+          {pillars.map(({ id: k, name }) => { const v = hai[k]!; return (
             <div key={k}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "7px" }}>
-                <span style={{ fontSize: "15px", color: S.muted, fontWeight: 300 }}>{PILLAR[k] ?? k}</span>
+                <span style={{ fontSize: "15px", color: S.muted, fontWeight: 300 }}>{k}. {name}</span>
                 <span style={{ fontSize: "13px", color: scoreColor(v.score >= 3), letterSpacing: "0.04em" }}>{v.score}/5</span>
               </div>
               <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden", marginBottom: "7px" }}>
@@ -317,8 +314,8 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
               </div>
               <div style={{ fontSize: "12px", color: S.dim, lineHeight: 1.6, fontStyle: "italic" }}>{v.finding}</div>
             </div>
-          ))}
-          {!analysis.rescue && (analysis.score ?? []).map((dim, i) => (
+          ) })}
+          {!pillars.length && (analysis.score ?? []).map((dim, i) => (
             <div key={i}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "7px" }}>
                 <span style={{ fontSize: "15px", color: S.muted, fontWeight: 300 }}>{dim.label}</span>

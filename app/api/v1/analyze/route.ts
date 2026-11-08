@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server"
 import { analyzeRepo } from "@/app/lib/analyze"
+import { haiOf } from "@/app/lib/hai"
 import { clientIp, countFresh, mayReadFresh } from "@/app/lib/limits"
 import { fail, failFrom, ok, preflight } from "@/app/lib/respond"
 
 /**
  * GET /igitit/api/v1/analyze?repo=<GitHub, GitLab or Radicle address>
- * The full analysis: overview, data the code collects, stores and sends, data flow, modules, the 9-pillar HAI score,
+ * The full analysis: overview, data the code collects, stores and sends, data flow, modules, the HAI Standard's 9 pillars, machine learning and model cards,
  * dark patterns, license, platform context and verdict. From the store when that commit (or an unchanged later one)
  * was read; otherwise a fresh reading, which counts against this address's 10 an hour.
  */
@@ -19,12 +20,13 @@ export async function GET(req: NextRequest) {
     const result = await analyzeRepo(url, fresh)
     if (!result.stored) countFresh(ip)
     return ok(ip, {
-      version: "1.1",
+      version: "1.2",
       repository: result.meta,
       commit: result.meta.commit ?? null,
       readAt: result.stored?.readAt ?? new Date().toISOString(),
       stored: result.stored ?? null,
-      analysis: result.analysis,
+      // Readings from before 2026-11-08 carry the older pillar keys; `hai` is always the HAI Standard v1.1 numbering.
+      analysis: { ...result.analysis, hai: haiOf(result.analysis) },
     })
   } catch (e) {
     return failFrom(e)

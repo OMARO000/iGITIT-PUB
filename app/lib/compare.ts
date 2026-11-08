@@ -2,6 +2,7 @@
  * Compare: two repositories side by side, written by the model. Takes two analyses the server made itself
  * (analyzeRepo), so nothing a browser sends reaches the model. Stored by the two readings' contents.
  */
+import { HAI_PILLARS, haiOf } from "./hai"
 import { createHash } from "node:crypto"
 import type { AnalysisResult } from "./analyze"
 import { callModel, parseJson } from "./model"
@@ -83,7 +84,7 @@ ${a.dataItems.map((d: { type: string; label: string; description: string }) => `
 DATA FLOW: ${a.dataFlowSummary}
 
 HAI SCORE (9 pillars, 1-5 each):
-${a.rescue ? Object.entries(a.rescue as Record<string, { score: number; finding: string }>).map(([k, v]) => `${k}: ${v.score}/5 — ${v.finding}`).join("\n")
+${Object.keys(haiOf(a as unknown as Record<string, unknown>)).length ? HAI_PILLARS.filter((p) => haiOf(a as unknown as Record<string, unknown>)[p.id]).map((p) => { const v = haiOf(a as unknown as Record<string, unknown>)[p.id]!; return `${p.id} ${p.name}: ${v.score}/5. ${v.finding}` }).join("\n")
 : (a.score ?? []).map((s: { label: string; verdictLabel: string; reasoning?: string }) => `${s.label}: ${s.verdictLabel}${s.reasoning ? ` — ${s.reasoning}` : ""}`).join("\n")}
 
 OVERALL VERDICT: ${a.overallVerdict}
