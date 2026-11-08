@@ -3,5 +3,5 @@ import { fileURLToPath } from "node:url"
 
 export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL("./", import.meta.url)) } },
-  test: { include: ["test/**/*.test.ts"], pool: "forks", poolOptions: { forks: { singleFork: true } } },
+  test: { include: ["test/**/*.test.ts"], pool: "forks", fileParallelism: false },
 })
