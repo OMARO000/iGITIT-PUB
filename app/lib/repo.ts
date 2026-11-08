@@ -1,5 +1,5 @@
 /**
- * Reading a repository: GitHub, GitLab or Radicle. Every reading is pinned to one commit, so it can be stored
+ * Reading a repository: GitHub, GitLab, Codeberg or Radicle. Every reading is pinned to one commit, so it can be stored
  * and shared by repository and commit (cost control, 2026-11-07). Used by the routes; holds no route handlers.
  */
 
@@ -12,6 +12,8 @@ const PRIORITY_FILES = [
   "tsconfig.json", ".env.example", ".env.sample",
   "schema.ts", "schema.sql", "db.ts",
   "middleware.ts", "next.config.ts", "next.config.js",
+  // Machine learning and outside review (HAI pillars VIII and IX)
+  "requirements.txt", "pyproject.toml", "setup.py", "MODEL_CARD.md", "model_card.md", "SECURITY.md", "AUDIT.md", "CODEOWNERS",
 ]
 const PRIORITY_DIRS = ["lib", "app", "src", "components", "scripts", "api"]
 const SKIP_DIRS = ["node_modules", ".git", ".next", "dist", "build", ".cache", "coverage"]
@@ -23,8 +25,17 @@ export function parseGitHubUrl(url: string): { owner: string; repo: string } | n
   return { owner: match[1], repo: match[2].replace(/\.git$/, "") }
 }
 
+/** GitLab groups nest: the project path is everything up to GitLab's "/-/". */
 export function parseGitLabUrl(url: string): { owner: string; repo: string } | null {
-  const match = url.match(/gitlab\.com\/([^/]+)\/([^/?\s#]+)/)
+  const match = url.match(/gitlab\.com\/([^?#\s]+)/)
+  if (!match) return null
+  const parts = match[1].split("/-/")[0].split("/").filter(Boolean)
+  if (parts.length < 2) return null
+  return { owner: parts.slice(0, -1).join("/"), repo: parts[parts.length - 1].replace(/\.git$/, "") }
+}
+
+export function parseCodebergUrl(url: string): { owner: string; repo: string } | null {
+  const match = url.match(/codeberg\.org\/([\w.-]+)\/([\w.-]+)/)
   if (!match) return null
   return { owner: match[1], repo: match[2].replace(/\.git$/, "") }
 }
@@ -191,6 +202,60 @@ async function fetchGitLabRepo(owner: string, repo: string) {
   }
 }
 
+export const CODEBERG_API = "https://codeberg.org/api/v1"
+
+async function codebergHead(owner: string, repo: string, branch: string): Promise<string> {
+  const res = await fetch(`${CODEBERG_API}/repos/${owner}/${repo}/branches/${encodeURIComponent(branch)}`, { headers: { Accept: "application/json" } })
+  if (!res.ok) throw new Error(`Codeberg API error: ${res.status}`)
+  const j = await res.json()
+  const sha = j?.commit?.id
+  if (typeof sha !== "string") throw new Error("Codeberg gave no commit")
+  return sha
+}
+
+async function fetchCodebergRepo(owner: string, repo: string) {
+  const headers = { Accept: "application/json" }
+  const metaRes = await fetch(`${CODEBERG_API}/repos/${owner}/${repo}`, { headers })
+  if (!metaRes.ok) throw new Error(`Codeberg API error: ${metaRes.status}`)
+  const meta = await metaRes.json()
+  if (meta.private) throw new Error("This Codeberg repository is private")
+  const commit = await codebergHead(owner, repo, meta.default_branch ?? "main")
+  const treeRes = await fetch(`${CODEBERG_API}/repos/${owner}/${repo}/git/trees/${commit}?recursive=true&per_page=10000`, { headers })
+  if (!treeRes.ok) throw new Error(`Codeberg tree error: ${treeRes.status}`)
+  const treeData = await treeRes.json()
+  const blobs = (treeData.tree ?? []).filter((f: { type: string }) => f.type === "blob")
+  const allFiles = blobs
+    .filter((f: { path: string }) => !shouldSkipFile(f.path))
+    .sort((a: { path: string }, b: { path: string }) => priorityScore(b.path) - priorityScore(a.path))
+    .slice(0, MAX_FILES)
+  const fileContents: Record<string, string> = {}
+  await Promise.all(allFiles.map(async (file: { path: string; size?: number }) => {
+    if ((file.size ?? 0) > MAX_FILE_SIZE) return
+    try {
+      const res = await fetch(`${CODEBERG_API}/repos/${owner}/${repo}/raw/${file.path.split("/").map(encodeURIComponent).join("/")}?ref=${commit}`)
+      if (!res.ok) return
+      const text = await res.text()
+      if (text.length <= MAX_FILE_SIZE) fileContents[file.path] = text
+    } catch { /* skip */ }
+  }))
+  return {
+    meta: {
+      owner, repo,
+      description: meta.description ?? "",
+      language: meta.language || "Unknown",
+      stars: meta.stars_count ?? 0,
+      platform: "Codeberg",
+      commit,
+      fileCount: blobs.length,
+      topics: meta.topics ?? [],
+      license: Array.isArray(meta.licenses) && meta.licenses.length ? meta.licenses.join(", ") : null,
+      updatedAt: meta.updated_at ?? null,
+    },
+    files: fileContents,
+    filePaths: Object.keys(fileContents),
+  }
+}
+
 async function fetchRadicleRepo(node: string, rid: string) {
   if (!isPublicHost(node)) throw new Error("That Radicle node address isn't a public host name")
   const base = `https://${node}/api/v1`
@@ -285,11 +350,13 @@ export function isPublicHost(host: string): boolean {
 export type RepoRef =
   | { platform: "GitHub"; owner: string; repo: string }
   | { platform: "GitLab"; owner: string; repo: string }
+  | { platform: "Codeberg"; owner: string; repo: string }
   | { platform: "Radicle"; node: string; rid: string }
 
 export function parseRepo(url: string): RepoRef | null {
   if (url.includes("github.com")) { const p = parseGitHubUrl(url); return p ? { platform: "GitHub", ...p } : null }
   if (url.includes("gitlab.com")) { const p = parseGitLabUrl(url); return p ? { platform: "GitLab", ...p } : null }
+  if (url.includes("codeberg.org")) { const p = parseCodebergUrl(url); return p ? { platform: "Codeberg", ...p } : null }
   if (url.includes("app.radicle.xyz")) { const p = parseRadicleUrl(url); return p ? { platform: "Radicle", ...p } : null }
   return null
 }
@@ -308,6 +375,10 @@ export async function headCommit(ref: RepoRef): Promise<string> {
     const meta = await (await fetch(`https://gitlab.com/api/v4/projects/${projectId}`, { headers: h })).json()
     return gitlabHead(projectId, meta.default_branch ?? "main", h)
   }
+  if (ref.platform === "Codeberg") {
+    const meta = await (await fetch(`${CODEBERG_API}/repos/${ref.owner}/${ref.repo}`, { headers: { Accept: "application/json" } })).json()
+    return codebergHead(ref.owner, ref.repo, meta.default_branch ?? "main")
+  }
   if (!isPublicHost(ref.node)) throw new Error("That Radicle node address isn't a public host name")
   const meta = await (await fetch(`https://${ref.node}/api/v1/repos/${ref.rid}`, { headers: { Accept: "application/json" } })).json()
   const head = meta?.payloads?.["xyz.radicle.project"]?.meta?.head
@@ -320,5 +391,6 @@ export const repoKey = (ref: RepoRef) => ref.platform === "Radicle" ? `radicle:$
 export async function readRepo(ref: RepoRef) {
   if (ref.platform === "GitHub") return fetchGitHubRepo(ref.owner, ref.repo)
   if (ref.platform === "GitLab") return fetchGitLabRepo(ref.owner, ref.repo)
+  if (ref.platform === "Codeberg") return fetchCodebergRepo(ref.owner, ref.repo)
   return fetchRadicleRepo(ref.node, ref.rid)
 }

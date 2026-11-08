@@ -5,6 +5,7 @@
 import { callModel, parseJson } from "./model"
 import { getReading, putReading } from "./store"
 import { RateLimited } from "./limits"
+import { CODEBERG_API, isPublicHost, repoKey, type RepoRef } from "./repo"
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 
@@ -141,9 +142,55 @@ async function getGitLabChangelog(owner: string, repo: string, depth: number) {
   return commitDetails
 }
 
-export async function changelogFor(platform: string, owner: string, repo: string, depthIn: number, allowFresh = true): Promise<{ changelog: unknown[]; total: number; stored?: { readAt: string } }> {
+type Change = { sha: string; date: string; author: string; message: string; files: { filename: string; status: string; additions: number; deletions: number; patch: string }[] }
+
+async function getCodebergChangelog(owner: string, repo: string, depth: number): Promise<Change[]> {
+  const res = await fetch(`${CODEBERG_API}/repos/${owner}/${repo}/commits?limit=${depth}&stat=false&files=true`, { headers: { Accept: "application/json" } })
+  if (!res.ok) throw new Error(`Codeberg commits error: ${res.status}`)
+  const commits = (await res.json()) as { sha: string; commit: { message: string; author: { name: string; date: string } }; files?: { filename: string; status: string }[] }[]
+  return Promise.all(commits.slice(0, depth).map(async (c) => {
+    let patch = ""
+    try { const d = await fetch(`${CODEBERG_API}/repos/${owner}/${repo}/git/commits/${c.sha}.diff`); if (d.ok) patch = (await d.text()).slice(0, 2400) } catch { /* message only */ }
+    const files = (c.files ?? []).slice(0, 8).map((f) => ({ filename: f.filename, status: f.status, additions: 0, deletions: 0, patch: "" }))
+    if (patch && files[0]) files[0].patch = patch
+    return { sha: c.sha.slice(0, 7), date: c.commit.author.date, author: c.commit.author.name, message: c.commit.message.split("\n")[0], files }
+  }))
+}
+
+/** Radicle's node API: the newest commits from the project's head, each with the files it changed. */
+async function getRadicleChangelog(node: string, rid: string, depth: number): Promise<Change[]> {
+  if (!isPublicHost(node)) throw new Error("That Radicle node address isn't a public host name")
+  const base = `https://${node}/api/v1/repos/${rid}`
+  const meta = await (await fetch(base, { headers: { Accept: "application/json" } })).json()
+  const head = meta?.payloads?.["xyz.radicle.project"]?.meta?.head
+  if (!head) throw new Error("Could not determine Radicle repo HEAD")
+  const res = await fetch(`${base}/commits?parent=${head}&perPage=${depth}`, { headers: { Accept: "application/json" } })
+  if (!res.ok) throw new Error(`Radicle commits error: ${res.status}`)
+  const list = (await res.json()) as { id: string; summary?: string; author?: { name?: string }; committer?: { time?: number } }[]
+  return Promise.all((Array.isArray(list) ? list : []).slice(0, depth).map(async (c) => {
+    const base0 = { sha: c.id.slice(0, 7), date: c.committer?.time ? new Date(c.committer.time * 1000).toISOString() : "", author: c.author?.name ?? "", message: c.summary ?? "" }
+    try {
+      const d = await (await fetch(`${base}/commits/${c.id}`, { headers: { Accept: "application/json" } })).json()
+      type Hunk = { header?: string; lines?: { type?: string; line?: string }[] }
+      type F = { path?: string; diff?: { hunks?: Hunk[] } }
+      const toPatch = (f: F) => (f.diff?.hunks ?? []).map((h) => [h.header ?? "", ...(h.lines ?? []).map((l) => `${l.type === "addition" ? "+" : l.type === "deletion" ? "-" : " "}${l.line ?? ""}`)].join("")).join("\n").slice(0, 800)
+      const files = [
+        ...((d?.diff?.added ?? []) as F[]).map((f) => ({ filename: f.path ?? "", status: "added", additions: 0, deletions: 0, patch: toPatch(f) })),
+        ...((d?.diff?.modified ?? []) as F[]).map((f) => ({ filename: f.path ?? "", status: "modified", additions: 0, deletions: 0, patch: toPatch(f) })),
+        ...((d?.diff?.deleted ?? []) as F[]).map((f) => ({ filename: f.path ?? "", status: "removed", additions: 0, deletions: 0, patch: "" })),
+      ].slice(0, 8)
+      return { ...base0, files }
+    } catch { return { ...base0, files: [] } }
+  }))
+}
+
+export async function changelogFor(ref: RepoRef, depthIn: number, allowFresh = true): Promise<{ changelog: unknown[]; total: number; stored?: { readAt: string } }> {
   const depth = Math.max(1, Math.min(Number(depthIn) || 10, 25))
-  const commits = platform === "GitLab" ? await getGitLabChangelog(owner, repo, depth) : await getGitHubChangelog(owner, repo, depth)
+  const commits: Change[] = ref.platform === "GitLab" ? await getGitLabChangelog(ref.owner, ref.repo, depth)
+    : ref.platform === "Codeberg" ? await getCodebergChangelog(ref.owner, ref.repo, depth)
+    : ref.platform === "Radicle" ? await getRadicleChangelog(ref.node, ref.rid, depth)
+    : await getGitHubChangelog(ref.owner, ref.repo, depth)
+  const name = ref.platform === "Radicle" ? ref.rid : `${ref.owner}/${ref.repo}`
   if (!commits.length) throw new Error("No commits found")
   const commitsText = commits.map(c => {
     const filesSummary = c.files.length
@@ -159,16 +206,16 @@ ${filesSummary}`
   }).join("\n\n---\n\n")
 
   // Stored by repository, newest commit and depth: the same history is read once for everyone.
-  const key = `${String(platform ?? "GitHub").toLowerCase()}:${String(owner).toLowerCase()}/${String(repo).toLowerCase()}@${commits[0]?.sha}:${commits.length}`
+  const key = `${repoKey(ref)}@${commits[0]?.sha}:${commits.length}`
   const hit = await getReading<unknown[]>("changelog", key)
   if (hit) return { changelog: hit.result, total: commits.length, stored: { readAt: hit.readAt } }
   if (!allowFresh) throw new RateLimited()
-  const answer = await callModel("changelog", CHANGELOG_SYSTEM, `Analyze these ${commits.length} commits from ${owner}/${repo} and return the JSON array of plain-language explanations.
+  const answer = await callModel("changelog", CHANGELOG_SYSTEM, `Analyze these ${commits.length} commits from ${name} and return the JSON array of plain-language explanations.
 
 ${commitsText}
 
 Return the complete JSON array now.`, 6000)
   const changelog = parseJson<unknown[]>(answer.text)
-  await putReading("changelog", key, `${String(platform ?? "GitHub").toLowerCase()}:${String(owner).toLowerCase()}/${String(repo).toLowerCase()}`, commits[0]?.sha ?? null, answer.model, changelog, answer.costUsd)
+  await putReading("changelog", key, repoKey(ref), commits[0]?.sha ?? null, answer.model, changelog, answer.costUsd)
   return { changelog, total: commits.length }
 }
