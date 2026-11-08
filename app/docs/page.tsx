@@ -137,7 +137,7 @@ export default function DocsPage() {
 
           {/* OVERVIEW */}
           <Section id="overview" title="Overview">
-            <p>The iGITit API lets you programmatically generate plain-language analysis of any public GitHub, GitLab or Radicle repository. Built for journalists, regulators, researchers, and developers who need to understand what code does without reading it.</p>
+            <p>The iGITit API lets you programmatically generate plain-language analysis of any public GitHub, GitLab, Codeberg or Radicle repository. Built for journalists, regulators, researchers, and developers who need to understand what code does without reading it.</p>
             <p>The API is free for public repositories, with no key. iGITit lives in IRIS by OMARO; this API serves IRIS and anyone building on public code readings.</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "24px" }}>
               {[
@@ -167,10 +167,12 @@ export default function DocsPage() {
           <Section id="endpoint" title="API Endpoints">
             <p>Every endpoint takes public repository addresses only and answers in JSON. Readings are stored by repository and commit, so most answers come from the store at no cost.</p>
             {[
-              { m: "GET", path: "/api/v1/analyze?repo=", desc: "The full analysis of one repository (GitHub, GitLab or Radicle)." },
+              { m: "GET", path: "/api/v1/analyze?repo=", desc: "The full analysis of one repository (GitHub, GitLab, Codeberg or Radicle)." },
               { m: "GET", path: "/api/v1/compare?a=&b=", desc: "Two repositories side by side, in plain language." },
               { m: "GET", path: "/api/v1/changelog?repo=&depth=10", desc: "The latest commits (up to 25), each routine, notable or flagged." },
               { m: "GET", path: "/api/v1/companies?q=", desc: "A company's public repositories, found by name." },
+              { m: "GET", path: "/api/v1/companies?site=example.com", desc: "A company's public repositories, found from its website. Says so when its code is private or none is published." },
+              { m: "PAGE", path: "/r/github.com/owner/repo", desc: "A shareable page with the newest stored reading. Opening it never starts a new reading." },
               { m: "POST", path: "/api/v1/verify", desc: "Seals iGITit's reading of a repository and pins it to IPFS. Body: { \"repo\": \"github.com/owner/repo\" }." },
             ].map((e) => (
               <div key={e.path} style={{ padding: "14px 20px", background: "rgba(255,255,255,0.02)", border: `1px solid ${S.border}`, borderRadius: "6px", marginBottom: "10px" }}>
@@ -184,7 +186,7 @@ export default function DocsPage() {
 
             <h3>Parameters</h3>
             <div style={{ borderTop: `1px solid ${S.border}` }}>
-              <Param name="repo, a, b" type="string" required desc="A repository address or owner/repo shorthand (GitHub). github.com, gitlab.com and app.radicle.xyz are supported." />
+              <Param name="repo, a, b" type="string" required desc="A repository address or owner/repo shorthand (GitHub). github.com, gitlab.com (groups included), codeberg.org and app.radicle.xyz are supported." />
               <Param name="depth" type="integer" desc="Changelog only: how many recent commits to explain, 1 to 25 (default 10)." />
               <Param name="q" type="string" required desc="Companies only: a company or product name." />
             </div>
@@ -200,7 +202,7 @@ export default function DocsPage() {
           <Section id="response" title="Response Schema">
             <CodeBlock lang="json" code={`{
   "ok": true,
-  "version": "1.1",
+  "version": "1.2",
   "repository": { "owner": "signalapp", "repo": "Signal-Android", "platform": "GitHub", "language": "Kotlin", "stars": 26000, "license": "AGPL-3.0", "commit": "3f2a…" },
   "commit": "3f2a…",
   "readAt": "2026-11-08T07:17:00.000Z",
@@ -210,7 +212,8 @@ export default function DocsPage() {
     "dataItems": [{ "type": "collect", "label": "Phone number", "description": "…", "sourceLine": "…" }],
     "dataFlowSummary": "…",
     "modules": [{ "name": "…", "path": "…", "description": "…", "sourceSnippet": "…" }],
-    "rescue": { "I": { "score": 4, "finding": "…" }, "A": { "score": 3, "finding": "…" } },
+    "hai": { "I": { "score": 4, "finding": "…" }, "II": { "score": 3, "finding": "…" }, "VIII": { "score": 2, "finding": "…" } },
+    "ml": { "detected": true, "summary": "…", "models": [{ "name": "…", "use": "…", "huggingFace": "owner/model", "hub": { "cardPresent": true, "license": "apache-2.0", "task": "text-classification", "url": "https://huggingface.co/owner/model" } }], "modelCard": { "present": false, "gaps": "…" } },
     "uxEthics": { "signals": [{ "pattern": "pre-checked-consent", "description": "…", "severity": "high" }], "summary": "…" },
     "platformContext": "…",
     "overallVerdict": "…"
@@ -219,7 +222,9 @@ export default function DocsPage() {
             <h3>Stored readings</h3>
             <p><code>stored</code> is present when the answer came from the store: <code>current</code> is true when it covers the repository's current commit, either read at it or carried forward because nothing that could change the reading was touched since (<code>why</code> says what changed). <code>current: false</code> means an older reading, shown because today's reading budget or this address's fresh readings are used up.</p>
             <h3>HAI score</h3>
-            <p><code>rescue</code> holds the 9 HAI pillars, each 1 to 5: I Integrity &amp; Transparency, A Accountability, S Safety &amp; Robustness, E Equality &amp; Non-Discrimination, C Human Override &amp; Control, U Use Limits &amp; Proportionality, E2 Data Ownership &amp; Empowerment, R Resilience &amp; Dependency Prevention, D Human Dignity. Out of 45: A at 41 or more, B 34, C 27, D 18, F below.</p>
+            <p><code>hai</code> holds the nine pillars of the HAI Standard v1.1, each 1 to 5: I Integrity &amp; Transparency, II Accountability Chain, III Safety &amp; Robustness, IV Equality &amp; Non-Discrimination, V Human Override &amp; Control, VI Use Limits &amp; Proportionality, VII Data Ownership &amp; Empowerment, VIII Independent Audit, IX Human Dignity Across the Full Stack. Out of 45: A at 41 or more, B 34, C 27, D 18, F below. Readings made before November 8, 2026 used an earlier set and leave VIII unscored.</p>
+            <h3>Machine learning</h3>
+            <p><code>ml</code> says whether the code trains, loads or calls a machine learning model, lists each model, adds Hugging Face&apos;s public facts for models loaded from there, and says whether a model card exists and what it leaves out.</p>
           </Section>
 
           {/* EMBED WIDGET */}
@@ -298,7 +303,7 @@ const data = await response.json();
 
 if (data.ok) {
   console.log(data.analysis.overallVerdict);
-  for (const [pillar, { score, finding }] of Object.entries(data.analysis.rescue)) {
+  for (const [pillar, { score, finding }] of Object.entries(data.analysis.hai)) {
     console.log(pillar, score + '/5', finding);
   }
 }`} />
@@ -365,7 +370,7 @@ https.get(url, (res) => {
           {/* FOOTER */}
           <div style={{ paddingTop: "40px", borderTop: `1px solid ${S.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
             <div style={{ fontSize: "13px", color: S.dim }}>
-              iGITit API v1.1 · powered by Claude · an <a href="https://omaro-pbc.org" style={{ color: S.amber, textDecoration: "none" }}>OMARO PBC</a> product
+              iGITit API v1.2 · powered by Claude · an <a href="https://omaro-pbc.org" style={{ color: S.amber, textDecoration: "none" }}>OMARO PBC</a> product
             </div>
             <a href="https://omaro.xyz" style={{ fontSize: "13px", color: S.muted, textDecoration: "none", letterSpacing: "0.04em" }}>OMARO</a>
           </div>
