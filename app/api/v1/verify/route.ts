@@ -1,5 +1,11 @@
-import { NextRequest, NextResponse } from "next/server"
-import crypto from "crypto"
+import { NextRequest } from "next/server"
+import { analyzeRepo } from "@/app/lib/analyze"
+import { clientIp, countFresh, mayReadFresh } from "@/app/lib/limits"
+import { fail, failFrom, ok, preflight } from "@/app/lib/respond"
+import { COVERED, hashRecord } from "@/app/lib/seal"
+import { getReading, putReading } from "@/app/lib/store"
+
+const VERIFY_BASE = "https://omaro.xyz/igitit/verify"
 
 const PINATA_JWT = process.env.PINATA_JWT
 
@@ -8,19 +14,7 @@ const PINATA_JWT = process.env.PINATA_JWT
 // Same input always produces same hash
 // ─────────────────────────────────────────────
 
-function canonicalize(obj: unknown): string {
-  if (obj === null || typeof obj !== "object") return JSON.stringify(obj)
-  if (Array.isArray(obj)) return "[" + obj.map(canonicalize).join(",") + "]"
-  const sorted = Object.keys(obj as Record<string, unknown>)
-    .sort()
-    .map(k => JSON.stringify(k) + ":" + canonicalize((obj as Record<string, unknown>)[k]))
-    .join(",")
-  return "{" + sorted + "}"
-}
 
-function sha256(data: string): string {
-  return crypto.createHash("sha256").update(data, "utf8").digest("hex")
-}
 
 async function pinToIPFS(content: object, name: string): Promise<{ cid: string; size: number }> {
   if (!PINATA_JWT) throw new Error("PINATA_JWT environment variable not set")
@@ -37,7 +31,7 @@ async function pinToIPFS(content: object, name: string): Promise<{ cid: string; 
         name,
         keyvalues: {
           product: "igitit",
-          version: "1.0",
+          version: "1.1",
         },
       },
       pinataOptions: { cidVersion: 1 },
@@ -53,73 +47,50 @@ async function pinToIPFS(content: object, name: string): Promise<{ cid: string; 
   return { cid: data.IpfsHash, size: data.PinSize ?? 0 }
 }
 
+/**
+ * POST /igitit/api/v1/verify  { "repo": "<repository address>" }
+ * Seals the server's own reading of that repository (never text a caller sends) and pins it to IPFS.
+ * The same reading is pinned once; asking again returns the same record.
+ */
 export async function POST(req: NextRequest) {
+  const ip = clientIp(req.headers)
   try {
-    const { analysis, meta, url, includeFullSource, files } = await req.json()
+    const body = await req.json().catch(() => ({}))
+    const raw = typeof body.repo === "string" ? body.repo.trim() : ""
+    if (!raw) return fail(400, "missing_parameter", "Required: { \"repo\": \"github.com/owner/repository\" }")
+    const url = raw.includes("://") ? raw : raw.split("/").length === 2 ? `https://github.com/${raw}` : `https://${raw}`
+    const result = await analyzeRepo(url, mayReadFresh(ip))
+    if (!result.stored) countFresh(ip)
+    const meta = result.meta as Record<string, unknown>
+    const commit = String(meta.commit ?? result.stored?.commit ?? "")
+    const readingKey = `${String(meta.platform ?? "GitHub").toLowerCase()}:${String(meta.owner).toLowerCase()}/${String(meta.repo).toLowerCase()}@${commit}`
 
-    if (!analysis || !meta) {
-      return NextResponse.json({ error: "analysis and meta required" }, { status: 400 })
-    }
+    const already = await getReading<{ cid: string; hash: string; sealedAt: string }>("verify", readingKey)
+    if (already) return ok(ip, { ...already.result, verifyUrl: `${VERIFY_BASE}/${already.result.cid}`, ipfsUrl: `ipfs://${already.result.cid}`, existing: true })
 
-    const timestamp = new Date().toISOString()
-
-    // Build the canonical verification document
-    const verificationDoc = {
-      schema: "igitit-verification/1.0",
+    const doc: Record<string, unknown> = {
+      schema: "igitit-verification/1.1",
       product: "iGITit",
       organization: "OMARO PBC",
-      generatedAt: timestamp,
       repository: {
-        owner: meta.owner,
-        repo: meta.repo,
-        platform: meta.platform ?? "GitHub",
-        language: meta.language,
-        stars: meta.stars,
-        fileCount: meta.fileCount,
-        license: meta.license ?? null,
-        description: meta.description ?? null,
-        sourceUrl: url ?? `https://github.com/${meta.owner}/${meta.repo}`,
+        owner: meta.owner, repo: meta.repo, platform: meta.platform ?? "GitHub", language: meta.language ?? null,
+        license: meta.license ?? null, description: meta.description ?? null, sourceUrl: url,
       },
-      analysis: {
-        overview: analysis.overview,
-        dataItems: analysis.dataItems,
-        dataFlowSummary: analysis.dataFlowSummary,
-        modules: analysis.modules,
-        score: analysis.score,
-        overallVerdict: analysis.overallVerdict,
-      },
-      verification: {
-        method: "SHA-256",
-        note: "Hash computed over canonical JSON of the analysis object only (not this wrapper document)",
-        hash: "", // filled below
-      },
-      disclaimer: "AI-GENERATED ANALYSIS — This record preserves what was analyzed and what conclusions were reached, not that those conclusions are definitively correct. May contain errors. Always verify with primary sources. Not legal or compliance advice. Generated by iGITit, an OMARO PBC product.",
-      ...(includeFullSource && files ? { sourceFiles: files } : {}),
+      commit,
+      readAt: result.stored?.readAt ?? new Date().toISOString(),
+      analysis: result.analysis,
+      disclaimer: "AI-written analysis. This record preserves what was read and what was concluded, at one commit; conclusions may contain errors. Check primary sources. Not legal or compliance advice. iGITit, OMARO PBC.",
     }
-
-    // Hash only the analysis content — reproducible by anyone
-    const analysisCanonical = canonicalize(verificationDoc.analysis)
-    const hash = sha256(analysisCanonical)
-    verificationDoc.verification.hash = hash
-
-    // Pin to IPFS
+    const hash = hashRecord(doc)
+    doc.verification = { method: "SHA-256 over canonical JSON (keys sorted, no spaces, missing values dropped)", covers: COVERED, hash }
+    const sealedAt = new Date().toISOString()
     const repoSlug = `${meta.owner}-${meta.repo}`.toLowerCase().replace(/[^a-z0-9-]/g, "-")
-    const pinName = `igitit-${repoSlug}-${timestamp.slice(0, 10)}`
-    const { cid, size } = await pinToIPFS(verificationDoc, pinName)
-
-    return NextResponse.json({
-      ok: true,
-      cid,
-      hash,
-      timestamp,
-      size,
-      gatewayUrl: `https://gateway.pinata.cloud/ipfs/${cid}`,
-      verifyUrl: `${req.nextUrl.origin}/verify/${cid}`,
-      ipfsUrl: `ipfs://${cid}`,
-    })
-
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error"
-    return NextResponse.json({ error: message }, { status: 500 })
+    const { cid, size } = await pinToIPFS(doc, `igitit-${repoSlug}-${commit.slice(0, 7)}`)
+    await putReading("verify", readingKey, null, commit, "seal", { cid, hash, sealedAt, size }, 0)
+    return ok(ip, { cid, hash, sealedAt, size, verifyUrl: `${VERIFY_BASE}/${cid}`, ipfsUrl: `ipfs://${cid}`, existing: false })
+  } catch (e) {
+    return failFrom(e)
   }
 }
+
+export const OPTIONS = preflight

@@ -1,8 +1,18 @@
+import { checkRecord } from "@/app/lib/seal"
+
+const PILLAR: Record<string, string> = {
+  I: "Integrity & Transparency", A: "Accountability", S: "Safety & Robustness", E: "Equality & Non-Discrimination",
+  C: "Human Override & Control", U: "Use Limits & Proportionality", E2: "Data Ownership & Empowerment",
+  R: "Resilience & Dependency Prevention", D: "Human Dignity",
+}
+
 interface VerificationDoc {
   schema: string
   product: string
   organization: string
-  generatedAt: string
+  generatedAt?: string
+  readAt?: string
+  commit?: string
   repository: {
     owner: string
     repo: string
@@ -19,13 +29,14 @@ interface VerificationDoc {
     dataItems: { type: "collect" | "store" | "send"; label: string; description: string; sourceLine?: string }[]
     dataFlowSummary: string
     modules: { name: string; path: string; description: string; sourceSnippet?: string }[]
-    score: { label: string; verdictLabel: string; pass: boolean; reasoning?: string }[]
+    score?: { label: string; verdictLabel: string; pass: boolean; reasoning?: string }[]
+    rescue?: Record<string, { score: number; finding: string }>
     overallVerdict: string
   }
   verification: {
     method: string
     hash: string
-    note: string
+    note?: string
   }
 }
 
@@ -155,6 +166,15 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
         <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(76,175,125,0.6)", marginBottom: "16px" }}>
           VERIFIED SNAPSHOT · AI-GENERATED ANALYSIS
         </div>
+        {(() => {
+          // Recomputed from the pinned copy every time this page is opened.
+          const check = checkRecord(doc as unknown as Record<string, unknown>)
+          return (
+            <div style={{ marginBottom: "16px", padding: "10px 14px", border: `1px solid ${check.matches ? "rgba(76,175,125,0.5)" : "rgba(224,92,92,0.6)"}`, borderRadius: "6px", fontSize: "13px", color: check.matches ? "#4CAF7D" : "#E05C5C" }}>
+              {check.matches ? `Hash matches: recomputed from this record just now, covering ${check.covers}.` : `Hash doesn't match: this record differs from what was sealed (covering ${check.covers}).`}
+            </div>
+          )
+        })()}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "16px" }}>
           <div>
             <div style={{ fontSize: "11px", color: S.dim, marginBottom: "6px", letterSpacing: "0.08em" }}>IPFS CID</div>
@@ -168,7 +188,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px", paddingTop: "16px", borderTop: `1px solid rgba(76,175,125,0.1)` }}>
           <div>
             <div style={{ fontSize: "11px", color: S.dim, marginBottom: "6px", letterSpacing: "0.08em" }}>PINNED AT</div>
-            <div style={{ fontSize: "12px", color: S.muted }}>{new Date(doc.generatedAt).toUTCString()}</div>
+            <div style={{ fontSize: "12px", color: S.muted }}>{new Date(doc.readAt ?? doc.generatedAt ?? Date.now()).toUTCString()}</div>
           </div>
           <div>
             <div style={{ fontSize: "11px", color: S.dim, marginBottom: "6px", letterSpacing: "0.08em" }}>HASH METHOD</div>
@@ -282,11 +302,23 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
       </div>
 
       {/* ACCOUNTABILITY SCORE */}
-      <div style={{ marginBottom: "8px", fontSize: "11px", letterSpacing: "0.12em", color: S.dim }}>ACCOUNTABILITY SCORE</div>
+      <div style={{ marginBottom: "8px", fontSize: "11px", letterSpacing: "0.12em", color: S.dim }}>HAI SCORE · 9 PILLARS</div>
       <Card>
-        {sectionLabel(`ACCOUNTABILITY SCORE · ${repo.owner}/${repo.repo}`)}
+        {sectionLabel(`HAI SCORE · ${repo.owner}/${repo.repo}`)}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {analysis.score.map((dim, i) => (
+          {analysis.rescue && Object.entries(analysis.rescue).map(([k, v]) => (
+            <div key={k}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "7px" }}>
+                <span style={{ fontSize: "15px", color: S.muted, fontWeight: 300 }}>{PILLAR[k] ?? k}</span>
+                <span style={{ fontSize: "13px", color: scoreColor(v.score >= 3), letterSpacing: "0.04em" }}>{v.score}/5</span>
+              </div>
+              <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", borderRadius: "2px", overflow: "hidden", marginBottom: "7px" }}>
+                <div style={{ height: "100%", width: `${v.score * 20}%`, background: scoreColor(v.score >= 3), borderRadius: "2px" }} />
+              </div>
+              <div style={{ fontSize: "12px", color: S.dim, lineHeight: 1.6, fontStyle: "italic" }}>{v.finding}</div>
+            </div>
+          ))}
+          {!analysis.rescue && (analysis.score ?? []).map((dim, i) => (
             <div key={i}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "7px" }}>
                 <span style={{ fontSize: "15px", color: S.muted, fontWeight: 300 }}>{dim.label}</span>
@@ -313,8 +345,8 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
           {[
             { label: "IPFS CID", value: cid, href: `https://gateway.pinata.cloud/ipfs/${cid}` },
             { label: "IPFS URI", value: `ipfs://${cid}`, href: `https://gateway.pinata.cloud/ipfs/${cid}` },
-            { label: "Verify URL", value: `igitit.xyz/verify/${cid}`, href: undefined },
-            { label: "Pinned", value: new Date(doc.generatedAt).toUTCString(), href: undefined },
+            { label: "Verify URL", value: `omaro.xyz/igitit/verify/${cid}`, href: undefined },
+            { label: "Pinned", value: new Date(doc.readAt ?? doc.generatedAt ?? Date.now()).toUTCString(), href: undefined },
           ].map(item => (
             <div key={item.label}>
               <div style={{ fontSize: "10px", color: S.dim, letterSpacing: "0.08em", marginBottom: "5px" }}>{item.label}</div>
