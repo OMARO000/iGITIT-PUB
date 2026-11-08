@@ -10,7 +10,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "iGITit · open source, open language",
-  description: "Plain-language analysis of any public GitHub or GitLab repository.",
+  description: "Plain-language readings of public code on GitHub, GitLab, Codeberg and Radicle. Part of IRIS by OMARO.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
