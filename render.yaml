@@ -1,4 +1,4 @@
-# Render setup ("Blueprint") for igitit.xyz. Render reads this when the repository is connected.
+# Render setup ("Blueprint") for iGITit (served at omaro.xyz/igitit). Render reads this when the repository is connected.
 services:
   - type: web
     name: igitit
@@ -6,11 +6,11 @@ services:
     # Starter keeps the site awake; the free plan sleeps after 15 idle minutes and wakes slowly.
     plan: starter
     region: oregon
-    # Builds from the "render" branch until igitit.xyz points here; then this becomes main.
+    # Builds from the "render" branch for now; it becomes main once omaro.xyz/igitit points here.
     branch: render
     buildCommand: npm ci && npm run build
     startCommand: npm start
-    healthCheckPath: /docs
+    healthCheckPath: /igitit/docs
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
