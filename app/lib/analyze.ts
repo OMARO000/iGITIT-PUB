@@ -7,6 +7,7 @@
  */
 import { BudgetReached, MODEL, callModel, parseJson } from "./model"
 import { checkChanges } from "./changes"
+import { mlHints, withHuggingFace } from "./ml"
 import { RateLimited } from "./limits"
 import { headCommit, parseRepo, readRepo, repoKey, type RepoRef } from "./repo"
 import { getReading, latestReading, putReading } from "./store"
@@ -30,16 +31,22 @@ You always respond with a valid JSON object matching this exact structure:
   "modules": [
     { "name": "module name", "path": "folder/path/", "description": "plain language explanation — what does this do, why does it exist, what does it touch", "sourceSnippet": "relevant code excerpt if available" }
   ],
-  "rescue": {
-    "R": { "score": 1-5, "finding": "one sentence plain language finding" },
-    "E": { "score": 1-5, "finding": "one sentence plain language finding" },
-    "S": { "score": 1-5, "finding": "one sentence plain language finding" },
-    "C": { "score": 1-5, "finding": "one sentence plain language finding" },
-    "U": { "score": 1-5, "finding": "one sentence plain language finding" },
-    "E2": { "score": 1-5, "finding": "one sentence plain language finding" },
-    "A": { "score": 1-5, "finding": "one sentence plain language finding" },
+  "hai": {
     "I": { "score": 1-5, "finding": "one sentence plain language finding" },
-    "D": { "score": 1-5, "finding": "one sentence plain language finding" }
+    "II": { "score": 1-5, "finding": "..." },
+    "III": { "score": 1-5, "finding": "..." },
+    "IV": { "score": 1-5, "finding": "..." },
+    "V": { "score": 1-5, "finding": "..." },
+    "VI": { "score": 1-5, "finding": "..." },
+    "VII": { "score": 1-5, "finding": "..." },
+    "VIII": { "score": 1-5, "finding": "..." },
+    "IX": { "score": 1-5, "finding": "..." }
+  },
+  "ml": {
+    "detected": true | false,
+    "summary": "one or two sentences: what machine learning or AI the code trains, runs or calls, or 'No machine learning found in the files read.'",
+    "models": [ { "name": "model or service name as written in the code", "use": "what it is used for", "source": "file path", "huggingFace": "owner/model if the code loads a Hugging Face model, otherwise omit" } ],
+    "modelCard": { "present": true | false, "path": "file path of the model card if one exists", "gaps": "what a model card should say that this one leaves out, or what's missing when there is none" }
   },
   "overallVerdict": "2-3 sentence plain language verdict on this codebase's accountability posture",
   "platformContext": "2-3 sentence factual description of the ORGANIZATION behind this repo — not the repo itself. Stick to verifiable public facts only: their industry, known products, business model, and documented scale. No opinions, no speculation, no unverifiable claims. If the org is unknown or small, say so plainly.",
@@ -55,8 +62,18 @@ Rules:
 - Never use technical jargon without immediately explaining it in plain terms
 - dataItems must cover ALL data the software touches — collected, stored, and transmitted
 - modules should explain the 3-6 most important parts of the codebase
-- HAI score rules: I=Integrity & Transparency(docs/disclosures/model cards), A=Accountability(license/audit logs/named responsible parties), S=Safety & Robustness(validation/secrets/failure modes), E=Equality & Non-Discrimination(bias checks/ML fairness, default 3 if no ML), C=Human Override & Control(human oversight/override mechanisms), U=Use Limits & Proportionality(data scope/permissions/consent), E2=Data Ownership & Empowerment(deletion/export/opt-out), R=Resilience & Dependency Prevention(vendor lock-in/fallbacks/unmaintained deps), D=Human Dignity(child safety protections, labor rights of people affected by the software, dignitary harm prevention — age-inappropriate targeting, exploitative patterns; pin at 3 if no user-facing components — pure infrastructure tool with no end-user interaction)
-- All scores grounded in actual code evidence. If no ML detected, E=3 with finding "no ML detected — equality pillar not applicable". If no user-facing components, D=3 with finding "no user-facing components — human dignity pillar pinned at baseline for pure infrastructure tools"
+- HAI score: the nine pillars of the HAI Standard v1.1 (OMARO PBC), read as evidence in code. Score each 1 to 5:
+  I Integrity & Transparency: purpose stated plainly, decisions explainable, limits disclosed, no dark patterns (README, docs, disclosures, model cards).
+  II Accountability Chain: a named, reachable human responsibility (maintainers, CODEOWNERS, security contact, license, governance file).
+  III Safety & Robustness: input checks, how secrets are kept, failure handling, tests, monitoring.
+  IV Equality & Non-Discrimination: bias and fairness checks where the code makes decisions about people or uses ML.
+  V Human Override & Control: a person can review, reverse or switch off what the software decides.
+  VI Use Limits & Proportionality: data collected only for stated purposes, narrow permissions, consent before new uses.
+  VII Data Ownership & Empowerment: people can see, correct, limit, export and delete their data in practice.
+  VIII Independent Audit: evidence of outside review: published audit reports, a security policy, a bug bounty, third-party security scans, reproducible builds.
+  IX Human Dignity Across the Full Stack: protections for children and vulnerable people, no exploitative design, disclosure of human labor and environmental cost where ML is trained.
+- All scores rest on evidence in the files read. If no ML and no decisions about people, IV=3 with finding "no ML or decisions about people found; pillar held at baseline". If no user-facing components, IX=3 with finding "no user-facing components; pillar held at baseline for infrastructure tools".
+- ml: set detected=true only when the files read train, fine-tune, load or call a machine learning model or AI service (for example torch, tensorflow, transformers, sklearn, onnx, .safetensors or .gguf files, calls to AI APIs). List each model by the name the code uses. A model card is a README or MODEL_CARD file with model details (intended use, training data, limits, evaluation).
 - overallVerdict should be honest — flag real gaps, don't just praise
 - platformContext must describe the ORG not the repo — stick strictly to verifiable public facts: company size, business model, known products, public filings, and documented practices. No opinions, no speculation, no characterizations that could not be sourced. For unknown or small orgs, simply note limited public footprint and available facts only.
 - sourceSnippet should be actual code from the files provided, kept under 10 lines
@@ -86,7 +103,7 @@ export interface AnalysisResult {
 /** `allowFresh: false` answers only from the store (the address used its fresh readings for the hour). */
 export async function analyzeRepo(url: string, allowFresh = true): Promise<AnalysisResult> {
   const ref = parseRepo(url)
-  if (!ref) throw new NotARepo("Only GitHub, GitLab, and Radicle URLs are supported")
+  if (!ref) throw new NotARepo("Only GitHub, GitLab, Codeberg and Radicle addresses are supported")
   const repo = repoKey(ref)
   const commit = await headCommit(ref)
   const key = `${repo}@${commit}`
@@ -112,6 +129,7 @@ export async function analyzeRepo(url: string, allowFresh = true): Promise<Analy
     return { ...prev.result, stored: { readAt: prev.readAt, commit: prev.commit, model: prev.model, current: false } }
   }
   const analysis = parseJson<Record<string, unknown>>(answer.text)
+  analysis.ml = await withHuggingFace(analysis.ml as Parameters<typeof withHuggingFace>[0])
   const result = { analysis, meta: { ...prepared.meta, commit: prepared.meta.commit ?? commit } }
   await putReading("analysis", key, repo, String(prepared.meta.commit ?? commit), answer.model, result, answer.costUsd)
   return result
@@ -144,6 +162,10 @@ export async function prepare(ref: RepoRef): Promise<{ meta: Record<string, unkn
     fileContentsStr += entry
   }
   const meta = data.meta as Record<string, unknown>
+  const hints = mlHints(data.filePaths, files)
+  const mlLine = hints.weights.length || hints.libraries.length || hints.huggingFace.length
+    ? `MACHINE LEARNING HINTS (found by fixed rules): weight files ${hints.weights.join(", ") || "none"}; libraries ${hints.libraries.join(", ") || "none"}; Hugging Face models ${hints.huggingFace.join(", ") || "none"}`
+    : "MACHINE LEARNING HINTS (found by fixed rules): none"
   const userMessage = `Analyze this repository and return the JSON analysis.
 
 REPOSITORY: ${meta.owner}/${meta.repo}
@@ -151,6 +173,7 @@ DESCRIPTION: ${meta.description || "No description provided"}
 LANGUAGE: ${meta.language}
 STARS: ${meta.stars}
 FILES ANALYZED: ${data.filePaths.join(", ")}
+${mlLine}
 
 FILE CONTENTS:
 ${fileContentsStr}
