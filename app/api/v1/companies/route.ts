@@ -105,7 +105,10 @@ const GH_HEADERS = () => ({
 async function bySite(siteRaw: string) {
   const site = siteRaw.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0]
   if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(site)) return { site, found: false, message: 'That isn\'t a website address.' }
-  const brand = site.split('.').slice(-2)[0]
+  // Two-part country endings (amazon.co.jp, bbc.co.uk) take the label before them as the brand.
+  const labels = site.split('.')
+  const twoPart = labels.length >= 3 && /^(co|com|org|net|ac|gov|or|ne)$/.test(labels[labels.length - 2]) && labels[labels.length - 1].length === 2
+  const brand = labels[labels.length - (twoPart ? 3 : 2)]
   const candidates = [...new Set([COMPANY_MAP[brand], brand, brand.replace(/-/g, '')].filter(Boolean) as string[])]
   for (const login of candidates) {
     const res = await fetch(`https://api.github.com/orgs/${encodeURIComponent(login)}`, { headers: GH_HEADERS(), next: { revalidate: 3600 } })
