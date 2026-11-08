@@ -1,0 +1,57 @@
+# Render setup ("Blueprint") for igitit.xyz. Render reads this when the repository is connected.
+services:
+  - type: web
+    name: igitit
+    runtime: node
+    # Starter keeps the site awake; the free plan sleeps after 15 idle minutes and wakes slowly.
+    plan: starter
+    region: oregon
+    # Builds from the "render" branch until igitit.xyz points here; then this becomes main.
+    branch: render
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /docs
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # The model and the most it may spend in a day (US dollars, resets at midnight UTC).
+      - key: IGITIT_MODEL
+        value: claude-sonnet-5-5
+      - key: IGITIT_DAILY_BUDGET_USD
+        value: "5"
+      # Typed in Render's dashboard (sync: false keeps them out of this file).
+      - key: MODEL_API_KEY
+        sync: false
+      - key: IGITIT_DATABASE_URL
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITLAB_TOKEN
+        sync: false
+      - key: PINATA_JWT
+        sync: false
+
+  # Nightly pre-reads (scripts/preread.ts): popular repositories read ahead at half price, within the daily cap.
+  - type: cron
+    name: igitit-prereads
+    runtime: node
+    plan: starter
+    region: oregon
+    branch: render
+    schedule: "17 7 * * *"
+    buildCommand: npm ci
+    startCommand: npm run preread
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: IGITIT_MODEL
+        fromService: { type: web, name: igitit, envVarKey: IGITIT_MODEL }
+      - key: IGITIT_DAILY_BUDGET_USD
+        fromService: { type: web, name: igitit, envVarKey: IGITIT_DAILY_BUDGET_USD }
+      - key: MODEL_API_KEY
+        fromService: { type: web, name: igitit, envVarKey: MODEL_API_KEY }
+      - key: IGITIT_DATABASE_URL
+        fromService: { type: web, name: igitit, envVarKey: IGITIT_DATABASE_URL }
+      - key: GITHUB_TOKEN
+        fromService: { type: web, name: igitit, envVarKey: GITHUB_TOKEN }
