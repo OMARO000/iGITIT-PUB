@@ -215,7 +215,7 @@ function RepoColumn({ analysis, activeTab, side }: { analysis: Analysis; activeT
       { key: "E", label: "Equality & Non-Discrimination" },
       { key: "C", label: "Human Override & Control" },
       { key: "U", label: "Use Limits & Proportionality" },
-      { key: "E2", label: "Data Sovereignty & Empowerment" },
+      { key: "E2", label: "Data Ownership & Empowerment" },
       { key: "R", label: "Resilience & Dependency Prevention" },
       { key: "D", label: "Human Dignity" },
     ]
@@ -999,7 +999,7 @@ export default function IGititPage() {
 
   const PILLAR_NAMES: Record<string, string> = {
     I: "Integrity", A: "Accountability", S: "Safety", E: "Equality",
-    C: "Human Override", U: "Use Limits", E2: "Data Sovereignty", R: "Resilience",
+    C: "Human Override", U: "Use Limits", E2: "Data Ownership", R: "Resilience",
   }
 
   function buildFemResponse(q: string, a: Analysis, aB: Analysis | null, grade: string, hasOmen: boolean): string {
@@ -1914,7 +1914,7 @@ export default function IGititPage() {
               {/* RESCUE FLAGS */}
               <div style={{ marginBottom: "20px" }}>
                 <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(74,158,240,0.5)", marginBottom: "6px" }}>HAI FLAGS · LOWEST SCORING PILLARS ≤2</div>
-                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", lineHeight: 1.55, marginBottom: "10px" }}>The HAI Standard is OMARO's governance framework for honorable AI. Pillars scored 1–5 across integrity, accountability, safety, equality, human override, use limits, data sovereignty, and independent audit.</div>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.25)", lineHeight: 1.55, marginBottom: "10px" }}>The HAI Standard is OMARO's governance framework for honorable AI. Pillars scored 1–5 across integrity, accountability, safety, equality, human override, use limits, data ownership, and independent audit.</div>
                 {analysisA.rescue && (() => {
                   const pillars = Object.entries(analysisA.rescue) as [string, {score: number; finding: string}][]
                   const flagged = pillars.filter(([, val]) => val.score <= 2).sort((a, b) => a[1].score - b[1].score).slice(0, 3)
@@ -1924,7 +1924,7 @@ export default function IGititPage() {
                   return flagged.map(([key, val]) => (
                     <div key={key} style={{ marginBottom: "12px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
-                        <span style={{ color: "rgba(255,255,255,0.6)" }}>[{key}] {({'I':'Integrity & Transparency','A':'Accountability & Privacy','S':'Safety & Robustness','E':'Equality & Non-Discrimination','C':'Human Override & Control','U':'Use Limits & Proportionality','E2':'Data Sovereignty & Empowerment','R':'Resilience & Dependency Prevention'} as Record<string,string>)[key]}</span>
+                        <span style={{ color: "rgba(255,255,255,0.6)" }}>[{key}] {({'I':'Integrity & Transparency','A':'Accountability & Privacy','S':'Safety & Robustness','E':'Equality & Non-Discrimination','C':'Human Override & Control','U':'Use Limits & Proportionality','E2':'Data Ownership & Empowerment','R':'Resilience & Dependency Prevention'} as Record<string,string>)[key]}</span>
                         <span style={{ color: val.score >= 4 ? "#4CAF7D" : val.score >= 3 ? "#4A9EF0" : val.score >= 2 ? "#F0A04A" : "#E05C5C" }}>{val.score}/5</span>
                       </div>
                       <div style={{ height: "2px", background: "rgba(255,255,255,0.06)", borderRadius: "1px", marginBottom: "5px" }}>
