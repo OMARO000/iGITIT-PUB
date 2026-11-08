@@ -1,11 +1,13 @@
 /**
  * One analysis of a repository, shared by the website, the public API and IRIS. Order of work, cheapest first:
  *  1. the stored reading for this exact commit (free, shared by everyone);
- *  2. a fresh reading, only if today's budget allows (model.ts);
- *  3. when the budget is used up, the newest stored reading of the repository, marked with its commit and date.
+ *  2. the newest stored reading carried forward, when no file that could change it was touched since (changes.ts);
+ *  3. a fresh reading, only if today's budget allows (model.ts);
+ *  4. when the budget is used up, the newest stored reading of the repository, marked with its commit and date.
  */
 import { BudgetReached, MODEL, callModel, parseJson } from "./model"
-import { headCommit, parseRepo, readRepo, repoKey } from "./repo"
+import { checkChanges } from "./changes"
+import { headCommit, parseRepo, readRepo, repoKey, type RepoRef } from "./repo"
 import { getReading, latestReading, putReading } from "./store"
 
 export const SYSTEM_PROMPT = `You are iGITit, a plain-language code analysis engine. Your job is to analyze a software repository and explain what it does to non-technical readers — journalists, regulators, researchers, and the general public.
@@ -77,7 +79,7 @@ export interface AnalysisResult {
   analysis: Record<string, unknown>
   meta: Record<string, unknown>
   /** Present when this came from the store: when and at which commit it was read, and by which model. */
-  stored?: { readAt: string; commit: string | null; model: string; current: boolean }
+  stored?: { readAt: string; commit: string | null; model: string; current: boolean; carriedFrom?: string; why?: string }
 }
 
 export async function analyzeRepo(url: string): Promise<AnalysisResult> {
@@ -90,6 +92,42 @@ export async function analyzeRepo(url: string): Promise<AnalysisResult> {
   const hit = await getReading<{ analysis: Record<string, unknown>; meta: Record<string, unknown> }>("analysis", key)
   if (hit) return { ...hit.result, stored: { readAt: hit.readAt, commit: hit.commit, model: hit.model, current: true } }
 
+  const prev = await latestReading<Reading>("analysis", repo)
+  const carried = await carryForward(ref, key, repo, commit, prev)
+  if (carried) return carried
+
+  const prepared = await prepare(ref)
+  let answer
+  try {
+    answer = await callModel("analysis", SYSTEM_PROMPT, prepared.userMessage, 4000)
+  } catch (e) {
+    if (!(e instanceof BudgetReached)) throw e
+    if (!prev) throw e
+    return { ...prev.result, stored: { readAt: prev.readAt, commit: prev.commit, model: prev.model, current: false } }
+  }
+  const analysis = parseJson<Record<string, unknown>>(answer.text)
+  const result = { analysis, meta: { ...prepared.meta, commit: prepared.meta.commit ?? commit } }
+  await putReading("analysis", key, repo, String(prepared.meta.commit ?? commit), answer.model, result, answer.costUsd)
+  return result
+}
+
+type Reading = { analysis: Record<string, unknown>; meta: Record<string, unknown> }
+
+/**
+ * A newer commit that touched nothing a reading depends on: the last reading is carried forward and stored under
+ * the new commit, at no cost. Returns null when the repository needs reading again.
+ */
+export async function carryForward(ref: RepoRef, key: string, repo: string, commit: string, prev: Awaited<ReturnType<typeof latestReading<Reading>>>): Promise<AnalysisResult | null> {
+  if (!prev?.commit) return null
+  const check = await checkChanges(ref, prev.commit, commit, prev.readAt)
+  if (check.flagged) return null
+  const carried = { ...prev.result, meta: { ...prev.result.meta, commit, readCommit: prev.result.meta.readCommit ?? prev.commit } }
+  await putReading("analysis", key, repo, commit, prev.model, carried, 0)
+  return { ...carried, stored: { readAt: prev.readAt, commit, model: prev.model, current: true, carriedFrom: prev.commit, why: check.reason } }
+}
+
+/** Reads the repository and builds the model's message. Shared with the nightly pre-reads. */
+export async function prepare(ref: RepoRef): Promise<{ meta: Record<string, unknown>; userMessage: string }> {
   const data = await readRepo(ref)
   const files = data.files as Record<string, string>
   if (!Object.keys(files).length) throw new NotARepo("No readable files in this repository")
@@ -112,20 +150,7 @@ FILE CONTENTS:
 ${fileContentsStr}
 
 Return the complete JSON analysis now.`
-
-  let answer
-  try {
-    answer = await callModel("analysis", SYSTEM_PROMPT, userMessage, 4000)
-  } catch (e) {
-    if (!(e instanceof BudgetReached)) throw e
-    const latest = await latestReading<{ analysis: Record<string, unknown>; meta: Record<string, unknown> }>("analysis", repo)
-    if (!latest) throw e
-    return { ...latest.result, stored: { readAt: latest.readAt, commit: latest.commit, model: latest.model, current: false } }
-  }
-  const analysis = parseJson<Record<string, unknown>>(answer.text)
-  const result = { analysis, meta: { ...meta, commit: meta.commit ?? commit } }
-  await putReading("analysis", key, repo, String(meta.commit ?? commit), answer.model, result, answer.costUsd)
-  return result
+  return { meta, userMessage }
 }
 
 export { MODEL }
