@@ -6,7 +6,7 @@ import { fail, failFrom, ok, preflight } from "@/app/lib/respond"
 
 const asUrl = (raw: string) => raw.includes("://") ? raw : raw.split("/").length === 2 ? `https://github.com/${raw}` : `https://${raw}`
 
-/** GET /igitit/api/v1/compare?a=<repository>&b=<repository>: the two analyses side by side, written in plain language. */
+/** GET /iris/code/api/v1/compare?a=<repository>&b=<repository>: the two analyses side by side, written in plain language. */
 export async function GET(req: NextRequest) {
   const ip = clientIp(req.headers)
   const a = req.nextUrl.searchParams.get("a")?.trim(), b = req.nextUrl.searchParams.get("b")?.trim()

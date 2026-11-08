@@ -5,7 +5,7 @@ import { clientIp, countFresh, mayReadFresh } from "@/app/lib/limits"
 import { fail, failFrom, ok, preflight } from "@/app/lib/respond"
 
 /**
- * GET /igitit/api/v1/analyze?repo=<GitHub, GitLab or Radicle address>
+ * GET /iris/code/api/v1/analyze?repo=<GitHub, GitLab or Radicle address>
  * The full analysis: overview, data the code collects, stores and sends, data flow, modules, the HAI Standard's 9 pillars, machine learning and model cards,
  * dark patterns, license, platform context and verdict. From the store when that commit (or an unchanged later one)
  * was read; otherwise a fresh reading, which counts against this address's 10 an hour.

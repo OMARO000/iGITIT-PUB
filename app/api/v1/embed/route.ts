@@ -1,3 +1,4 @@
+import { BASE } from "@/app/lib/address"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(req: NextRequest) {
@@ -5,11 +6,11 @@ export async function GET(req: NextRequest) {
   const repoParam = searchParams.get("repo")
   const theme = searchParams.get("theme") ?? "dark"
   const compact = searchParams.get("compact") === "true"
-  // The public address, whatever host serves this (Render behind omaro.xyz/igitit).
-  const baseUrl = "https://omaro.xyz/igitit"
+  // The public address, whatever host serves this.
+  const baseUrl = BASE
 
   if (!repoParam) {
-    return new NextResponse(`console.error('[iGITit] Missing required parameter: repo');`, {
+    return new NextResponse(`console.error('[IRIS] Missing required parameter: repo');`, {
       headers: { "Content-Type": "application/javascript" }
     })
   }
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
 
   function render(data) {
     var container = document.getElementById('igitit-embed');
-    if (!container) { console.error('[iGITit] No element with id="igitit-embed" found'); return; }
+    if (!container) { console.error('[IRIS] No element with id="igitit-embed" found'); return; }
     container.innerHTML = '';
 
     var repo = data.repository;
@@ -170,14 +171,14 @@ export async function GET(req: NextRequest) {
       'display:flex;align-items:center;gap:6px;text-decoration:none;flex-shrink:0;',
       ''
     );
-    badge.href = 'https://omaro.xyz/igitit/docs?ref=embed';
+    badge.href = IGITIT_BASE + '/docs?ref=embed';
     badge.target = '_blank';
     badge.rel = 'noopener noreferrer';
 
     var badgeLabel = el('span', 'font-size:10px;color:' + styles.muted + ';letter-spacing:0.08em;opacity:0.7;');
     badgeLabel.textContent = 'powered by';
     var badgeName = el('span', 'font-size:11px;color:' + styles.amber + ';letter-spacing:0.04em;font-weight:500;');
-    badgeName.textContent = 'iGITit';
+    badgeName.textContent = 'IRIS';
     badge.appendChild(badgeLabel);
     badge.appendChild(badgeName);
     footer.appendChild(badge);
@@ -194,7 +195,7 @@ export async function GET(req: NextRequest) {
       'background:rgba(224,92,92,0.06);border:1px solid rgba(224,92,92,0.2);border-radius:8px;' +
       'padding:16px 20px;font-family:' + styles.font + ';font-size:13px;color:#E05C5C;'
     );
-    wrap.textContent = '[iGITit] ' + msg;
+    wrap.textContent = '[IRIS] ' + msg;
     container.appendChild(wrap);
   }
 

@@ -4,7 +4,7 @@ import { clientIp, countFresh, mayReadFresh } from "@/app/lib/limits"
 import { parseRepo } from "@/app/lib/repo"
 import { fail, failFrom, ok, preflight } from "@/app/lib/respond"
 
-/** GET /igitit/api/v1/changelog?repo=<GitHub, GitLab, Codeberg or Radicle repository>&depth=10: the latest commits in plain language. */
+/** GET /iris/code/api/v1/changelog?repo=<GitHub, GitLab, Codeberg or Radicle repository>&depth=10: the latest commits in plain language. */
 export async function GET(req: NextRequest) {
   const ip = clientIp(req.headers)
   const raw = req.nextUrl.searchParams.get("repo")?.trim()

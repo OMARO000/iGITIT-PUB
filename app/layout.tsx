@@ -9,7 +9,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "iGITit · open source, open language",
+  title: "Read the code · IRIS by OMARO",
   description: "Plain-language readings of public code on GitHub, GitLab, Codeberg and Radicle. Part of IRIS by OMARO.",
 };
 

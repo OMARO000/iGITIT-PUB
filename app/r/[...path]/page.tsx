@@ -1,5 +1,5 @@
 /**
- * Shareable link to a reading: omaro.xyz/igitit/r/<host>/<owner>/<repo>. Shows the newest stored reading of the
+ * Shareable link to a reading: <origin>/iris/code/r/<host>/<owner>/<repo>. Shows the newest stored reading of the
  * repository and never starts a new one, so a shared link costs nothing however often it's opened.
  */
 import type { Metadata } from "next"
@@ -17,7 +17,7 @@ const address = (path: string[]) => path.map(decodeURIComponent).join("/")
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const a = address((await params).path)
-  return { title: `${a} · iGITit reading`, description: `What ${a}'s code does with people's data, in plain language. Read by iGITit, governed by OMARO PBC.` }
+  return { title: `${a} · read by IRIS`, description: `What ${a}'s code does with people's data, in plain language. Read by IRIS, governed by OMARO PBC.` }
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -36,16 +36,16 @@ export default async function SharedReading({ params }: Props) {
   const shell = (body: React.ReactNode) => (
     <main style={{ background: C.bg, color: C.text, minHeight: "100vh", fontFamily: "'IBM Plex Mono', monospace", padding: "40px 20px" }}>
       <div style={{ maxWidth: 820, margin: "0 auto" }}>
-        <div style={{ fontSize: 11, letterSpacing: "0.14em", color: C.dim }}>iGITit · A READING SHARED FROM IRIS BY OMARO</div>
+        <div style={{ fontSize: 11, letterSpacing: "0.14em", color: C.dim }}>READ THE CODE · A READING SHARED FROM IRIS BY OMARO</div>
         {body}
         <p style={{ marginTop: 40, fontSize: 12, color: C.dim }}>
-          Read it yourself with <a href="https://omaro.xyz/iris" style={{ color: C.accent }}>IRIS by OMARO</a>. API and method: <a href="/igitit/docs" style={{ color: C.accent }}>omaro.xyz/igitit/docs</a>. A reading reflects the repository at the commit shown; it isn&apos;t legal or compliance advice.
+          Read it yourself with <a href="https://omaro.xyz/iris" style={{ color: C.accent }}>IRIS by OMARO</a>. API and method: <a href="/iris/code/docs" style={{ color: C.accent }}>the API docs</a>. A reading reflects the repository at the commit shown; it isn&apos;t legal or compliance advice.
         </p>
       </div>
     </main>
   )
   if (!ref) return shell(<p style={{ marginTop: 24 }}>That address isn&apos;t a GitHub, GitLab, Codeberg or Radicle repository.</p>)
-  if (!stored) return shell(<><h1 style={{ fontSize: 24, margin: "16px 0" }}>{a}</h1><p style={{ color: C.muted }}>iGITit hasn&apos;t read this repository yet. Open it in Firefox with IRIS and choose &quot;Read this code with iGITit&quot;.</p></>)
+  if (!stored) return shell(<><h1 style={{ fontSize: 24, margin: "16px 0" }}>{a}</h1><p style={{ color: C.muted }}>IRIS hasn&apos;t read this repository yet. Open it in Firefox with IRIS and choose &quot;Read the code&quot;.</p></>)
 
   const an = stored.result.analysis, m = stored.result.meta
   const hai = haiOf(an), g = haiGrade(hai)
