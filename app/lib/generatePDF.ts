@@ -271,7 +271,7 @@ export async function downloadAnalysisPDF(
     { key: "E", label: "Equality & Non-Discrimination" },
     { key: "C", label: "Human Override & Control" },
     { key: "U", label: "Use Limits & Proportionality" },
-    { key: "E2", label: "Data Sovereignty & Empowerment" },
+    { key: "E2", label: "Data Ownership & Empowerment" },
     { key: "R", label: "Resilience & Dependency Prevention" },
     { key: "D", label: "Human Dignity" },
   ]
