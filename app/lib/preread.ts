@@ -6,6 +6,7 @@
  *     forward when nothing that matters changed, and otherwise queues it;
  *  3. submits the queue as one batch, within today's budget; what doesn't fit waits for the next night.
  */
+import { withHuggingFace } from "./ml"
 import { MODEL, batchResults, customId, parseJson, submitBatch } from "./model"
 import { SYSTEM_PROMPT, carryForward, prepare } from "./analyze"
 import { headCommit, parseRepo, repoKey } from "./repo"
@@ -29,6 +30,7 @@ export async function runPrereads(urls: string[]): Promise<PrereadReport> {
       if (!a?.text) { report.failed++; continue }
       try {
         const analysis = parseJson<Record<string, unknown>>(a.text)
+        analysis.ml = await withHuggingFace(analysis.ml as Parameters<typeof withHuggingFace>[0])
         await putReading("analysis", item.key, item.repo, item.commit, MODEL, { analysis, meta: item.meta }, a.costUsd)
         report.collected++
       } catch { report.failed++ }
