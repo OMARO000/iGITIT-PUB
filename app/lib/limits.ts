@@ -1,3 +1,4 @@
+import { BASE } from "./address"
 /**
  * The public API's limit: 10 fresh readings an hour per address. Stored and carried-forward readings are free
  * and never counted, so IRIS users reading popular repositories aren't held back. In memory, per server.
@@ -36,4 +37,4 @@ export const CORS = {
   "Access-Control-Allow-Headers": "Content-Type",
 }
 
-export const DOCS_URL = "https://omaro.xyz/igitit/docs"
+export const DOCS_URL = `${BASE}/docs`

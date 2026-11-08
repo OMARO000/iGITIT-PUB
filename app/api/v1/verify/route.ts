@@ -1,3 +1,4 @@
+import { BASE } from "@/app/lib/address"
 import { NextRequest } from "next/server"
 import { analyzeRepo } from "@/app/lib/analyze"
 import { clientIp, countFresh, mayReadFresh } from "@/app/lib/limits"
@@ -5,7 +6,7 @@ import { fail, failFrom, ok, preflight } from "@/app/lib/respond"
 import { COVERED, hashRecord } from "@/app/lib/seal"
 import { getReading, putReading } from "@/app/lib/store"
 
-const VERIFY_BASE = "https://omaro.xyz/igitit/verify"
+const VERIFY_BASE = `${BASE}/verify`
 
 const PINATA_JWT = process.env.PINATA_JWT
 
@@ -48,7 +49,7 @@ async function pinToIPFS(content: object, name: string): Promise<{ cid: string; 
 }
 
 /**
- * POST /igitit/api/v1/verify  { "repo": "<repository address>" }
+ * POST /iris/code/api/v1/verify  { "repo": "<repository address>" }
  * Seals the server's own reading of that repository (never text a caller sends) and pins it to IPFS.
  * The same reading is pinned once; asking again returns the same record.
  */
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     const doc: Record<string, unknown> = {
       schema: "igitit-verification/1.1",
-      product: "iGITit",
+      product: "IRIS · Read the code",
       organization: "OMARO PBC",
       repository: {
         owner: meta.owner, repo: meta.repo, platform: meta.platform ?? "GitHub", language: meta.language ?? null,

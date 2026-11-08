@@ -1,5 +1,7 @@
 "use client"
 
+import { BASE } from "@/app/lib/address"
+
 import { useState } from "react"
 import Link from "next/link"
 
@@ -137,11 +139,11 @@ export default function DocsPage() {
 
           {/* OVERVIEW */}
           <Section id="overview" title="Overview">
-            <p>The iGITit API lets you programmatically generate plain-language analysis of any public GitHub, GitLab, Codeberg or Radicle repository. Built for journalists, regulators, researchers, and developers who need to understand what code does without reading it.</p>
-            <p>The API is free for public repositories, with no key. iGITit lives in IRIS by OMARO; this API serves IRIS and anyone building on public code readings.</p>
+            <p>The IRIS code API gives plain-language readings of any public GitHub, GitLab, Codeberg or Radicle repository. Built for journalists, regulators, researchers, and developers who need to understand what code does without reading it.</p>
+            <p>The API is free for public repositories, with no key. It powers "Read the code" in IRIS by OMARO and serves anyone building on public code readings.</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "24px" }}>
               {[
-                { label: "Base URL", value: "omaro.xyz/igitit/api/v1" },
+                { label: "Base URL", value: `${BASE.replace("https://", "")}/api/v1` },
                 { label: "Format", value: "JSON" },
                 { label: "Auth", value: "None (free tier)" },
               ].map(item => (
@@ -156,11 +158,11 @@ export default function DocsPage() {
           {/* QUICKSTART */}
           <Section id="quickstart" title="Quickstart">
             <p>Make a GET request with a repository URL. That&apos;s it.</p>
-            <CodeBlock lang="curl" code={`curl "https://omaro.xyz/igitit/api/v1/analyze?repo=github.com/facebook/react"`} />
+            <CodeBlock lang="curl" code={`curl "${BASE}/api/v1/analyze?repo=github.com/facebook/react"`} />
             <p>Or use the shorthand <span style={{ color: S.amber }}>owner/repo</span> format (defaults to GitHub):</p>
-            <CodeBlock lang="curl" code={`curl "https://omaro.xyz/igitit/api/v1/analyze?repo=facebook/react"`} />
+            <CodeBlock lang="curl" code={`curl "${BASE}/api/v1/analyze?repo=facebook/react"`} />
             <p>GitLab repositories:</p>
-            <CodeBlock lang="curl" code={`curl "https://omaro.xyz/igitit/api/v1/analyze?repo=gitlab.com/owner/repository"`} />
+            <CodeBlock lang="curl" code={`curl "${BASE}/api/v1/analyze?repo=gitlab.com/owner/repository"`} />
           </Section>
 
           {/* ENDPOINT */}
@@ -173,7 +175,7 @@ export default function DocsPage() {
               { m: "GET", path: "/api/v1/companies?q=", desc: "A company's public repositories, found by name." },
               { m: "GET", path: "/api/v1/companies?site=example.com", desc: "A company's public repositories, found from its website. Says so when its code is private or none is published." },
               { m: "PAGE", path: "/r/github.com/owner/repo", desc: "A shareable page with the newest stored reading. Opening it never starts a new reading." },
-              { m: "POST", path: "/api/v1/verify", desc: "Seals iGITit's reading of a repository and pins it to IPFS. Body: { \"repo\": \"github.com/owner/repo\" }." },
+              { m: "POST", path: "/api/v1/verify", desc: "Seals the stored reading of a repository and pins it to IPFS. Body: { \"repo\": \"github.com/owner/repo\" }." },
             ].map((e) => (
               <div key={e.path} style={{ padding: "14px 20px", background: "rgba(255,255,255,0.02)", border: `1px solid ${S.border}`, borderRadius: "6px", marginBottom: "10px" }}>
                 <div style={{ display: "flex", gap: "16px", alignItems: "center", marginBottom: "6px" }}>
@@ -229,7 +231,7 @@ export default function DocsPage() {
 
           {/* EMBED WIDGET */}
           <Section id="embed" title="Embed Widget">
-            <p>Add a live iGITit analysis widget to your documentation, README, or website. The widget fetches and renders the analysis automatically.</p>
+            <p>Add a live code-reading widget to your documentation, README, or website. The widget fetches and renders the analysis automatically.</p>
 
             <h3>Basic embed</h3>
             <p>Add a container element and the script tag anywhere in your HTML:</p>
@@ -237,7 +239,7 @@ export default function DocsPage() {
 <div id="igitit-embed"></div>
 
 <!-- Widget script -->
-<script src="https://omaro.xyz/igitit/api/v1/embed?repo=github.com/your/repo"></script>`} />
+<script src="${BASE}/api/v1/embed?repo=github.com/your/repo"></script>`} />
 
             <h3>Options</h3>
             <div style={{ borderTop: `1px solid ${S.border}`, marginBottom: "20px" }}>
@@ -248,11 +250,11 @@ export default function DocsPage() {
 
             <h3>Light theme</h3>
             <CodeBlock lang="html" code={`<div id="igitit-embed"></div>
-<script src="https://omaro.xyz/igitit/api/v1/embed?repo=facebook/react&theme=light"></script>`} />
+<script src="${BASE}/api/v1/embed?repo=facebook/react&theme=light"></script>`} />
 
             <h3>Compact mode</h3>
             <CodeBlock lang="html" code={`<div id="igitit-embed"></div>
-<script src="https://omaro.xyz/igitit/api/v1/embed?repo=facebook/react&compact=true"></script>`} />
+<script src="${BASE}/api/v1/embed?repo=facebook/react&compact=true"></script>`} />
 
             <h3>In a React/Next.js app</h3>
             <CodeBlock lang="tsx" code={`import Script from 'next/script'
@@ -262,7 +264,7 @@ export default function Page() {
     <>
       <div id="igitit-embed" />
       <Script
-        src="https://omaro.xyz/igitit/api/v1/embed?repo=your/repo"
+        src="${BASE}/api/v1/embed?repo=your/repo"
         strategy="lazyOnload"
       />
     </>
@@ -270,15 +272,15 @@ export default function Page() {
 }`} />
 
             <div style={{ marginTop: "20px", padding: "16px 20px", background: "rgba(196,151,74,0.06)", border: `1px solid rgba(196,151,74,0.2)`, borderRadius: "6px" }}>
-              <div style={{ fontSize: "11px", letterSpacing: "0.1em", color: "rgba(196,151,74,0.6)", marginBottom: "8px" }}>POWERED BY IGITIT</div>
-              <p style={{ marginBottom: 0, fontSize: "13px" }}>Every embed includes a &quot;powered by iGITit&quot; badge linking to omaro.xyz/igitit. Your users, journalists and regulators can check the reading for themselves.</p>
+              <div style={{ fontSize: "11px", letterSpacing: "0.1em", color: "rgba(196,151,74,0.6)", marginBottom: "8px" }}>READ BY IRIS</div>
+              <p style={{ marginBottom: 0, fontSize: "13px" }}>Every embed includes a &quot;read by IRIS&quot; badge linking to these docs. Your users, journalists and regulators can check the reading for themselves.</p>
             </div>
           </Section>
 
           {/* RATE LIMITS */}
           <Section id="rate-limits" title="Rate Limits">
             <p>Stored readings are free and unlimited. A fresh reading (a repository commit nobody has read yet) costs a model call, so each address gets <strong>10 fresh readings an hour</strong>. When they're used up, the API answers from the store and marks older readings <code>current: false</code>.</p>
-            <p>iGITit also has a daily reading budget. When it's used up, new readings resume after midnight UTC; stored readings stay available.</p>
+            <p>The server also has a daily reading budget. When it's used up, new readings resume after midnight UTC; stored readings stay available.</p>
           </Section>
 
           {/* ERRORS */}
@@ -290,14 +292,14 @@ export default function Page() {
               <Param name="503 budget_reached" type="error" desc="Today's reading budget is used up and nothing is stored for this repository yet." />
               <Param name="502 reading_failed" type="error" desc="The repository couldn't be read, or the reading failed." />
             </div>
-            <CodeBlock lang="json" code={`{ "ok": false, "error": "fresh_limit_reached", "message": "…", "docs": "https://omaro.xyz/igitit/docs" }`} />
+            <CodeBlock lang="json" code={`{ "ok": false, "error": "fresh_limit_reached", "message": "…", "docs": "${BASE}/docs" }`} />
           </Section>
 
           {/* EXAMPLES */}
           <Section id="examples" title="Examples">
             <h3>JavaScript (fetch)</h3>
             <CodeBlock lang="javascript" code={`const response = await fetch(
-  'https://omaro.xyz/igitit/api/v1/analyze?repo=github.com/facebook/react'
+  '${BASE}/api/v1/analyze?repo=github.com/facebook/react'
 );
 const data = await response.json();
 
@@ -312,7 +314,7 @@ if (data.ok) {
             <CodeBlock lang="python" code={`import requests
 
 r = requests.get(
-    'https://omaro.xyz/igitit/api/v1/analyze',
+    '${BASE}/api/v1/analyze',
     params={'repo': 'github.com/facebook/react'}
 )
 data = r.json()
@@ -323,7 +325,7 @@ for item in data['analysis']['dataItems']:
             <h3>Node.js</h3>
             <CodeBlock lang="javascript" code={`const https = require('https');
 
-const url = 'https://omaro.xyz/igitit/api/v1/analyze?repo=github.com/torvalds/linux';
+const url = '${BASE}/api/v1/analyze?repo=github.com/torvalds/linux';
 
 https.get(url, (res) => {
   let body = '';
@@ -336,14 +338,14 @@ https.get(url, (res) => {
 });`} />
 
             <h3>Seal a reading</h3>
-            <CodeBlock lang="curl" code={`curl -X POST "https://omaro.xyz/igitit/api/v1/verify" \\
+            <CodeBlock lang="curl" code={`curl -X POST "${BASE}/api/v1/verify" \\
   -H "Content-Type: application/json" \\
   -d '{"repo":"github.com/signalapp/Signal-Android"}'
 
-# { "ok": true, "cid": "bafy…", "hash": "…", "verifyUrl": "https://omaro.xyz/igitit/verify/bafy…", "existing": false }`} />
+# { "ok": true, "cid": "bafy…", "hash": "…", "verifyUrl": "${BASE}/verify/bafy…", "existing": false }`} />
 
             <h3>Check your fresh readings</h3>
-            <CodeBlock lang="curl" code={`curl -I "https://omaro.xyz/igitit/api/v1/analyze?repo=facebook/react"
+            <CodeBlock lang="curl" code={`curl -I "${BASE}/api/v1/analyze?repo=facebook/react"
 
 # X-Fresh-Readings-Remaining: 7
 # X-Fresh-Readings-Reset: 1742601600`} />
@@ -355,7 +357,7 @@ https.get(url, (res) => {
                   "Journalists: programmatically audit dozens of repos in an investigation",
                   "Regulators: batch analyze all software used by regulated entities",
                   "Open source maintainers: embed transparency analysis directly in your docs",
-                  "Compliance teams: integrate iGITit analysis into internal review pipelines",
+                  "Compliance teams: add these readings to internal review pipelines",
                   "Researchers: build datasets of software accountability scores across industries",
                 ].map((item, i) => (
                   <div key={i} style={{ display: "flex", gap: "12px" }}>
@@ -370,7 +372,7 @@ https.get(url, (res) => {
           {/* FOOTER */}
           <div style={{ paddingTop: "40px", borderTop: `1px solid ${S.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
             <div style={{ fontSize: "13px", color: S.dim }}>
-              iGITit API v1.2 · powered by Claude · an <a href="https://omaro-pbc.org" style={{ color: S.amber, textDecoration: "none" }}>OMARO PBC</a> product
+              IRIS code API v1.2 · powered by Claude · an <a href="https://omaro-pbc.org" style={{ color: S.amber, textDecoration: "none" }}>OMARO PBC</a> product
             </div>
             <a href="https://omaro.xyz" style={{ fontSize: "13px", color: S.muted, textDecoration: "none", letterSpacing: "0.04em" }}>OMARO</a>
           </div>
