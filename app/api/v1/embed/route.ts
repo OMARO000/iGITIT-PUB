@@ -119,31 +119,34 @@ export async function GET(req: NextRequest) {
         wrap.appendChild(section);
       }
 
-      // SCORE BARS
-      if (analysis.score && analysis.score.length) {
+      // HAI SCORE: the 9 pillars, each 1 to 5
+      var NAMES = { I: 'Integrity & Transparency', A: 'Accountability', S: 'Safety & Robustness', E: 'Equality & Non-Discrimination', C: 'Human Override & Control', U: 'Use Limits & Proportionality', E2: 'Data Ownership & Empowerment', R: 'Resilience & Dependency Prevention', D: 'Human Dignity' };
+      var rescue = analysis.rescue || {};
+      var keys = Object.keys(NAMES).filter(function(k) { return rescue[k] && typeof rescue[k].score === 'number'; });
+      if (keys.length) {
+        var total = keys.reduce(function(n, k) { return n + rescue[k].score; }, 0);
         var scoreSection = el('div', 'padding:20px;border-bottom:1px solid ' + styles.border + ';');
         var sTitle = el('div', 'font-size:10px;letter-spacing:0.12em;color:' + styles.muted + ';margin-bottom:14px;');
-        sTitle.textContent = 'ACCOUNTABILITY SCORE';
+        sTitle.textContent = 'HAI SCORE · ' + total + ' / ' + (keys.length * 5);
         scoreSection.appendChild(sTitle);
-
-        analysis.score.slice(0, 4).forEach(function(dim) {
-          var row = el('div', 'margin-bottom:12px;');
+        keys.forEach(function(k) {
+          var sc = rescue[k].score;
+          var good = sc >= 4;
+          var row = el('div', 'margin-bottom:10px;');
           var rowTop = el('div', 'display:flex;justify-content:space-between;margin-bottom:5px;');
           var dimLabel = el('span', 'font-size:12px;color:' + styles.muted + ';font-weight:300;');
-          dimLabel.textContent = dim.label;
-          var dimVerdict = el('span', 'font-size:11px;color:' + scoreColor(dim.pass) + ';letter-spacing:0.04em;');
-          dimVerdict.textContent = dim.verdictLabel;
+          dimLabel.textContent = NAMES[k];
+          var dimVerdict = el('span', 'font-size:11px;color:' + scoreColor(good) + ';');
+          dimVerdict.textContent = sc + ' / 5';
           rowTop.appendChild(dimLabel);
           rowTop.appendChild(dimVerdict);
           row.appendChild(rowTop);
-
           var track = el('div', 'height:2px;background:rgba(128,128,128,0.15);border-radius:2px;overflow:hidden;');
-          var fill = el('div', 'height:100%;width:' + (dim.pass ? '85' : '20') + '%;background:' + scoreColor(dim.pass) + ';border-radius:2px;');
+          var fill = el('div', 'height:100%;width:' + (sc * 20) + '%;background:' + scoreColor(good) + ';border-radius:2px;');
           track.appendChild(fill);
           row.appendChild(track);
           scoreSection.appendChild(row);
         });
-
         wrap.appendChild(scoreSection);
       }
     }
@@ -163,7 +166,7 @@ export async function GET(req: NextRequest) {
       'display:flex;align-items:center;gap:6px;text-decoration:none;flex-shrink:0;',
       ''
     );
-    badge.href = 'https://igitit.xyz?ref=embed';
+    badge.href = 'https://omaro.xyz/igitit/docs?ref=embed';
     badge.target = '_blank';
     badge.rel = 'noopener noreferrer';
 
