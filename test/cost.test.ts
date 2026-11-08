@@ -39,13 +39,18 @@ run("the daily cap and the shared store (real Postgres)", () => {
         }
       },
     }))
+    // The new commit touched sign-in code, so it needs a fresh reading (no carrying forward).
+    vi.stubGlobal("fetch", async (url: string) => {
+      if (String(url).includes("/compare/")) return new Response(JSON.stringify({ status: "ahead", files: [{ filename: "src/auth/login.ts" }] }))
+      throw new Error(`unexpected fetch ${url}`)
+    })
     vi.doMock("@/app/lib/repo", async (orig) => ({
       ...(await orig<typeof import("@/app/lib/repo")>()),
       headCommit: async () => head,
       readRepo: async () => ({ meta: { owner: "acme", repo: "counter", description: "", language: "TS", stars: 1, platform: "GitHub", commit: head }, files: { "index.ts": "export const n = 1" }, filePaths: ["index.ts"] }),
     }))
   })
-  afterAll(() => { vi.unstubAllEnvs() })
+  afterAll(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals() })
 
   async function fresh() {
     const { db } = await import("@/app/lib/store")
