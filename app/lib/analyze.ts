@@ -7,6 +7,7 @@
  */
 import { BudgetReached, MODEL, callModel, parseJson } from "./model"
 import { checkChanges } from "./changes"
+import { RateLimited } from "./limits"
 import { headCommit, parseRepo, readRepo, repoKey, type RepoRef } from "./repo"
 import { getReading, latestReading, putReading } from "./store"
 
@@ -82,7 +83,8 @@ export interface AnalysisResult {
   stored?: { readAt: string; commit: string | null; model: string; current: boolean; carriedFrom?: string; why?: string }
 }
 
-export async function analyzeRepo(url: string): Promise<AnalysisResult> {
+/** `allowFresh: false` answers only from the store (the address used its fresh readings for the hour). */
+export async function analyzeRepo(url: string, allowFresh = true): Promise<AnalysisResult> {
   const ref = parseRepo(url)
   if (!ref) throw new NotARepo("Only GitHub, GitLab, and Radicle URLs are supported")
   const repo = repoKey(ref)
@@ -96,6 +98,10 @@ export async function analyzeRepo(url: string): Promise<AnalysisResult> {
   const carried = await carryForward(ref, key, repo, commit, prev)
   if (carried) return carried
 
+  if (!allowFresh) {
+    if (prev) return { ...prev.result, stored: { readAt: prev.readAt, commit: prev.commit, model: prev.model, current: false } }
+    throw new RateLimited()
+  }
   const prepared = await prepare(ref)
   let answer
   try {
