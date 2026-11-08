@@ -75,7 +75,7 @@ function ResponseField({ name, type, desc }: { name: string; type: string; desc:
 const NAV = [
   { id: "overview", label: "Overview" },
   { id: "quickstart", label: "Quickstart" },
-  { id: "endpoint", label: "API Endpoint" },
+  { id: "endpoint", label: "API Endpoints" },
   { id: "response", label: "Response Schema" },
   { id: "embed", label: "Embed Widget" },
   { id: "rate-limits", label: "Rate Limits" },
@@ -111,7 +111,7 @@ export default function DocsPage() {
         </div>
         <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
           <span style={{ fontSize: "12px", padding: "4px 10px", border: `1px solid ${S.green}`, borderRadius: "4px", color: S.green, letterSpacing: "0.06em" }}>v1.0</span>
-          <Link href="/" style={{ fontSize: "13px", color: S.muted, letterSpacing: "0.06em", textDecoration: "none" }}>← back to analyzer</Link>
+          <a href="https://omaro.xyz" style={{ fontSize: "13px", color: S.muted, letterSpacing: "0.06em", textDecoration: "none" }}>OMARO</a>
         </div>
       </div>
 
@@ -127,7 +127,7 @@ export default function DocsPage() {
           ))}
           <div style={{ marginTop: "40px", paddingTop: "24px", borderTop: `1px solid ${S.border}` }}>
             <div style={{ fontSize: "10px", letterSpacing: "0.12em", color: S.dim, marginBottom: "12px" }}>OMARO PBC</div>
-            <a href="https://igitit.xyz" style={{ display: "block", fontSize: "12px", color: S.dim, textDecoration: "none", marginBottom: "8px" }}>igitit.xyz</a>
+            <a href="https://omaro.xyz" style={{ display: "block", fontSize: "12px", color: S.dim, textDecoration: "none", marginBottom: "8px" }}>omaro.xyz</a>
             <a href="https://omaro-pbc.org" style={{ display: "block", fontSize: "12px", color: S.dim, textDecoration: "none" }}>omaro-pbc.org</a>
           </div>
         </div>
@@ -137,11 +137,11 @@ export default function DocsPage() {
 
           {/* OVERVIEW */}
           <Section id="overview" title="Overview">
-            <p>The iGITit API lets you programmatically generate plain-language analysis of any public GitHub or GitLab repository. Built for journalists, regulators, researchers, and developers who need to understand what code actually does — without reading it.</p>
-            <p>The API is free for public repositories. No API key required. Rate limited by IP.</p>
+            <p>The iGITit API lets you programmatically generate plain-language analysis of any public GitHub, GitLab or Radicle repository. Built for journalists, regulators, researchers, and developers who need to understand what code does without reading it.</p>
+            <p>The API is free for public repositories, with no key. iGITit lives in IRIS by OMARO; this API serves IRIS and anyone building on public code readings.</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "24px" }}>
               {[
-                { label: "Base URL", value: "igitit.xyz/api/v1" },
+                { label: "Base URL", value: "omaro.xyz/igitit/api/v1" },
                 { label: "Format", value: "JSON" },
                 { label: "Auth", value: "None (free tier)" },
               ].map(item => (
@@ -156,35 +156,43 @@ export default function DocsPage() {
           {/* QUICKSTART */}
           <Section id="quickstart" title="Quickstart">
             <p>Make a GET request with a repository URL. That&apos;s it.</p>
-            <CodeBlock lang="curl" code={`curl "https://igitit.xyz/api/v1/analyze?repo=github.com/facebook/react"`} />
+            <CodeBlock lang="curl" code={`curl "https://omaro.xyz/igitit/api/v1/analyze?repo=github.com/facebook/react"`} />
             <p>Or use the shorthand <span style={{ color: S.amber }}>owner/repo</span> format (defaults to GitHub):</p>
-            <CodeBlock lang="curl" code={`curl "https://igitit.xyz/api/v1/analyze?repo=facebook/react"`} />
+            <CodeBlock lang="curl" code={`curl "https://omaro.xyz/igitit/api/v1/analyze?repo=facebook/react"`} />
             <p>GitLab repositories:</p>
-            <CodeBlock lang="curl" code={`curl "https://igitit.xyz/api/v1/analyze?repo=gitlab.com/owner/repository"`} />
+            <CodeBlock lang="curl" code={`curl "https://omaro.xyz/igitit/api/v1/analyze?repo=gitlab.com/owner/repository"`} />
           </Section>
 
           {/* ENDPOINT */}
-          <Section id="endpoint" title="API Endpoint">
-            <div style={{ padding: "16px 20px", background: "rgba(255,255,255,0.02)", border: `1px solid ${S.border}`, borderRadius: "6px", marginBottom: "24px", display: "flex", gap: "16px", alignItems: "center" }}>
-              <span style={{ fontSize: "12px", padding: "3px 10px", background: "rgba(76,175,125,0.15)", border: `1px solid ${S.green}`, borderRadius: "4px", color: S.green }}>GET</span>
-              <span style={{ fontSize: "14px", color: S.text }}>/api/v1/analyze</span>
-            </div>
+          <Section id="endpoint" title="API Endpoints">
+            <p>Every endpoint takes public repository addresses only and answers in JSON. Readings are stored by repository and commit, so most answers come from the store at no cost.</p>
+            {[
+              { m: "GET", path: "/api/v1/analyze?repo=", desc: "The full analysis of one repository (GitHub, GitLab or Radicle)." },
+              { m: "GET", path: "/api/v1/compare?a=&b=", desc: "Two repositories side by side, in plain language." },
+              { m: "GET", path: "/api/v1/changelog?repo=&depth=10", desc: "The latest commits (up to 25), each routine, notable or flagged." },
+              { m: "GET", path: "/api/v1/companies?q=", desc: "A company's public repositories, found by name." },
+              { m: "POST", path: "/api/v1/verify", desc: "Seals iGITit's reading of a repository and pins it to IPFS. Body: { \"repo\": \"github.com/owner/repo\" }." },
+            ].map((e) => (
+              <div key={e.path} style={{ padding: "14px 20px", background: "rgba(255,255,255,0.02)", border: `1px solid ${S.border}`, borderRadius: "6px", marginBottom: "10px" }}>
+                <div style={{ display: "flex", gap: "16px", alignItems: "center", marginBottom: "6px" }}>
+                  <span style={{ fontSize: "12px", padding: "3px 10px", background: "rgba(76,175,125,0.15)", border: `1px solid ${S.green}`, borderRadius: "4px", color: S.green }}>{e.m}</span>
+                  <span style={{ fontSize: "14px", color: S.text }}>{e.path}</span>
+                </div>
+                <div style={{ fontSize: "13px", color: S.dim }}>{e.desc}</div>
+              </div>
+            ))}
 
             <h3>Parameters</h3>
             <div style={{ borderTop: `1px solid ${S.border}` }}>
-              <Param name="repo" type="string" required desc="Repository URL or owner/repo shorthand. Supports github.com and gitlab.com. Full URL or shorthand both work." />
-            </div>
-
-            <h3>Headers</h3>
-            <div style={{ borderTop: `1px solid ${S.border}` }}>
-              <Param name="Accept" type="string" desc="application/json (default)" />
+              <Param name="repo, a, b" type="string" required desc="A repository address or owner/repo shorthand (GitHub). github.com, gitlab.com and app.radicle.xyz are supported." />
+              <Param name="depth" type="integer" desc="Changelog only: how many recent commits to explain, 1 to 25 (default 10)." />
+              <Param name="q" type="string" required desc="Companies only: a company or product name." />
             </div>
 
             <h3>Response Headers</h3>
             <div style={{ borderTop: `1px solid ${S.border}` }}>
-              <Param name="X-RateLimit-Limit" type="integer" desc="Maximum requests per hour for this IP" />
-              <Param name="X-RateLimit-Remaining" type="integer" desc="Requests remaining in current window" />
-              <Param name="X-RateLimit-Reset" type="timestamp" desc="Unix timestamp when the rate limit window resets" />
+              <Param name="X-Fresh-Readings-Remaining" type="integer" desc="Fresh readings left for this address this hour" />
+              <Param name="X-Fresh-Readings-Reset" type="timestamp" desc="Unix time when the count resets" />
             </div>
           </Section>
 
@@ -192,71 +200,26 @@ export default function DocsPage() {
           <Section id="response" title="Response Schema">
             <CodeBlock lang="json" code={`{
   "ok": true,
-  "version": "1.0",
-  "generatedAt": "2026-03-22T00:00:00.000Z",
-  "repository": {
-    "owner": "facebook",
-    "repo": "react",
-    "platform": "github",
-    "language": "JavaScript",
-    "stars": 244000,
-    "fileCount": 6838,
-    "license": "MIT License",
-    "description": "The library for building user interfaces"
-  },
+  "version": "1.1",
+  "repository": { "owner": "signalapp", "repo": "Signal-Android", "platform": "GitHub", "language": "Kotlin", "stars": 26000, "license": "AGPL-3.0", "commit": "3f2a…" },
+  "commit": "3f2a…",
+  "readAt": "2026-11-08T07:17:00.000Z",
+  "stored": { "readAt": "…", "commit": "3f2a…", "current": true, "carriedFrom": "9c1e…", "why": "4 changed files, none about data, sign-in, tracking, dependencies or privacy" },
   "analysis": {
-    "overview": [
-      { "title": "WHAT THIS SOFTWARE DOES", "content": "..." },
-      { "title": "WHO IT SERVES", "content": "..." },
-      { "title": "WHY IT WAS BUILT", "content": "..." },
-      { "title": "LICENSE & USAGE RIGHTS", "content": "..." },
-      { "title": "TECHNICAL ARCHITECTURE", "content": "..." }
-    ],
-    "dataItems": [
-      {
-        "type": "collect" | "store" | "send",
-        "label": "Short label",
-        "description": "Plain English explanation",
-        "sourceLine": "path/to/file.ts - relevant context"
-      }
-    ],
-    "dataFlowSummary": "Plain language data flow summary",
-    "modules": [
-      {
-        "name": "Module Name",
-        "path": "src/module/",
-        "description": "Plain language explanation",
-        "sourceSnippet": "relevant code excerpt"
-      }
-    ],
-    "score": [
-      {
-        "label": "data minimization",
-        "verdictLabel": "transparent",
-        "pass": true,
-        "reasoning": "Evidence-based explanation"
-      }
-    ],
-    "overallVerdict": "Plain language overall assessment"
-  },
-  "meta": {
-    "poweredBy": "iGITit",
-    "generatedBy": "Claude (Anthropic)",
-    "product": "OMARO PBC",
-    "docsUrl": "https://igitit.xyz/docs",
-    "embedUrl": "https://igitit.xyz/api/v1/embed?repo=..."
+    "overview": [{ "title": "WHAT THIS SOFTWARE DOES", "content": "…" }],
+    "dataItems": [{ "type": "collect", "label": "Phone number", "description": "…", "sourceLine": "…" }],
+    "dataFlowSummary": "…",
+    "modules": [{ "name": "…", "path": "…", "description": "…", "sourceSnippet": "…" }],
+    "rescue": { "I": { "score": 4, "finding": "…" }, "A": { "score": 3, "finding": "…" } },
+    "uxEthics": { "patterns": [{ "slug": "pre-checked-consent", "severity": "high", "evidence": "…" }], "summary": "…" },
+    "platformContext": "…",
+    "overallVerdict": "…"
   }
 }`} />
-
-            <h3>Field Reference</h3>
-            <div style={{ borderTop: `1px solid ${S.border}` }}>
-              <ResponseField name="repository.owner" type="string" desc="Repository owner or organization name" />
-              <ResponseField name="repository.license" type="string | null" desc="License name if detected, null if not found" />
-              <ResponseField name="analysis.dataItems[].type" type="enum" desc='"collect" | "store" | "send" — categorizes how data is handled' />
-              <ResponseField name="analysis.score[].pass" type="boolean" desc="Whether this dimension meets the transparency standard" />
-              <ResponseField name="analysis.score[].reasoning" type="string" desc="Evidence-based 1-sentence explanation of the verdict" />
-              <ResponseField name="meta.embedUrl" type="string" desc="Pre-built URL to embed this analysis as a widget" />
-            </div>
+            <h3>Stored readings</h3>
+            <p><code>stored</code> is present when the answer came from the store: <code>current</code> is true when it covers the repository's current commit, either read at it or carried forward because nothing that could change the reading was touched since (<code>why</code> says what changed). <code>current: false</code> means an older reading, shown because today's reading budget or this address's fresh readings are used up.</p>
+            <h3>HAI score</h3>
+            <p><code>rescue</code> holds the 9 HAI pillars, each 1 to 5: I Integrity &amp; Transparency, A Accountability, S Safety &amp; Robustness, E Equality &amp; Non-Discrimination, C Human Override &amp; Control, U Use Limits &amp; Proportionality, E2 Data Ownership &amp; Empowerment, R Resilience &amp; Dependency Prevention, D Human Dignity. Out of 45: A at 41 or more, B 34, C 27, D 18, F below.</p>
           </Section>
 
           {/* EMBED WIDGET */}
@@ -269,22 +232,22 @@ export default function DocsPage() {
 <div id="igitit-embed"></div>
 
 <!-- Widget script -->
-<script src="https://igitit.xyz/api/v1/embed?repo=github.com/your/repo"></script>`} />
+<script src="https://omaro.xyz/igitit/api/v1/embed?repo=github.com/your/repo"></script>`} />
 
             <h3>Options</h3>
             <div style={{ borderTop: `1px solid ${S.border}`, marginBottom: "20px" }}>
               <Param name="repo" type="string" required desc="Repository URL or owner/repo shorthand" />
-              <Param name="theme" type="string" desc='"dark" (default) or "light" — matches your site background' />
+              <Param name="theme" type="string" desc='"dark" (default) or "light", to match your site' />
               <Param name="compact" type="boolean" desc='"true" renders a minimal badge-style widget with just the score. Default: false' />
             </div>
 
             <h3>Light theme</h3>
             <CodeBlock lang="html" code={`<div id="igitit-embed"></div>
-<script src="https://igitit.xyz/api/v1/embed?repo=facebook/react&theme=light"></script>`} />
+<script src="https://omaro.xyz/igitit/api/v1/embed?repo=facebook/react&theme=light"></script>`} />
 
             <h3>Compact mode</h3>
             <CodeBlock lang="html" code={`<div id="igitit-embed"></div>
-<script src="https://igitit.xyz/api/v1/embed?repo=facebook/react&compact=true"></script>`} />
+<script src="https://omaro.xyz/igitit/api/v1/embed?repo=facebook/react&compact=true"></script>`} />
 
             <h3>In a React/Next.js app</h3>
             <CodeBlock lang="tsx" code={`import Script from 'next/script'
@@ -294,7 +257,7 @@ export default function Page() {
     <>
       <div id="igitit-embed" />
       <Script
-        src="https://igitit.xyz/api/v1/embed?repo=your/repo"
+        src="https://omaro.xyz/igitit/api/v1/embed?repo=your/repo"
         strategy="lazyOnload"
       />
     </>
@@ -303,76 +266,48 @@ export default function Page() {
 
             <div style={{ marginTop: "20px", padding: "16px 20px", background: "rgba(196,151,74,0.06)", border: `1px solid rgba(196,151,74,0.2)`, borderRadius: "6px" }}>
               <div style={{ fontSize: "11px", letterSpacing: "0.1em", color: "rgba(196,151,74,0.6)", marginBottom: "8px" }}>POWERED BY IGITIT</div>
-              <p style={{ marginBottom: 0, fontSize: "13px" }}>Every embed includes a &quot;powered by iGITit&quot; badge linking to igitit.xyz. This is how iGITit spreads — when your transparency is visible, you build trust with users, journalists, and regulators who can verify it.</p>
+              <p style={{ marginBottom: 0, fontSize: "13px" }}>Every embed includes a &quot;powered by iGITit&quot; badge linking to omaro.xyz/igitit. Your users, journalists and regulators can check the reading for themselves.</p>
             </div>
           </Section>
 
           {/* RATE LIMITS */}
           <Section id="rate-limits" title="Rate Limits">
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
-              {[
-                { tier: "Free (current)", limit: "10 requests / hour", auth: "None", repos: "Public only" },
-                { tier: "API (coming soon)", limit: "500 requests / hour", auth: "API key", repos: "Public + private" },
-              ].map(t => (
-                <div key={t.tier} style={{ padding: "20px", background: "rgba(255,255,255,0.02)", border: `1px solid ${S.border}`, borderRadius: "6px" }}>
-                  <div style={{ fontSize: "11px", letterSpacing: "0.1em", color: S.dim, marginBottom: "12px" }}>{t.tier.toUpperCase()}</div>
-                  <div style={{ fontSize: "16px", color: S.amber, marginBottom: "12px" }}>{t.limit}</div>
-                  <div style={{ fontSize: "12px", color: S.muted }}>Auth: {t.auth}</div>
-                  <div style={{ fontSize: "12px", color: S.muted }}>Repos: {t.repos}</div>
-                </div>
-              ))}
-            </div>
-            <p>Rate limit headers are returned with every response. When you exceed the limit, you&apos;ll receive a <span style={{ color: S.red }}>429</span> response with a <span style={{ color: S.amber }}>resetAt</span> timestamp.</p>
-            <p>Embed widgets share the same rate limit as direct API calls. Cache responses client-side when possible — analyses are valid for the duration of the <span style={{ color: S.amber }}>Cache-Control: max-age=3600</span> header.</p>
+            <p>Stored readings are free and unlimited. A fresh reading (a repository commit nobody has read yet) costs a model call, so each address gets <strong>10 fresh readings an hour</strong>. When they're used up, the API answers from the store and marks older readings <code>current: false</code>.</p>
+            <p>iGITit also has a daily reading budget. When it's used up, new readings resume after midnight UTC; stored readings stay available.</p>
           </Section>
 
           {/* ERRORS */}
           <Section id="errors" title="Error Codes">
             <div style={{ borderTop: `1px solid ${S.border}` }}>
-              {[
-                { code: "400", error: "missing_parameter", desc: "Required parameter repo is missing" },
-                { code: "400", error: "invalid_repo", desc: "Repository URL could not be parsed" },
-                { code: "429", error: "rate_limit_exceeded", desc: "IP has exceeded the hourly request limit" },
-                { code: "502", error: "fetch_failed", desc: "Could not fetch the repository from GitHub/GitLab" },
-                { code: "502", error: "analysis_failed", desc: "Claude analysis step failed" },
-                { code: "500", error: "internal_error", desc: "Unexpected server error" },
-              ].map(e => (
-                <div key={e.error} style={{ padding: "14px 0", borderBottom: `1px solid ${S.border}`, display: "grid", gridTemplateColumns: "60px 200px 1fr", gap: "16px", alignItems: "start" }}>
-                  <span style={{ fontSize: "13px", color: parseInt(e.code) >= 500 ? S.red : parseInt(e.code) >= 400 ? S.amber : S.green }}>{e.code}</span>
-                  <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", fontFamily: S.font }}>{e.error}</span>
-                  <span style={{ fontSize: "13px", color: S.muted, fontWeight: 300 }}>{e.desc}</span>
-                </div>
-              ))}
+              <Param name="400 missing_parameter" type="error" desc="A required parameter is missing." />
+              <Param name="400 invalid_repo" type="error" desc="The address isn't a GitHub, GitLab or Radicle repository, or has no readable files." />
+              <Param name="429 fresh_limit_reached" type="error" desc="This address used its fresh readings for the hour and nothing is stored for this repository yet." />
+              <Param name="503 budget_reached" type="error" desc="Today's reading budget is used up and nothing is stored for this repository yet." />
+              <Param name="502 reading_failed" type="error" desc="The repository couldn't be read, or the reading failed." />
             </div>
-            <h3>Error response format</h3>
-            <CodeBlock lang="json" code={`{
-  "error": "rate_limit_exceeded",
-  "message": "Free tier: 10 requests per hour. Rate limit resets at 2026-03-22T01:00:00.000Z.",
-  "resetAt": "2026-03-22T01:00:00.000Z",
-  "docs": "https://igitit.xyz/docs"
-}`} />
+            <CodeBlock lang="json" code={`{ "ok": false, "error": "fresh_limit_reached", "message": "…", "docs": "https://omaro.xyz/igitit/docs" }`} />
           </Section>
 
           {/* EXAMPLES */}
           <Section id="examples" title="Examples">
             <h3>JavaScript (fetch)</h3>
             <CodeBlock lang="javascript" code={`const response = await fetch(
-  'https://igitit.xyz/api/v1/analyze?repo=github.com/facebook/react'
+  'https://omaro.xyz/igitit/api/v1/analyze?repo=github.com/facebook/react'
 );
 const data = await response.json();
 
 if (data.ok) {
   console.log(data.analysis.overallVerdict);
-  data.analysis.score.forEach(dim => {
-    console.log(dim.label, dim.pass ? '✓' : '✗', dim.verdictLabel);
-  });
+  for (const [pillar, { score, finding }] of Object.entries(data.analysis.rescue)) {
+    console.log(pillar, score + '/5', finding);
+  }
 }`} />
 
             <h3>Python</h3>
             <CodeBlock lang="python" code={`import requests
 
 r = requests.get(
-    'https://igitit.xyz/api/v1/analyze',
+    'https://omaro.xyz/igitit/api/v1/analyze',
     params={'repo': 'github.com/facebook/react'}
 )
 data = r.json()
@@ -383,7 +318,7 @@ for item in data['analysis']['dataItems']:
             <h3>Node.js</h3>
             <CodeBlock lang="javascript" code={`const https = require('https');
 
-const url = 'https://igitit.xyz/api/v1/analyze?repo=github.com/torvalds/linux';
+const url = 'https://omaro.xyz/igitit/api/v1/analyze?repo=github.com/torvalds/linux';
 
 https.get(url, (res) => {
   let body = '';
@@ -395,23 +330,28 @@ https.get(url, (res) => {
   });
 });`} />
 
-            <h3>Check rate limit status</h3>
-            <CodeBlock lang="curl" code={`curl -I "https://igitit.xyz/api/v1/analyze?repo=facebook/react"
+            <h3>Seal a reading</h3>
+            <CodeBlock lang="curl" code={`curl -X POST "https://omaro.xyz/igitit/api/v1/verify" \\
+  -H "Content-Type: application/json" \\
+  -d '{"repo":"github.com/signalapp/Signal-Android"}'
 
-# Response headers:
-# X-RateLimit-Limit: 10
-# X-RateLimit-Remaining: 7
-# X-RateLimit-Reset: 1742601600`} />
+# { "ok": true, "cid": "bafy…", "hash": "…", "verifyUrl": "https://omaro.xyz/igitit/verify/bafy…", "existing": false }`} />
+
+            <h3>Check your fresh readings</h3>
+            <CodeBlock lang="curl" code={`curl -I "https://omaro.xyz/igitit/api/v1/analyze?repo=facebook/react"
+
+# X-Fresh-Readings-Remaining: 7
+# X-Fresh-Readings-Reset: 1742601600`} />
 
             <div style={{ marginTop: "40px", padding: "24px 28px", background: "rgba(255,255,255,0.02)", border: `1px solid ${S.border}`, borderRadius: "8px" }}>
               <div style={{ fontSize: "11px", letterSpacing: "0.1em", color: S.dim, marginBottom: "12px" }}>USE CASES</div>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {[
-                  "Journalists — programmatically audit dozens of repos in an investigation",
-                  "Regulators — batch analyze all software used by regulated entities",
-                  "Open source maintainers — embed transparency analysis directly in your docs",
-                  "Compliance teams — integrate iGITit analysis into internal review pipelines",
-                  "Researchers — build datasets of software accountability scores across industries",
+                  "Journalists: programmatically audit dozens of repos in an investigation",
+                  "Regulators: batch analyze all software used by regulated entities",
+                  "Open source maintainers: embed transparency analysis directly in your docs",
+                  "Compliance teams: integrate iGITit analysis into internal review pipelines",
+                  "Researchers: build datasets of software accountability scores across industries",
                 ].map((item, i) => (
                   <div key={i} style={{ display: "flex", gap: "12px" }}>
                     <span style={{ color: S.amber, flexShrink: 0 }}>→</span>
@@ -425,9 +365,9 @@ https.get(url, (res) => {
           {/* FOOTER */}
           <div style={{ paddingTop: "40px", borderTop: `1px solid ${S.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
             <div style={{ fontSize: "13px", color: S.dim }}>
-              iGITit API v1.0 · powered by Claude · an <a href="https://omaro-pbc.org" style={{ color: S.amber, textDecoration: "none" }}>OMARO PBC</a> product
+              iGITit API v1.1 · powered by Claude · an <a href="https://omaro-pbc.org" style={{ color: S.amber, textDecoration: "none" }}>OMARO PBC</a> product
             </div>
-            <Link href="/" style={{ fontSize: "13px", color: S.muted, textDecoration: "none", letterSpacing: "0.04em" }}>← back to analyzer</Link>
+            <a href="https://omaro.xyz" style={{ fontSize: "13px", color: S.muted, textDecoration: "none", letterSpacing: "0.04em" }}>OMARO</a>
           </div>
         </div>
       </div>
