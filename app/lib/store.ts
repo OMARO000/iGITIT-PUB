@@ -11,7 +11,13 @@ let ready: Promise<void> | null = null
 export function db(): Sql | null {
   if (sql !== undefined) return sql
   const url = process.env.IGITIT_DATABASE_URL
-  sql = url ? postgres(url, { prepare: false, max: 4, idle_timeout: 30, onnotice: () => {} }) : null
+  try {
+    sql = url ? postgres(url, { prepare: false, max: 4, idle_timeout: 30, onnotice: () => {} }) : null
+  } catch {
+    // A connection string the driver can't parse must never stop a reading: run without storage and say why in the log.
+    console.error("IGITIT_DATABASE_URL isn't a valid connection string. Readings won't be stored until it's fixed.")
+    sql = null
+  }
   return sql
 }
 
