@@ -20,7 +20,8 @@ export function failFrom(e: unknown): NextResponse {
   if (e instanceof RateLimited) return fail(429, "fresh_limit_reached", e.message)
   if (e instanceof BudgetReached) return fail(503, "budget_reached", e.message)
   if (e instanceof NotARepo) return fail(400, "invalid_repo", e.message)
-  return fail(502, "reading_failed", e instanceof Error ? e.message : "Reading failed")
+  console.error("reading failed:", e instanceof Error ? e.message : e)
+  return fail(502, "reading_failed", "IRIS's code server couldn't read this repository just now. Try again later.")
 }
 
 export const preflight = () => new NextResponse(null, { status: 204, headers: CORS })
