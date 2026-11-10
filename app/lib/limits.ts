@@ -26,8 +26,18 @@ export function remaining(ip: string): { remaining: number; resetAt: number } {
   return { remaining: Math.max(0, FRESH_PER_HOUR - e.count), resetAt: e.resetAt }
 }
 
+/**
+ * The address a request came from, as Render's edge (Cloudflare) saw it. True-Client-IP and CF-Connecting-IP
+ * are set by the edge and can't be forged by the sender; the first X-Forwarded-For entry can, since Render
+ * appends to that header without clearing it. Null when neither trusted header is there (local runs).
+ */
+export function trustedClientIp(headers: Headers): string | null {
+  return headers.get("true-client-ip")?.trim() || headers.get("cf-connecting-ip")?.trim() || null
+}
+
+/** The key for the hourly limit. Falls back to the last X-Forwarded-For entry (added by Render's proxy). */
 export function clientIp(headers: Headers): string {
-  return headers.get("x-forwarded-for")?.split(",")[0]?.trim() || headers.get("x-real-ip") || "unknown"
+  return trustedClientIp(headers) || headers.get("x-forwarded-for")?.split(",").pop()?.trim() || headers.get("x-real-ip") || "unknown"
 }
 
 /** Every API answer may be read from any site or extension: the API holds only public information. */

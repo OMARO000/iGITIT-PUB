@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# address-ownership tables, fetched at build (scripts/ip2asn.mjs)
+/data/ip2asn/
