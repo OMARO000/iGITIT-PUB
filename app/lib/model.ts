@@ -38,6 +38,17 @@ export class BudgetReached extends Error {
   constructor() { super("Today's reading budget is used up. Stored readings are still available; new ones resume after midnight UTC.") }
 }
 
+/** The model account can't take calls (no credit left, key revoked). Handled like a spent budget: stored readings still answer. */
+export class ModelUnavailable extends BudgetReached {
+  constructor() { super(); this.message = "Reading new code is paused on OMARO's side. Stored readings are still available." }
+}
+/** True for errors that mean the account itself can't be used, as opposed to one call failing. */
+export function accountProblem(e: unknown): boolean {
+  const status = (e as { status?: number })?.status
+  const text = e instanceof Error ? e.message : String(e)
+  return status === 401 || status === 403 || /credit balance is too low|authentication_error|permission_error/i.test(text)
+}
+
 let client: Anthropic | null = null
 export function anthropic(): Anthropic {
   const apiKey = process.env.MODEL_API_KEY
@@ -68,6 +79,9 @@ export async function callModel(kind: string, system: string, user: string, maxT
     actual = costUsd(MODEL, u.input_tokens, u.output_tokens) + (cacheRead * inPrice * 0.1 + cacheWrite * inPrice * 1.25) / 1_000_000
     const text = response.content.filter((b) => b.type === "text").map((b) => (b as { text: string }).text).join("")
     return { text, model: MODEL, costUsd: actual }
+  } catch (e) {
+    if (accountProblem(e)) { console.error("model account unavailable:", e instanceof Error ? e.message : e); throw new ModelUnavailable() }
+    throw e
   } finally {
     await settle(id, estimate, actual)
   }
