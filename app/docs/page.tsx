@@ -176,6 +176,7 @@ export default function DocsPage() {
               { m: "GET", path: "/api/v1/companies?site=example.com", desc: "A company's public repositories, found from its website. Says so when its code is private or none is published." },
               { m: "PAGE", path: "/r/github.com/owner/repo", desc: "A shareable page with the newest stored reading. Opening it never starts a new reading." },
               { m: "GET", path: "/api/v1/status", desc: "Whether the server can read new code right now: its database, its model account, and today's spending against the daily cap." },
+              { m: "GET", path: "/api/v1/net-owner", desc: "The address your request came from and the network that owns it (number, name, country), for IRIS's Check from outside. Looked up in IPtoASN's public-domain tables on this server; the address is never logged or stored." },
               { m: "POST", path: "/api/v1/verify", desc: "Seals the stored reading of a repository and pins it to IPFS. Body: { \"repo\": \"github.com/owner/repo\" }." },
             ].map((e) => (
               <div key={e.path} style={{ padding: "14px 20px", background: "rgba(255,255,255,0.02)", border: `1px solid ${S.border}`, borderRadius: "6px", marginBottom: "10px" }}>
