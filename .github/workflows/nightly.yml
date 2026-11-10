@@ -1,0 +1,53 @@
+# Nightly checks: tests and a build of the code server, then a call to the live server's status
+# (database, model account, today's spending). A failed run emails the repository's owner through GitHub.
+name: Nightly
+
+on:
+  schedule:
+    - cron: "23 6 * * *"   # 06:23 UTC, before the nightly pre-reads at 07:17
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: render
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npm run build
+
+  live:
+    runs-on: ubuntu-latest
+    env:
+      # The server's address lives here and in render.yaml's NEXT_PUBLIC_ORIGIN; switch both when omaro.org is live.
+      STATUS_URL: https://igitit-4bty.onrender.com/iris/code/api/v1/status
+    steps:
+      - name: Check the live code server
+        run: |
+          code=$(curl -sS -o status.json -w '%{http_code}' --max-time 60 "$STATUS_URL" || echo 000)
+          echo "HTTP $code"
+          cat status.json 2>/dev/null || true
+          echo
+          if [ "$code" = "000" ]; then echo "::error::The code server didn't answer."; exit 1; fi
+          model=$(jq -r '.model // "unknown"' status.json 2>/dev/null)
+          database=$(jq -r '.database // "unknown"' status.json 2>/dev/null)
+          [ "$model" = "paused" ] && echo "::error::The model account can't take calls (most likely no credit left). Add credit at platform.claude.com."
+          [ "$model" = "no_key" ] && echo "::error::MODEL_API_KEY is missing on Render."
+          [ "$database" = "error" ] && echo "::error::The database doesn't connect. Check IGITIT_DATABASE_URL on Render."
+          [ "$code" = "200" ]
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-status
+          path: status.json
+          if-no-files-found: ignore
