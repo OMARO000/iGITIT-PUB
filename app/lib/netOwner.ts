@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { isIP } from "node:net"
 import { join } from "node:path"
 import { gunzipSync } from "node:zlib"
@@ -65,20 +65,54 @@ function countryName(cc: string): string | null {
   try { return countries.of(cc) ?? cc } catch { return cc }
 }
 
-let tables: { 4: Table | null; 6: Table | null } | null = null
-function load(family: 4 | 6): Table | null {
+type Tables = { 4: Table | null; 6: Table | null }
+let tables: Tables | null = null
+let loadedAt = 0
+let loading: Promise<Tables> | null = null
+const FILES = { 4: "ip2asn-v4-u32.tsv.gz", 6: "ip2asn-v6.tsv.gz" } as const
+const WEEK = 7 * 24 * 60 * 60 * 1000
+
+function dir(): string {
   // Fetched at build into <repository>/data/ip2asn (scripts/ip2asn.mjs); the server starts in the repository.
-  const dir = process.env.IP2ASN_DIR || join(/* turbopackIgnore: true */ process.cwd(), "data", "ip2asn")
-  const path = join(/* turbopackIgnore: true */ dir, family === 4 ? "ip2asn-v4-u32.tsv.gz" : "ip2asn-v6.tsv.gz")
-  if (!existsSync(path)) return null
-  try { return parseTable(gunzipSync(readFileSync(path)).toString("utf8"), family) } catch { return null }
+  return process.env.IP2ASN_DIR || join(/* turbopackIgnore: true */ process.cwd(), "data", "ip2asn")
 }
 
-export function lookup(address: string, given?: { 4: Table | null; 6: Table | null }): Owner {
+/** One table: from disk when the build fetched it, otherwise downloaded once from IPtoASN (no address sent). */
+async function loadOne(family: 4 | 6): Promise<Table | null> {
+  const path = join(/* turbopackIgnore: true */ dir(), FILES[family])
+  try {
+    let gz: Buffer
+    if (existsSync(path) && Date.now() - statSync(path).mtimeMs < WEEK) gz = readFileSync(path)
+    else {
+      const r = await fetch(`https://iptoasn.com/data/${FILES[family]}`, { signal: AbortSignal.timeout(60_000) })
+      if (!r.ok) throw new Error(`HTTP ${r.status}`)
+      gz = Buffer.from(await r.arrayBuffer())
+      try { mkdirSync(dir(), { recursive: true }); writeFileSync(path, gz) } catch { /* kept in memory only */ }
+    }
+    return parseTable(gunzipSync(gz).toString("utf8"), family)
+  } catch (e) {
+    console.warn(`net-owner: table ${FILES[family]} unavailable (${(e as Error).message})`)
+    return null
+  }
+}
+
+/** Loads both tables once, refreshing weekly; concurrent callers share one load. */
+export function ensureTables(): Promise<Tables> {
+  if (tables && Date.now() - loadedAt < WEEK) return Promise.resolve(tables)
+  loading ??= Promise.all([loadOne(4), loadOne(6)]).then(([v4, v6]) => {
+    loading = null
+    if (v4 || v6) { tables = { 4: v4, 6: v6 }; loadedAt = Date.now() }
+    return tables ?? { 4: null, 6: null }
+  })
+  return loading
+}
+
+export function lookup(address: string, given?: Tables): Owner {
   const fam = isIP(address)
   const none: Owner = { address, owner: null, asn: null, country: null }
   if (fam !== 4 && fam !== 6) return none
-  const t = given ?? (tables ??= { 4: load(4), 6: load(6) })
+  const t = given ?? tables
+  if (!t) return none
   const table = t[fam]
   if (!table) return none
   const i = find(table, fam === 4 ? v4num(address) : v6key(address))

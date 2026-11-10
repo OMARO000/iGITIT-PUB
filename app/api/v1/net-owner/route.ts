@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { CORS, trustedClientIp } from "@/app/lib/limits"
-import { lookup } from "@/app/lib/netOwner"
+import { ensureTables, lookup } from "@/app/lib/netOwner"
 
 export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
@@ -14,6 +14,8 @@ export const runtime = "nodejs"
 export async function GET(req: Request) {
   const ip = trustedClientIp(req.headers)
   if (!ip) return NextResponse.json({ error: "IRIS couldn't see the address this request came from." }, { status: 503, headers: { ...CORS, "cache-control": "no-store" } })
+  // The tables load once (from the build, or downloaded once); a slow first load answers without an owner.
+  await Promise.race([ensureTables(), new Promise((r) => setTimeout(r, 15_000))])
   return NextResponse.json(lookup(ip), { headers: { ...CORS, "cache-control": "no-store", "referrer-policy": "no-referrer" } })
 }
 
