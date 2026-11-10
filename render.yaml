@@ -8,7 +8,8 @@ services:
     region: oregon
     # Builds from the "render" branch for now; it becomes main once the address is settled.
     branch: render
-    buildCommand: npm ci && npm run build
+    # ip2asn fetches the address-ownership tables for /iris/net/owner (public domain); a failed fetch never fails the build.
+    buildCommand: npm ci && node scripts/ip2asn.mjs && npm run build
     startCommand: npm start
     healthCheckPath: /iris/code/docs
     autoDeploy: true
