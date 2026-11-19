@@ -5,7 +5,7 @@
  *  3. a fresh reading, only if today's budget allows (model.ts);
  *  4. when the budget is used up, the newest stored reading of the repository, marked with its commit and date.
  */
-import { BudgetReached, MODEL, callModel, parseJson } from "./model"
+import { BudgetReached, MODEL, callModelJson } from "./model"
 import { checkChanges } from "./changes"
 import { mlHints, withHuggingFace } from "./ml"
 import { RateLimited } from "./limits"
@@ -87,9 +87,12 @@ Rules:
   · misleading-buttons: UI elements that appear to dismiss or cancel but trigger a different or irreversible action
   · cookie-walls: access to core content or functionality blocked unless the user accepts full tracking consent
 - uxEthics.summary: 2-3 sentence honest plain-language assessment of the UX ethics posture; if no signals found, say so clearly
-- Respond ONLY with the JSON object. No preamble, no markdown backticks, no explanation.`
+- Respond ONLY with the JSON object, written compactly on one line with no indentation. No preamble, no markdown backticks, no explanation.`
 
 const MAX_TOTAL_CHARS = 80000
+
+/** Room for the analysis answer. 4000 cut real readings off mid-answer (Render log, 2026-11-19); a retry gets twice this. */
+export const ANALYSIS_MAX_TOKENS = 8000
 
 export class NotARepo extends Error {}
 
@@ -122,13 +125,13 @@ export async function analyzeRepo(url: string, allowFresh = true): Promise<Analy
   const prepared = await prepare(ref)
   let answer
   try {
-    answer = await callModel("analysis", SYSTEM_PROMPT, prepared.userMessage, 4000)
+    answer = await callModelJson<Record<string, unknown>>("analysis", SYSTEM_PROMPT, prepared.userMessage, ANALYSIS_MAX_TOKENS)
   } catch (e) {
     if (!(e instanceof BudgetReached)) throw e
     if (!prev) throw e
     return { ...prev.result, stored: { readAt: prev.readAt, commit: prev.commit, model: prev.model, current: false } }
   }
-  const analysis = parseJson<Record<string, unknown>>(answer.text)
+  const analysis = answer.value
   analysis.ml = await withHuggingFace(analysis.ml as Parameters<typeof withHuggingFace>[0])
   const result = { analysis, meta: { ...prepared.meta, commit: prepared.meta.commit ?? commit } }
   await putReading("analysis", key, repo, String(prepared.meta.commit ?? commit), answer.model, result, answer.costUsd)

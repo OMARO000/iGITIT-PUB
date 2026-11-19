@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { NotARepo } from "./analyze"
 import { CORS, DOCS_URL, RateLimited, remaining } from "./limits"
-import { BudgetReached } from "./model"
+import { AnswerCutShort, BudgetReached, ModelUnavailable } from "./model"
 
 export function ok(ip: string, body: Record<string, unknown>): NextResponse {
   const { remaining: left, resetAt } = remaining(ip)
@@ -18,7 +18,12 @@ export function fail(status: number, error: string, message: string): NextRespon
 /** Maps any thrown error to the API's answer. */
 export function failFrom(e: unknown): NextResponse {
   if (e instanceof RateLimited) return fail(429, "fresh_limit_reached", e.message)
+  if (e instanceof ModelUnavailable) return fail(503, "reading_paused", e.message)
   if (e instanceof BudgetReached) return fail(503, "budget_reached", e.message)
+  if (e instanceof AnswerCutShort) {
+    console.error("reading failed:", e.message)
+    return fail(502, "reading_too_long", "This repository's reading came out too long to finish. Nothing partial was kept. Try again later.")
+  }
   if (e instanceof NotARepo) return fail(400, "invalid_repo", e.message)
   console.error("reading failed:", e instanceof Error ? e.message : e)
   return fail(502, "reading_failed", "IRIS's code server couldn't read this repository just now. Try again later.")

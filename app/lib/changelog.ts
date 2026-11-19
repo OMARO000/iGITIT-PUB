@@ -2,7 +2,7 @@
  * Changelog: the latest commits explained in plain language, each routine, notable or flagged.
  * Stored by repository, newest commit and depth; at most 25 commits a read.
  */
-import { callModel, parseJson } from "./model"
+import { callModelJson } from "./model"
 import { getReading, putReading } from "./store"
 import { RateLimited } from "./limits"
 import { CODEBERG_API, isPublicHost, repoKey, type RepoRef } from "./repo"
@@ -210,12 +210,12 @@ ${filesSummary}`
   const hit = await getReading<unknown[]>("changelog", key)
   if (hit) return { changelog: hit.result, total: commits.length, stored: { readAt: hit.readAt } }
   if (!allowFresh) throw new RateLimited()
-  const answer = await callModel("changelog", CHANGELOG_SYSTEM, `Analyze these ${commits.length} commits from ${name} and return the JSON array of plain-language explanations.
+  const answer = await callModelJson<unknown[]>("changelog", CHANGELOG_SYSTEM, `Analyze these ${commits.length} commits from ${name} and return the JSON array of plain-language explanations.
 
 ${commitsText}
 
-Return the complete JSON array now.`, 6000)
-  const changelog = parseJson<unknown[]>(answer.text)
+Return the complete JSON array now.`, 8000)
+  const changelog = answer.value
   await putReading("changelog", key, repoKey(ref), commits[0]?.sha ?? null, answer.model, changelog, answer.costUsd)
   return { changelog, total: commits.length }
 }

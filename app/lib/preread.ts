@@ -8,7 +8,7 @@
  */
 import { withHuggingFace } from "./ml"
 import { MODEL, batchResults, customId, parseJson, submitBatch } from "./model"
-import { SYSTEM_PROMPT, carryForward, prepare } from "./analyze"
+import { ANALYSIS_MAX_TOKENS, SYSTEM_PROMPT, carryForward, prepare } from "./analyze"
 import { headCommit, parseRepo, repoKey } from "./repo"
 import { finishBatch, getReading, latestReading, openBatches, pendingKeys, putReading, saveBatch, settle } from "./store"
 
@@ -33,7 +33,7 @@ export async function runPrereads(urls: string[]): Promise<PrereadReport> {
         analysis.ml = await withHuggingFace(analysis.ml as Parameters<typeof withHuggingFace>[0])
         await putReading("analysis", item.key, item.repo, item.commit, MODEL, { analysis, meta: item.meta }, a.costUsd)
         report.collected++
-      } catch { report.failed++ }
+      } catch (e) { report.failed++; console.error("pre-read unreadable:", item.key, e instanceof Error ? e.message : e) }
     }
     await finishBatch(batch.id)
   }
@@ -69,7 +69,7 @@ export async function runPrereads(urls: string[]): Promise<PrereadReport> {
     }
   }
   if (prepared.length) {
-    const { batchId, submitted, deferred } = await submitBatch(prepared.map((p) => ({ key: p.key, system: SYSTEM_PROMPT, user: p.user, maxTokens: 4000 })))
+    const { batchId, submitted, deferred } = await submitBatch(prepared.map((p) => ({ key: p.key, system: SYSTEM_PROMPT, user: p.user, maxTokens: ANALYSIS_MAX_TOKENS })))
     report.deferred += deferred.length
     if (batchId) {
       const byKey = new Map(prepared.map((p) => [p.key, p]))

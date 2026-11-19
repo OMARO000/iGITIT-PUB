@@ -57,7 +57,8 @@ export function anthropic(): Anthropic {
   return client
 }
 
-export interface ModelAnswer { text: string; model: string; costUsd: number }
+/** `stopReason` is "max_tokens" when the answer ran out of room and was cut off. */
+export interface ModelAnswer { text: string; model: string; costUsd: number; stopReason?: string | null }
 
 export async function callModel(kind: string, system: string, user: string, maxTokens: number): Promise<ModelAnswer> {
   const estimate = estimateUsd(MODEL, system.length + user.length, maxTokens)
@@ -78,7 +79,7 @@ export async function callModel(kind: string, system: string, user: string, maxT
     const [inPrice] = priceOf(MODEL)
     actual = costUsd(MODEL, u.input_tokens, u.output_tokens) + (cacheRead * inPrice * 0.1 + cacheWrite * inPrice * 1.25) / 1_000_000
     const text = response.content.filter((b) => b.type === "text").map((b) => (b as { text: string }).text).join("")
-    return { text, model: MODEL, costUsd: actual }
+    return { text, model: MODEL, costUsd: actual, stopReason: response.stop_reason }
   } catch (e) {
     if (accountProblem(e)) { console.error("model account unavailable:", e instanceof Error ? e.message : e); throw new ModelUnavailable() }
     throw e
@@ -87,10 +88,47 @@ export async function callModel(kind: string, system: string, user: string, maxT
   }
 }
 
-/** Strips code fences and parses the model's JSON. */
+/**
+ * Parses the model's JSON. Tolerates code fences and text around the object: it reads from the first "{" or "["
+ * to the last matching closer. A cut-off answer still fails here, by design: a partial reading is never stored.
+ */
 export function parseJson<T>(raw: string): T {
   const clean = raw.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim()
-  return JSON.parse(clean) as T
+  try { return JSON.parse(clean) as T } catch (first) {
+    const open = clean.search(/[{[]/)
+    if (open < 0) throw first
+    const close = clean.lastIndexOf(clean[open] === "{" ? "}" : "]")
+    if (close <= open) throw first
+    try { return JSON.parse(clean.slice(open, close + 1)) as T } catch { throw first }
+  }
+}
+
+/** The model's answer was cut off or unreadable twice in a row. */
+export class AnswerCutShort extends Error {
+  constructor(detail: string) { super(`the model's answer was cut off or unreadable twice (${detail})`) }
+}
+
+/** Added to the second try when the first answer ran out of room or couldn't be parsed. */
+export const RETRY_NOTE = "\n\nYour last answer was too long and was cut off before the JSON closed. Answer again with the same structure, as compact JSON on one line, keeping every text value to one or two short sentences and every list to its most important items."
+
+/**
+ * A model call whose answer must be JSON. If the answer ran out of room or doesn't parse, it asks once more with
+ * twice the room and a note to be brief; both calls count against today's cap. Never stores a partial answer.
+ */
+export async function callModelJson<T>(kind: string, system: string, user: string, maxTokens: number,
+  call: typeof callModel = callModel): Promise<{ value: T; model: string; costUsd: number; retried: boolean }> {
+  const first = await call(kind, system, user, maxTokens)
+  let why: string
+  if (first.stopReason !== "max_tokens") {
+    try { return { value: parseJson<T>(first.text), model: first.model, costUsd: first.costUsd, retried: false } }
+    catch (e) { why = e instanceof Error ? e.message : String(e) }
+  } else why = `stopped at ${maxTokens} tokens`
+  console.warn(`${kind}: first answer unusable (${why}); asking once more`)
+  const second = await call(kind, system, user + RETRY_NOTE, maxTokens * 2)
+  const costUsd = first.costUsd + second.costUsd
+  if (second.stopReason === "max_tokens") throw new AnswerCutShort(`stopped at ${maxTokens * 2} tokens`)
+  try { return { value: parseJson<T>(second.text), model: second.model, costUsd, retried: true } }
+  catch (e) { throw new AnswerCutShort(e instanceof Error ? e.message : String(e)) }
 }
 
 // --- Nightly pre-reads through the batch interface (half price, answers within 24 hours) ---------------------

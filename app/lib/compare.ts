@@ -5,7 +5,7 @@
 import { HAI_PILLARS, haiOf } from "./hai"
 import { createHash } from "node:crypto"
 import type { AnalysisResult } from "./analyze"
-import { callModel, parseJson } from "./model"
+import { callModelJson } from "./model"
 import { getReading, putReading } from "./store"
 import { RateLimited } from "./limits"
 
@@ -97,7 +97,7 @@ export async function compareRepos(a: AnalysisResult, b: AnalysisResult, allowFr
   const hit = await getReading<unknown>("compare", key)
   if (hit) return { comparison: hit.result, stored: { readAt: hit.readAt } }
   if (!allowFresh) throw new RateLimited()
-  const answer = await callModel("compare", COMPARE_SYSTEM, `Compare these two repositories and return the JSON comparison.
+  const answer = await callModelJson<unknown>("compare", COMPARE_SYSTEM, `Compare these two repositories and return the JSON comparison.
 
 === REPO A ===
 ${left}
@@ -105,8 +105,8 @@ ${left}
 === REPO B ===
 ${right}
 
-Return the complete JSON comparison now.`, 4000)
-  const comparison = parseJson(answer.text)
+Return the complete JSON comparison now.`, 6000)
+  const comparison = answer.value
   await putReading("compare", key, null, null, answer.model, comparison, answer.costUsd)
   return { comparison }
 }

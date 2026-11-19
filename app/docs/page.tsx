@@ -292,6 +292,8 @@ export default function Page() {
               <Param name="400 invalid_repo" type="error" desc="The address isn't a GitHub, GitLab or Radicle repository, or has no readable files." />
               <Param name="429 fresh_limit_reached" type="error" desc="This address used its fresh readings for the hour and nothing is stored for this repository yet." />
               <Param name="503 budget_reached" type="error" desc="Today's reading budget is used up and nothing is stored for this repository yet." />
+              <Param name="503 reading_paused" type="error" desc="Reading new code is paused on OMARO's side and nothing is stored for this repository yet." />
+              <Param name="502 reading_too_long" type="error" desc="The reading came out too long to finish, twice. Nothing partial is kept." />
               <Param name="502 reading_failed" type="error" desc="The repository couldn't be read, or the reading failed." />
             </div>
             <CodeBlock lang="json" code={`{ "ok": false, "error": "fresh_limit_reached", "message": "…", "docs": "${BASE}/docs" }`} />
