@@ -110,7 +110,7 @@ function buildTextReport(analysis: Analysis): string {
   L.push("", "═══════════════════════════════", `HAI SCORE · [${grade}] ${totalRaw}/45 · GOVERNED BY OMARO PBC`, "═══════════════════════════════")
   for (const k of ["I","A","S","E","C","U","E2","R","D"]) { const v = (rescue as any)[k]; if (v) L.push(`\n[${k}]: ${(v as RescuePillar).score}/5 — ${(v as RescuePillar).finding}`) }
   L.push("", "OVERALL VERDICT", overallVerdict, "", "─────────────────────────────────────────────────────")
-  L.push("analysis reflects repository state at time of request · not legal or compliance advice", "igitit.xyz · omaro-pbc.org")
+  L.push("analysis reflects repository state at time of request · not legal or compliance advice", "igitit.xyz · omaro.org")
   return L.join("\n")
 }
 
@@ -1305,7 +1305,7 @@ export default function IGititPage() {
 
         {/* MIDDLE: OMARO badge + SUPPORT HAI badge (stacked vertically) */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center" }}>
-          <a href="https://omaro.xyz" target="_blank" rel="noopener noreferrer" suppressHydrationWarning
+          <a href="https://omaro.org" target="_blank" rel="noopener noreferrer" suppressHydrationWarning
             style={{ display: "inline-block", width: "72px", border: "1px solid rgba(26,90,170,0.7)", padding: "10px 6px", fontSize: "9px", color: "rgba(74,158,240,0.9)", letterSpacing: "1px", lineHeight: "1.8", textAlign: "center", backgroundColor: "rgba(10,58,122,0.5)", textDecoration: "none", fontFamily: "monospace" }}>
             AN<br />OMARO<br />COMPANY
           </a>

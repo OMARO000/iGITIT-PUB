@@ -128,7 +128,7 @@ export default function DocsPage() {
           <div style={{ marginTop: "40px", paddingTop: "24px", borderTop: `1px solid ${S.border}` }}>
             <div style={{ fontSize: "10px", letterSpacing: "0.12em", color: S.dim, marginBottom: "12px" }}>OMARO PBC</div>
             <a href="https://igitit.xyz" style={{ display: "block", fontSize: "12px", color: S.dim, textDecoration: "none", marginBottom: "8px" }}>igitit.xyz</a>
-            <a href="https://omaro-pbc.org" style={{ display: "block", fontSize: "12px", color: S.dim, textDecoration: "none" }}>omaro-pbc.org</a>
+            <a href="https://omaro.org" style={{ display: "block", fontSize: "12px", color: S.dim, textDecoration: "none" }}>omaro.org</a>
           </div>
         </div>
 
@@ -425,7 +425,7 @@ https.get(url, (res) => {
           {/* FOOTER */}
           <div style={{ paddingTop: "40px", borderTop: `1px solid ${S.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
             <div style={{ fontSize: "13px", color: S.dim }}>
-              iGITit API v1.0 · powered by Claude · an <a href="https://omaro-pbc.org" style={{ color: S.amber, textDecoration: "none" }}>OMARO PBC</a> product
+              iGITit API v1.0 · powered by Claude · an <a href="https://omaro.org" style={{ color: S.amber, textDecoration: "none" }}>OMARO PBC</a> product
             </div>
             <Link href="/" style={{ fontSize: "13px", color: S.muted, textDecoration: "none", letterSpacing: "0.04em" }}>← back to analyzer</Link>
           </div>
