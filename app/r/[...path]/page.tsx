@@ -39,7 +39,7 @@ export default async function SharedReading({ params }: Props) {
         <div style={{ fontSize: 11, letterSpacing: "0.14em", color: C.dim }}>READ THE CODE · A READING SHARED FROM IRIS BY OMARO</div>
         {body}
         <p style={{ marginTop: 40, fontSize: 12, color: C.dim }}>
-          Read it yourself with <a href="https://omaro.xyz/iris" style={{ color: C.accent }}>IRIS by OMARO</a>. API and method: <a href="/iris/code/docs" style={{ color: C.accent }}>the API docs</a>. A reading reflects the repository at the commit shown; it isn&apos;t legal or compliance advice.
+          Read it yourself with <a href="https://omaro.org/iris" style={{ color: C.accent }}>IRIS by OMARO</a>. API and method: <a href="/iris/code/docs" style={{ color: C.accent }}>the API docs</a>. A reading reflects the repository at the commit shown; it isn&apos;t legal or compliance advice.
         </p>
       </div>
     </main>
