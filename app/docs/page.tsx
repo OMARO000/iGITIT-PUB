@@ -12,7 +12,7 @@ const S = {
   dim: "rgba(255,255,255,0.2)",
   border: "rgba(255,255,255,0.07)",
   borderMid: "rgba(255,255,255,0.1)",
-  amber: "#C4974A",
+  slate: "#c3ccd8",
   green: "#4CAF7D",
   red: "#E05C5C",
   font: "'IBM Plex Mono', 'Courier New', monospace",
@@ -55,7 +55,7 @@ function Param({ name, type, required, desc }: { name: string; type: string; req
   return (
     <div style={{ padding: "14px 0", borderBottom: `1px solid ${S.border}`, display: "grid", gridTemplateColumns: "180px 80px 1fr", gap: "16px", alignItems: "start" }}>
       <div>
-        <span style={{ fontSize: "13px", color: S.amber, fontFamily: S.font }}>{name}</span>
+        <span style={{ fontSize: "13px", color: S.slate, fontFamily: S.font }}>{name}</span>
         {required && <span style={{ fontSize: "10px", color: S.red, marginLeft: "8px", letterSpacing: "0.06em" }}>required</span>}
       </div>
       <span style={{ fontSize: "12px", color: S.muted, fontFamily: S.font }}>{type}</span>
@@ -93,7 +93,7 @@ export default function DocsPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        ::selection { background: rgba(196,151,74,0.3); }
+        ::selection { background: rgba(195,204,216,0.3); }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
         h3 { font-size: 16px; font-weight: 500; color: rgba(255,255,255,0.88); margin-bottom: 12px; margin-top: 28px; }
@@ -123,7 +123,7 @@ export default function DocsPage() {
         <div style={{ position: "sticky", top: "57px", height: "calc(100vh - 57px)", overflowY: "auto", padding: "40px 24px", borderRight: `1px solid ${S.border}` }}>
           <div style={{ fontSize: "10px", letterSpacing: "0.12em", color: S.dim, marginBottom: "16px" }}>ON THIS PAGE</div>
           {NAV.map(item => (
-            <a key={item.id} href={`#${item.id}`} className="nav-item" onClick={() => setActiveNav(item.id)} style={{ display: "block", padding: "7px 0", fontSize: "13px", color: activeNav === item.id ? S.amber : S.muted, letterSpacing: "0.04em", textDecoration: "none", transition: "color 0.15s", borderLeft: `2px solid ${activeNav === item.id ? S.amber : "transparent"}`, paddingLeft: "12px", marginLeft: "-2px" }}>
+            <a key={item.id} href={`#${item.id}`} className="nav-item" onClick={() => setActiveNav(item.id)} style={{ display: "block", padding: "7px 0", fontSize: "13px", color: activeNav === item.id ? S.slate : S.muted, letterSpacing: "0.04em", textDecoration: "none", transition: "color 0.15s", borderLeft: `2px solid ${activeNav === item.id ? S.slate : "transparent"}`, paddingLeft: "12px", marginLeft: "-2px" }}>
               {item.label}
             </a>
           ))}
@@ -149,7 +149,7 @@ export default function DocsPage() {
               ].map(item => (
                 <div key={item.label} style={{ padding: "16px 20px", background: "rgba(255,255,255,0.02)", border: `1px solid ${S.border}`, borderRadius: "6px" }}>
                   <div style={{ fontSize: "10px", letterSpacing: "0.1em", color: S.dim, marginBottom: "8px" }}>{item.label}</div>
-                  <div style={{ fontSize: "14px", color: S.amber }}>{item.value}</div>
+                  <div style={{ fontSize: "14px", color: S.slate }}>{item.value}</div>
                 </div>
               ))}
             </div>
@@ -159,7 +159,7 @@ export default function DocsPage() {
           <Section id="quickstart" title="Quickstart">
             <p>Make a GET request with a repository URL. That&apos;s it.</p>
             <CodeBlock lang="curl" code={`curl "${BASE}/api/v1/analyze?repo=github.com/facebook/react"`} />
-            <p>Or use the shorthand <span style={{ color: S.amber }}>owner/repo</span> format (defaults to GitHub):</p>
+            <p>Or use the shorthand <span style={{ color: S.slate }}>owner/repo</span> format (defaults to GitHub):</p>
             <CodeBlock lang="curl" code={`curl "${BASE}/api/v1/analyze?repo=facebook/react"`} />
             <p>GitLab repositories:</p>
             <CodeBlock lang="curl" code={`curl "${BASE}/api/v1/analyze?repo=gitlab.com/owner/repository"`} />
@@ -273,8 +273,8 @@ export default function Page() {
   )
 }`} />
 
-            <div style={{ marginTop: "20px", padding: "16px 20px", background: "rgba(196,151,74,0.06)", border: `1px solid rgba(196,151,74,0.2)`, borderRadius: "6px" }}>
-              <div style={{ fontSize: "11px", letterSpacing: "0.1em", color: "rgba(196,151,74,0.6)", marginBottom: "8px" }}>READ BY IRIS</div>
+            <div style={{ marginTop: "20px", padding: "16px 20px", background: "rgba(195,204,216,0.06)", border: `1px solid rgba(195,204,216,0.2)`, borderRadius: "6px" }}>
+              <div style={{ fontSize: "11px", letterSpacing: "0.1em", color: "rgba(195,204,216,0.6)", marginBottom: "8px" }}>READ BY IRIS</div>
               <p style={{ marginBottom: 0, fontSize: "13px" }}>Every embed includes a &quot;read by IRIS&quot; badge linking to these docs. Your users, journalists and regulators can check the reading for themselves.</p>
             </div>
           </Section>
@@ -365,7 +365,7 @@ https.get(url, (res) => {
                   "Researchers: build datasets of software accountability scores across industries",
                 ].map((item, i) => (
                   <div key={i} style={{ display: "flex", gap: "12px" }}>
-                    <span style={{ color: S.amber, flexShrink: 0 }}>→</span>
+                    <span style={{ color: S.slate, flexShrink: 0 }}>→</span>
                     <span style={{ fontSize: "14px", color: S.muted, fontWeight: 300, lineHeight: 1.6 }}>{item}</span>
                   </div>
                 ))}
@@ -376,7 +376,7 @@ https.get(url, (res) => {
           {/* FOOTER */}
           <div style={{ paddingTop: "40px", borderTop: `1px solid ${S.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
             <div style={{ fontSize: "13px", color: S.dim }}>
-              IRIS code API v1.2 · powered by Claude · an <a href="https://omaro.org" style={{ color: S.amber, textDecoration: "none" }}>OMARO PBC</a> product
+              IRIS code API v1.2 · powered by Claude · an <a href="https://omaro.org" style={{ color: S.slate, textDecoration: "none" }}>OMARO PBC</a> product
             </div>
             <a href="https://omaro.org" style={{ fontSize: "13px", color: S.muted, textDecoration: "none", letterSpacing: "0.04em" }}>OMARO</a>
           </div>

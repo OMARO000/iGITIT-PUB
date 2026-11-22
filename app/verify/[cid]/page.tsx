@@ -57,7 +57,7 @@ const S = {
   muted: "rgba(255,255,255,0.4)",
   dim: "rgba(255,255,255,0.2)",
   border: "rgba(255,255,255,0.07)",
-  amber: "#C4974A",
+  slate: "#c3ccd8",
   green: "#4CAF7D",
   red: "#E05C5C",
   font: "'IBM Plex Mono', 'Courier New', monospace",
@@ -80,7 +80,7 @@ function bodyText(text: string) {
 }
 
 function dataColor(type: "collect" | "store" | "send") {
-  if (type === "collect") return S.amber
+  if (type === "collect") return S.slate
   if (type === "store") return S.green
   return S.red
 }
@@ -116,11 +116,11 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
         <div style={{ padding: "40px", background: "rgba(224,92,92,0.06)", border: "1px solid rgba(224,92,92,0.2)", borderRadius: "8px" }}>
           <div style={{ fontSize: "13px", color: S.red, letterSpacing: "0.08em", marginBottom: "12px" }}>VERIFICATION FAILED</div>
           <div style={{ fontSize: "16px", color: "rgba(255,255,255,0.7)", fontWeight: 300, lineHeight: 1.75 }}>
-            Could not retrieve analysis from IPFS. The CID <span style={{ color: S.amber, fontFamily: S.font }}>{cid}</span> may be invalid, unpinned, or temporarily unavailable.
+            Could not retrieve analysis from IPFS. The CID <span style={{ color: S.slate, fontFamily: S.font }}>{cid}</span> may be invalid, unpinned, or temporarily unavailable.
           </div>
           <div style={{ marginTop: "16px", fontSize: "13px", color: S.muted }}>
             Try again later, or check the CID directly at{" "}
-            <a href={`https://gateway.pinata.cloud/ipfs/${cid}`} target="_blank" rel="noopener noreferrer" style={{ color: S.amber }}>
+            <a href={`https://gateway.pinata.cloud/ipfs/${cid}`} target="_blank" rel="noopener noreferrer" style={{ color: S.slate }}>
               gateway.pinata.cloud/ipfs/{cid}
             </a>
           </div>
@@ -140,7 +140,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap');
         * { box-sizing: border-box; }
-        ::selection { background: rgba(196,151,74,0.3); }
+        ::selection { background: rgba(195,204,216,0.3); }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
       `}</style>
@@ -176,7 +176,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "16px" }}>
           <div>
             <div style={{ fontSize: "11px", color: S.dim, marginBottom: "6px", letterSpacing: "0.08em" }}>IPFS CID</div>
-            <div style={{ fontSize: "12px", color: S.amber, wordBreak: "break-all", lineHeight: 1.5 }}>{cid}</div>
+            <div style={{ fontSize: "12px", color: S.slate, wordBreak: "break-all", lineHeight: 1.5 }}>{cid}</div>
           </div>
           <div>
             <div style={{ fontSize: "11px", color: S.dim, marginBottom: "6px", letterSpacing: "0.08em" }}>SHA-256 HASH</div>
@@ -194,7 +194,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
           </div>
           <div>
             <div style={{ fontSize: "11px", color: S.dim, marginBottom: "6px", letterSpacing: "0.08em" }}>IPFS GATEWAY</div>
-            <a href={`https://gateway.pinata.cloud/ipfs/${cid}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: S.amber, textDecoration: "none" }}>
+            <a href={`https://gateway.pinata.cloud/ipfs/${cid}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: S.slate, textDecoration: "none" }}>
               view raw ↗
             </a>
           </div>
@@ -205,8 +205,8 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
       </div>
 
       {/* AI DISCLAIMER */}
-      <div style={{ padding: "20px 28px", background: "rgba(196,151,74,0.08)", border: "1px solid rgba(196,151,74,0.3)", borderRadius: "8px", marginBottom: "28px" }}>
-        <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(196,151,74,0.8)", marginBottom: "10px" }}>IMPORTANT · READ BEFORE CITING</div>
+      <div style={{ padding: "20px 28px", background: "rgba(195,204,216,0.08)", border: "1px solid rgba(195,204,216,0.3)", borderRadius: "8px", marginBottom: "28px" }}>
+        <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(195,204,216,0.8)", marginBottom: "10px" }}>IMPORTANT · READ BEFORE CITING</div>
         <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.75, fontWeight: 300 }}>
           This is an AI-generated analysis of publicly available source code at a specific point in time. It may contain errors, omissions, or misinterpretations. The pinned record preserves what was analyzed and what conclusions were reached — not that those conclusions are definitively correct. Always verify findings with primary sources before citing in legal, regulatory, or journalistic contexts. This is not legal or compliance advice.
         </div>
@@ -221,12 +221,12 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
             {repo.language && <span style={{ fontSize: "12px", padding: "3px 10px", border: `1px solid ${S.border}`, borderRadius: "4px", color: S.muted }}>{repo.language}</span>}
             <span style={{ fontSize: "12px", padding: "3px 10px", border: `1px solid ${S.border}`, borderRadius: "4px", color: S.muted }}>★ {repo.stars}</span>
             <span style={{ fontSize: "12px", padding: "3px 10px", border: `1px solid ${S.border}`, borderRadius: "4px", color: S.muted }}>{repo.fileCount} files</span>
-            {repo.license && <span style={{ fontSize: "12px", padding: "3px 10px", border: `1px solid rgba(196,151,74,0.3)`, borderRadius: "4px", color: S.amber }}>{repo.license}</span>}
+            {repo.license && <span style={{ fontSize: "12px", padding: "3px 10px", border: `1px solid rgba(195,204,216,0.3)`, borderRadius: "4px", color: S.slate }}>{repo.license}</span>}
           </div>
         </div>
         {repo.description && <div style={{ fontSize: "14px", color: S.muted, lineHeight: 1.6 }}>{repo.description}</div>}
         <div style={{ marginTop: "8px" }}>
-          <a href={repo.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: S.amber, opacity: 0.7, textDecoration: "none" }}>
+          <a href={repo.sourceUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: S.slate, opacity: 0.7, textDecoration: "none" }}>
             {repo.sourceUrl} ↗
           </a>
         </div>
@@ -254,13 +254,13 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
               <div>
                 <span style={{ fontSize: "15px", color: "rgba(255,255,255,0.82)" }}>{item.label}</span>
                 <span style={{ fontSize: "15px", color: S.muted, fontWeight: 300 }}> — {item.description}</span>
-                {item.sourceLine && <div style={{ marginTop: "3px", fontSize: "11px", color: S.amber, opacity: 0.7 }}>→ {item.sourceLine}</div>}
+                {item.sourceLine && <div style={{ marginTop: "3px", fontSize: "11px", color: S.slate, opacity: 0.7 }}>→ {item.sourceLine}</div>}
               </div>
             </div>
           ))}
         </div>
         <div style={{ display: "flex", gap: "16px", marginTop: "20px", paddingTop: "16px", borderTop: `1px solid ${S.border}` }}>
-          {[{ color: S.amber, label: "collected" }, { color: S.green, label: "stored" }, { color: S.red, label: "transmitted" }].map(({ color, label }) => (
+          {[{ color: S.slate, label: "collected" }, { color: S.green, label: "stored" }, { color: S.red, label: "transmitted" }].map(({ color, label }) => (
             <div key={label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: color }} />
               <span style={{ fontSize: "11px", color: S.dim }}>{label}</span>
@@ -337,8 +337,8 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
       </Card>
 
       {/* PERMANENT RECORD FOOTER */}
-      <div style={{ padding: "24px 28px", background: "rgba(196,151,74,0.04)", border: `1px solid rgba(196,151,74,0.15)`, borderRadius: "8px", marginBottom: "40px" }}>
-        <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(196,151,74,0.5)", marginBottom: "14px" }}>PERMANENT RECORD</div>
+      <div style={{ padding: "24px 28px", background: "rgba(195,204,216,0.04)", border: `1px solid rgba(195,204,216,0.15)`, borderRadius: "8px", marginBottom: "40px" }}>
+        <div style={{ fontSize: "11px", letterSpacing: "0.12em", color: "rgba(195,204,216,0.5)", marginBottom: "14px" }}>PERMANENT RECORD</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
           {[
             { label: "IPFS CID", value: cid, href: `https://gateway.pinata.cloud/ipfs/${cid}` },
@@ -349,7 +349,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
             <div key={item.label}>
               <div style={{ fontSize: "10px", color: S.dim, letterSpacing: "0.08em", marginBottom: "5px" }}>{item.label}</div>
               {item.href ? (
-                <a href={item.href} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: S.amber, textDecoration: "none", wordBreak: "break-all" }}>{item.value}</a>
+                <a href={item.href} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: S.slate, textDecoration: "none", wordBreak: "break-all" }}>{item.value}</a>
               ) : (
                 <div style={{ fontSize: "12px", color: S.muted, wordBreak: "break-all" }}>{item.value}</div>
               )}
@@ -361,7 +361,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ cid: st
       {/* FOOTER */}
       <div style={{ paddingTop: "20px", borderTop: `1px solid ${S.border}`, fontSize: "13px", color: S.dim, lineHeight: 1.7, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
         <div>read by IRIS · powered by Claude · an OMARO PBC product · AI analysis may contain errors · not legal advice</div>
-        <a href="/" style={{ color: S.amber, textDecoration: "none", opacity: 0.7 }}>analyze another repo →</a>
+        <a href="/" style={{ color: S.slate, textDecoration: "none", opacity: 0.7 }}>analyze another repo →</a>
       </div>
     </div>
   )
