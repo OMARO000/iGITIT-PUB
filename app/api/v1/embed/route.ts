@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   const textColor = theme === "light" ? "#1a1a1a" : "rgba(255,255,255,0.88)"
   const borderColor = theme === "light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.08)"
   const mutedColor = theme === "light" ? "rgba(0,0,0,0.4)" : "rgba(255,255,255,0.35)"
-  const amber = "#C4974A"
+  const slate = theme === "light" ? "#4A5568" : "#c3ccd8"
   const green = "#4CAF7D"
   const red = "#E05C5C"
 
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     text: ${JSON.stringify(textColor)},
     border: ${JSON.stringify(borderColor)},
     muted: ${JSON.stringify(mutedColor)},
-    amber: ${JSON.stringify(amber)},
+    slate: ${JSON.stringify(slate)},
     green: ${JSON.stringify(green)},
     red: ${JSON.stringify(red)},
     font: "'IBM Plex Mono', 'Courier New', monospace",
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
   function scoreColor(pass) { return pass ? styles.green : styles.red; }
 
   function dataColor(type) {
-    if (type === 'collect') return styles.amber;
+    if (type === 'collect') return styles.slate;
     if (type === 'store') return styles.green;
     return styles.red;
   }
@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
       pills.appendChild(lang);
     }
     if (repo.license) {
-      var lic = el('span', 'font-size:11px;padding:2px 8px;border:1px solid rgba(196,151,74,0.3);border-radius:3px;color:' + styles.amber + ';');
+      var lic = el('span', 'font-size:11px;padding:2px 8px;border:1px solid rgba(195,204,216,0.3);border-radius:3px;color:' + styles.slate + ';');
       lic.textContent = repo.license;
       pills.appendChild(lic);
     }
@@ -169,7 +169,7 @@ export async function GET(req: NextRequest) {
 
     var badgeLabel = el('span', 'font-size:10px;color:' + styles.muted + ';letter-spacing:0.08em;opacity:0.7;');
     badgeLabel.textContent = 'powered by';
-    var badgeName = el('span', 'font-size:11px;color:' + styles.amber + ';letter-spacing:0.04em;font-weight:500;');
+    var badgeName = el('span', 'font-size:11px;color:' + styles.slate + ';letter-spacing:0.04em;font-weight:500;');
     badgeName.textContent = 'iGITit';
     badge.appendChild(badgeLabel);
     badge.appendChild(badgeName);

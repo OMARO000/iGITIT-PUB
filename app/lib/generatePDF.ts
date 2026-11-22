@@ -40,7 +40,7 @@ const C = {
   blue:    [74,158,240] as [number,number,number],
   green:   [76,175,125] as [number,number,number],
   red:     [224,92,92] as [number,number,number],
-  amber:   [186,117,23] as [number,number,number],
+  slate:   [74,85,104] as [number,number,number],
   text:    [26,26,26] as [number,number,number],
   muted:   [120,120,120] as [number,number,number],
   subtext: [68,68,68] as [number,number,number],
@@ -284,7 +284,7 @@ export async function downloadAnalysisPDF(
       y = h.checkPage(y, 12)
       const pillar = rScore[key as keyof RescueScore]
       const pct = (pillar.score / 5) * 55
-      const col = pillar.score >= 4 ? C.green : pillar.score >= 3 ? C.blue : pillar.score >= 2 ? C.amber : C.red
+      const col = pillar.score >= 4 ? C.green : pillar.score >= 3 ? C.blue : pillar.score >= 2 ? C.slate : C.red
       doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
       doc.text(`[${key}] ${label}`, 14, y)
       doc.setFillColor(...C.border); doc.rect(100, y-4, 55, 3, "F")
@@ -327,7 +327,7 @@ export async function downloadAnalysisPDF(
     h.sectionLabel(y, `CHANGE LOG  (${Math.min(changelog.length,50)} commits)`); y += 8
     for (const commit of changelog.slice(0,50)) {
       y = h.checkPage(y, 18)
-      const sigColor = commit.significance === "flagged" ? C.red : commit.significance === "notable" ? C.amber : C.muted
+      const sigColor = commit.significance === "flagged" ? C.red : commit.significance === "notable" ? C.slate : C.muted
       doc.setFillColor(...sigColor); doc.circle(17, y-1.5, 2, "F")
       doc.setFontSize(8); doc.setFont("courier","bold"); doc.setTextColor(...C.text)
       doc.text(commit.sha.slice(0,7), 22, y)
@@ -529,7 +529,7 @@ export async function downloadComparePDF(
         ry = h.checkPage(ry, 12)
         const pillar = wrScore[key as keyof RescueScore]
         const pct = (pillar.score / 5) * 55
-        const col = pillar.score >= 4 ? C.green : pillar.score >= 3 ? C.blue : pillar.score >= 2 ? C.amber : C.red
+        const col = pillar.score >= 4 ? C.green : pillar.score >= 3 ? C.blue : pillar.score >= 2 ? C.slate : C.red
         doc.setFontSize(8); doc.setFont("courier","normal"); doc.setTextColor(...C.subtext)
         doc.text(`[${key}] ${label}`, 14, ry)
         doc.setFillColor(...C.border); doc.rect(100, ry-4, 55, 3, "F")
