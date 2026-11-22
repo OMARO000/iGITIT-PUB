@@ -9,7 +9,7 @@ import { latestReading } from "@/app/lib/store"
 
 export const dynamic = "force-dynamic"
 
-const C = { bg: "#0b0b0c", text: "rgba(255,255,255,0.88)", muted: "rgba(255,255,255,0.55)", dim: "rgba(255,255,255,0.32)", line: "rgba(255,255,255,0.08)", collect: "#4A9EF0", store: "#4CAF7D", send: "#E05C5C", accent: "#C4974A" }
+const C = { bg: "#0b0b0c", text: "rgba(255,255,255,0.88)", muted: "rgba(255,255,255,0.55)", dim: "rgba(255,255,255,0.32)", line: "rgba(255,255,255,0.08)", collect: "#4A9EF0", store: "#4CAF7D", send: "#E05C5C", accent: "#c3ccd8" }
 type Reading = { analysis: Record<string, unknown>; meta: Record<string, unknown> }
 type Props = { params: Promise<{ path: string[] }> }
 
