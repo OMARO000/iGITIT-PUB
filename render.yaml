@@ -32,6 +32,11 @@ services:
         sync: false
       - key: PINATA_JWT
         sync: false
+      # The report drop box: OMARO's public key that seals each report, and the token that collects them.
+      - key: REPORTS_PUBLIC_KEY
+        sync: false
+      - key: REPORTS_PULL_TOKEN
+        sync: false
 
   # Nightly pre-reads (scripts/preread.ts): popular repositories read ahead at half price, within the daily cap.
   - type: cron
