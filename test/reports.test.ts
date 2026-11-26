@@ -23,6 +23,13 @@ describe("the report drop box", () => {
     expect(checkReport({ kind: "idea", said: "  " }).ok).toBe(false)
     expect(checkReport({ kind: "idea", said: "x".repeat(4001) }).ok).toBe(false)
   })
+  it("takes a company request with only the company's name (Ask IRIS to look into this company)", () => {
+    expect(checkReport({ kind: "request", said: "Mozilla" })).toEqual({ ok: true, report: { kind: "request", said: "Mozilla" } })
+    expect(checkReport({ kind: "request", said: "Mozilla", app: "IRIS 0.1.51" }).ok).toBe(false)
+    expect(checkReport({ kind: "request", said: "Mozilla", facts: "System: Linux" }).ok).toBe(false)
+    expect(checkReport({ kind: "request", said: "Mozilla\nmy address" }).ok).toBe(false)
+    expect(checkReport({ kind: "request", said: "x".repeat(121) }).ok).toBe(false)
+  })
   it("counts five an hour per sender", () => {
     for (let i = 0; i < 5; i++) expect(allow("t", 1000 + i)).toBe(true)
     expect(allow("t", 2000)).toBe(false)

@@ -6,10 +6,11 @@
 import { createCipheriv, createDecipheriv, createPrivateKey, createPublicKey, diffieHellman, generateKeyPairSync, hkdfSync, randomBytes, timingSafeEqual, type KeyObject } from "node:crypto"
 import { ready_ } from "./store"
 
-export const KINDS = ["broke", "reading", "idea"] as const
+/** "request" is "Ask IRIS to look into this company": `said` holds only the company's name, and nothing else may come with it. */
+export const KINDS = ["broke", "reading", "idea", "request"] as const
 export type Kind = (typeof KINDS)[number]
 export interface Report { kind: Kind; said: string; expected?: string; facts?: string; app?: string }
-export const MAX_TEXT = 4000, MAX_FACTS = 600, MAX_BODY = 12_000
+export const MAX_TEXT = 4000, MAX_FACTS = 600, MAX_BODY = 12_000, MAX_NAME = 120
 
 /** Pure: a report as IRIS sends it, or the reason it's refused. A security problem never comes here. */
 export function checkReport(x: unknown): { ok: true; report: Report } | { ok: false; why: string } {
@@ -20,6 +21,7 @@ export function checkReport(x: unknown): { ok: true; report: Report } | { ok: fa
   const said = str(r.said, MAX_TEXT), expected = str(r.expected, MAX_TEXT), facts = str(r.facts, MAX_FACTS), app = str(r.app, 40)
   if (said === null || expected === null || facts === null || app === null) return { ok: false, why: "too long" }
   if (!said) return { ok: false, why: "empty" }
+  if (r.kind === "request" && (said.length > MAX_NAME || /[\n\r]/.test(said) || expected || facts || app)) return { ok: false, why: "a request holds only a company name" }
   const known = new Set(["kind", "said", "expected", "facts", "app"])
   if (Object.keys(r).some((k) => !known.has(k))) return { ok: false, why: "unexpected field" }
   return { ok: true, report: { kind: r.kind as Kind, said, ...(expected ? { expected } : {}), ...(facts ? { facts } : {}), ...(app ? { app } : {}) } }
